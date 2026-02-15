@@ -67,10 +67,7 @@ export const getNovelById = (novelId: number) => {
   );
 };
 
-export const getNovelByPath = (
-  novelPath: string,
-  pluginId: string,
-) => {
+export const getNovelByPath = (novelPath: string, pluginId: string) => {
   return db.getFirstAsync<NovelInfo>(
     'SELECT * FROM Novel WHERE path = ? AND pluginId = ?',
     novelPath,
@@ -81,9 +78,19 @@ export const getNovelByPath = (
 // if query is insert novel || add to library => add default category name for it
 // else remove all it's categories
 
+/**
+ * Toggle novel in/out of library.
+ * @param novelPath - Novel path
+ * @param pluginId - Plugin ID
+ * @param defaultCategoryId - Default category setting:
+ *   -1 = ask user (skip auto-assign, caller should show category picker)
+ *    0 = system default category (ID 1)
+ *   >0 = specific category ID
+ */
 export const switchNovelToLibraryQuery = async (
   novelPath: string,
   pluginId: string,
+  defaultCategoryId: number = 0,
 ): Promise<NovelInfo | undefined> => {
   const novel = await getNovelByPath(novelPath, pluginId);
   if (novel) {
@@ -93,21 +100,27 @@ export const switchNovelToLibraryQuery = async (
       novel.id,
     );
     if (novel.inLibrary) {
+      // Removing from library
       await db.runAsync(
         'DELETE FROM NovelCategory WHERE novelId = ?',
         novel.id,
       );
       showToast(getString('browseScreen.removeFromLibrary'));
     } else {
-      await db.runAsync(
-        'INSERT INTO NovelCategory (novelId, categoryId) VALUES (?, (SELECT DISTINCT id FROM Category WHERE sort = 1))',
-        novel.id,
-      );
+      // Adding to library
+      if (defaultCategoryId !== -1) {
+        const categoryId = defaultCategoryId === 0 ? 1 : defaultCategoryId;
+        await db.runAsync(
+          'INSERT OR IGNORE INTO NovelCategory (novelId, categoryId) VALUES (?, ?)',
+          novel.id,
+          categoryId,
+        );
+      }
       showToast(getString('browseScreen.addedToLibrary'));
     }
     if (novel.pluginId === 'local') {
       await db.runAsync(
-        'INSERT INTO NovelCategory (novelId, categoryId) VALUES (?, 2)',
+        'INSERT OR IGNORE INTO NovelCategory (novelId, categoryId) VALUES (?, 2)',
         novel.id,
       );
     }
@@ -117,10 +130,14 @@ export const switchNovelToLibraryQuery = async (
     const novelId = await insertNovelAndChapters(pluginId, sourceNovel);
     if (novelId) {
       await db.runAsync('UPDATE Novel SET inLibrary = 1 WHERE id = ?', novelId);
-      await db.runAsync(
-        'INSERT INTO NovelCategory (novelId, categoryId) VALUES (?, (SELECT DISTINCT id FROM Category WHERE sort = 1))',
-        novelId,
-      );
+      if (defaultCategoryId !== -1) {
+        const categoryId = defaultCategoryId === 0 ? 1 : defaultCategoryId;
+        await db.runAsync(
+          'INSERT OR IGNORE INTO NovelCategory (novelId, categoryId) VALUES (?, ?)',
+          novelId,
+          categoryId,
+        );
+      }
       showToast(getString('browseScreen.addedToLibrary'));
     }
   }
@@ -256,7 +273,7 @@ export const updateNovelCategories = async (
         `INSERT OR IGNORE INTO NovelCategory (novelId, categoryId)
          VALUES (
           ${novelId},
-          IFNULL((SELECT categoryId FROM NovelCategory WHERE novelId = ${novelId}), (SELECT id FROM Category WHERE sort = 1))
+          IFNULL((SELECT categoryId FROM NovelCategory WHERE novelId = ${novelId}), 1)
         )`,
       );
     }

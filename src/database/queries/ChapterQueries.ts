@@ -11,6 +11,26 @@ import { getString } from '@strings/translations';
 import { NOVEL_STORAGE } from '@utils/Storages';
 import { db } from '@database/db';
 import NativeFile from '@specs/NativeFile';
+import dayjs from 'dayjs';
+
+/**
+ * Parse releaseTime strings from chapters and return the max epoch millis.
+ */
+const computeLatestChapterAt = (chapters: ChapterItem[]): number => {
+  let maxEpoch = 0;
+  for (const ch of chapters) {
+    if (ch.releaseTime) {
+      const parsed = dayjs(ch.releaseTime);
+      if (parsed.isValid()) {
+        const epoch = parsed.valueOf();
+        if (epoch > maxEpoch) {
+          maxEpoch = epoch;
+        }
+      }
+    }
+  }
+  return maxEpoch;
+};
 
 // #region Mutations
 
@@ -70,6 +90,16 @@ export const insertChapters = async (
       }
     }
   });
+
+  // Update Novel.latestChapterAt from parsed releaseTime values
+  const latestEpoch = computeLatestChapterAt(chapters);
+  if (latestEpoch > 0) {
+    await db.runAsync(
+      'UPDATE Novel SET latestChapterAt = MAX(COALESCE(latestChapterAt, 0), ?) WHERE id = ?',
+      latestEpoch,
+      novelId,
+    );
+  }
 };
 
 export const markChapterRead = (chapterId: number) =>

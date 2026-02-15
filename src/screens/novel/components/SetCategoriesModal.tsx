@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dimensions, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Divider, Portal } from 'react-native-paper';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -12,7 +12,6 @@ import { getCategoriesWithCount } from '@database/queries/CategoryQueries';
 import { updateNovelCategories } from '@database/queries/NovelQueries';
 import { CCategory, Category } from '@database/types';
 import { Checkbox } from '@components/Checkbox/Checkbox';
-import { xor } from 'lodash-es';
 import { RootStackParamList } from '@navigators/types';
 
 interface SetCategoryModalProps {
@@ -21,6 +20,34 @@ interface SetCategoryModalProps {
   onEditCategories?: () => void;
   closeModal: () => void;
   onSuccess?: () => void | Promise<void>;
+}
+
+/** Flatten categories into tree order: root, sub, sub, root, sub, ... */
+function buildCategoryTree(
+  categories: CCategory[],
+): Array<CCategory & { isSubCategory: boolean }> {
+  const roots = categories.filter(c => c.parentId == null);
+  const subsByParent = new Map<number, CCategory[]>();
+
+  for (const cat of categories) {
+    if (cat.parentId != null) {
+      const subs = subsByParent.get(cat.parentId) || [];
+      subs.push(cat);
+      subsByParent.set(cat.parentId, subs);
+    }
+  }
+
+  const result: Array<CCategory & { isSubCategory: boolean }> = [];
+  for (const root of roots) {
+    result.push({ ...root, isSubCategory: false });
+    const subs = subsByParent.get(root.id) || [];
+    subs.sort((a, b) => a.sort - b.sort);
+    for (const sub of subs) {
+      result.push({ ...sub, isSubCategory: true });
+    }
+  }
+
+  return result;
 }
 
 const SetCategoryModal: React.FC<SetCategoryModalProps> = ({
@@ -47,6 +74,41 @@ const SetCategoryModal: React.FC<SetCategoryModalProps> = ({
     }
   }, [getCategories, visible]);
 
+  const treeCategories = useMemo(
+    () => buildCategoryTree(categories),
+    [categories],
+  );
+
+  const handleToggleCategory = useCallback(
+    (item: CCategory & { isSubCategory: boolean }) => {
+      setSelectedCategories(prev => {
+        const isSelected = prev.some(c => c.id === item.id);
+
+        if (isSelected) {
+          // Deselecting
+          return prev.filter(c => c.id !== item.id);
+        } else {
+          // Selecting
+          const next = [...prev, item];
+
+          // If selecting a subcategory, also select its parent if not already
+          if (item.parentId != null) {
+            const parentSelected = next.some(c => c.id === item.parentId);
+            if (!parentSelected) {
+              const parent = categories.find(c => c.id === item.parentId);
+              if (parent) {
+                next.push(parent);
+              }
+            }
+          }
+
+          return next;
+        }
+      });
+    },
+    [categories],
+  );
+
   return (
     <Portal>
       <Modal
@@ -60,7 +122,7 @@ const SetCategoryModal: React.FC<SetCategoryModalProps> = ({
           {getString('categories.setCategories')}
         </Text>
         <FlatList
-          data={categories}
+          data={treeCategories}
           style={styles.categoryList}
           renderItem={({ item }) => (
             <Checkbox
@@ -69,10 +131,11 @@ const SetCategoryModal: React.FC<SetCategoryModalProps> = ({
                 undefined
               }
               label={item.name}
-              onPress={() =>
-                setSelectedCategories(xor(selectedCategories, [item]))
-              }
-              viewStyle={styles.checkboxView}
+              onPress={() => handleToggleCategory(item)}
+              viewStyle={[
+                styles.checkboxView,
+                item.isSubCategory && styles.subCategoryIndent,
+              ]}
               theme={theme}
             />
           )}
@@ -138,6 +201,9 @@ const styles = StyleSheet.create({
   },
   checkboxView: {
     marginBottom: 5,
+  },
+  subCategoryIndent: {
+    paddingLeft: 32,
   },
   flex: {
     flex: 1,

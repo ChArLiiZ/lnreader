@@ -6,6 +6,7 @@ import { downloadFile } from '@plugins/helpers/fetch';
 import ServiceManager from '@services/ServiceManager';
 import { db } from '@database/db';
 import NativeFile from '@specs/NativeFile';
+import dayjs from 'dayjs';
 
 const updateNovelMetadata = async (
   pluginId: string,
@@ -52,14 +53,14 @@ const updateNovelTotalPages = async (novelId: number, totalPages: number) => {
   ]);
 };
 
-const updateNovelChapters = (
+const updateNovelChapters = async (
   novelName: string,
   novelId: number,
   chapters: ChapterItem[],
   downloadNewChapters?: boolean,
   page?: string,
-) =>
-  db.withTransactionAsync(async () => {
+) => {
+  await db.withTransactionAsync(async () => {
     for (let position = 0; position < chapters.length; position++) {
       const {
         name,
@@ -121,6 +122,28 @@ const updateNovelChapters = (
       }
     }
   });
+
+  // Update Novel.latestChapterAt from parsed releaseTime values
+  let maxEpoch = 0;
+  for (const ch of chapters) {
+    if (ch.releaseTime) {
+      const parsed = dayjs(ch.releaseTime);
+      if (parsed.isValid()) {
+        const epoch = parsed.valueOf();
+        if (epoch > maxEpoch) {
+          maxEpoch = epoch;
+        }
+      }
+    }
+  }
+  if (maxEpoch > 0) {
+    await db.runAsync(
+      'UPDATE Novel SET latestChapterAt = MAX(COALESCE(latestChapterAt, 0), ?) WHERE id = ?',
+      maxEpoch,
+      novelId,
+    );
+  }
+};
 
 export interface UpdateNovelOptions {
   downloadNewChapters?: boolean;
@@ -186,17 +209,9 @@ const updateNovel = async (
       }
 
       // Fetch any new pages that were added
-      for (
-        let page = oldTotalPages + 1;
-        page <= novel.totalPages;
-        page++
-      ) {
+      for (let page = oldTotalPages + 1; page <= novel.totalPages; page++) {
         try {
-          const sourcePage = await fetchPage(
-            pluginId,
-            novelPath,
-            String(page),
-          );
+          const sourcePage = await fetchPage(pluginId, novelPath, String(page));
           await updateNovelChapters(
             novel.name,
             novelId,

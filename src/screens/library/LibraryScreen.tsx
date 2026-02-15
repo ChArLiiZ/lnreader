@@ -31,7 +31,7 @@ import { Actionbar } from '@components/Actionbar/Actionbar';
 import { useAppSettings, useHistory, useTheme } from '@hooks/persisted';
 import { useSearch, useBackHandler, useBoolean } from '@hooks';
 import { getString } from '@strings/translations';
-import { FAB, Portal } from 'react-native-paper';
+import { FAB, IconButton, Menu, Portal } from 'react-native-paper';
 import {
   markAllChaptersRead,
   markAllChaptersUnread,
@@ -64,6 +64,7 @@ type TabViewLabelProps = {
     novelIds: number[];
     key: string;
     title: string;
+    parentId: number | null;
   };
   labelText?: string;
   focused: boolean;
@@ -82,6 +83,11 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
     categories,
     refetchLibrary,
     isLoading,
+    selectedSubCategoryIds,
+    toggleSubCategoryFilter,
+    clearSubCategoryFilter,
+    getSubCategoriesForParent,
+    allCategories,
     settings: { showNumberOfNovels, downloadedOnlyMode, incognitoMode },
   } = useLibraryContext();
 
@@ -125,11 +131,47 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
     [selectedIdsSet, hasSelection, toggleSelection],
   );
 
+  // Get novels for current category, applying subcategory filter
   const currentNovels = useMemo(() => {
     if (!categories.length) return [];
-    const idsSet = new Set(categories[index].novelIds);
-    return library.filter(l => idsSet.has(l.id));
-  }, [categories, index, library]);
+    const currentCategory = categories[index];
+    if (!currentCategory) return [];
+
+    let novelIdSet: Set<number>;
+
+    if (selectedSubCategoryIds.size > 0) {
+      // Filter: only show novels that belong to selected subcategories
+      const subCatNovelIds = new Set<number>();
+      for (const cat of allCategories) {
+        if (selectedSubCategoryIds.has(cat.id)) {
+          for (const nid of cat.novelIds) {
+            subCatNovelIds.add(nid);
+          }
+        }
+      }
+      // Intersect with parent category's merged IDs
+      const parentIds = new Set(currentCategory.novelIds);
+      novelIdSet = new Set([...subCatNovelIds].filter(id => parentIds.has(id)));
+    } else {
+      novelIdSet = new Set(currentCategory.novelIds);
+    }
+
+    return library.filter(l => novelIdSet.has(l.id));
+  }, [categories, index, library, selectedSubCategoryIds, allCategories]);
+
+  // Get subcategories for current tab
+  const currentSubCategories = useMemo(() => {
+    if (!categories.length || !categories[index]) return [];
+    return getSubCategoriesForParent(categories[index].id);
+  }, [categories, index, getSubCategoriesForParent]);
+
+  // Reset subcategory filter when tab changes
+  useEffect(() => {
+    clearSubCategoryFilter();
+  }, [index, clearSubCategoryFilter]);
+
+  // Subcategory filter menu state
+  const [subFilterMenuVisible, setSubFilterMenuVisible] = useState(false);
 
   useBackHandler(() => {
     if (selectedNovelIds.length) {
@@ -178,46 +220,91 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
 
   const searchLower = useMemo(() => searchText.toLowerCase(), [searchText]);
 
-  const tabBarBorderColor = useMemo(
-    () =>
-      Color(theme.isDark ? '#FFFFFF' : '#000000')
-        .alpha(0.12)
-        .string(),
-    [theme.isDark],
-  );
-
   const renderTabBar = useCallback(
     (props: SceneRendererProps & { navigationState: State }) => {
       return categories.length ? (
-        <TabBar
-          {...props}
-          scrollEnabled
-          indicatorStyle={styles.tabBarIndicator}
-          style={[
-            {
-              backgroundColor: theme.surface,
-              borderBottomColor: tabBarBorderColor,
-            },
-            styles.tabBar,
-          ]}
-          tabStyle={styles.tabStyle}
-          gap={8}
-          inactiveColor={theme.secondary}
-          activeColor={theme.primary}
-          android_ripple={{ color: theme.rippleColor }}
-        />
+        <View style={styles.tabBarRow}>
+          <View style={styles.tabBarFlex}>
+            <TabBar
+              {...props}
+              scrollEnabled
+              indicatorStyle={styles.tabBarIndicator}
+              style={[
+                {
+                  backgroundColor: theme.surface,
+                },
+                styles.tabBar,
+              ]}
+              tabStyle={styles.tabStyle}
+              gap={8}
+              inactiveColor={theme.secondary}
+              activeColor={theme.primary}
+              android_ripple={{ color: theme.rippleColor }}
+            />
+          </View>
+          {currentSubCategories.length > 0 && (
+            <Menu
+              visible={subFilterMenuVisible}
+              onDismiss={() => setSubFilterMenuVisible(false)}
+              anchor={
+                <IconButton
+                  icon="filter-variant"
+                  iconColor={
+                    selectedSubCategoryIds.size > 0
+                      ? theme.primary
+                      : theme.onSurfaceVariant
+                  }
+                  size={22}
+                  onPress={() => setSubFilterMenuVisible(true)}
+                />
+              }
+              contentStyle={{ backgroundColor: theme.surface2 }}
+            >
+              <Menu.Item
+                title={getString('categories.allSubCategories')}
+                titleStyle={{
+                  color:
+                    selectedSubCategoryIds.size === 0
+                      ? theme.primary
+                      : theme.onSurface,
+                }}
+                onPress={() => {
+                  clearSubCategoryFilter();
+                  setSubFilterMenuVisible(false);
+                }}
+              />
+              {currentSubCategories.map(sub => (
+                <Menu.Item
+                  key={sub.id}
+                  title={sub.name}
+                  titleStyle={{
+                    color: selectedSubCategoryIds.has(sub.id)
+                      ? theme.primary
+                      : theme.onSurface,
+                  }}
+                  onPress={() => {
+                    toggleSubCategoryFilter(sub.id);
+                  }}
+                />
+              ))}
+            </Menu>
+          )}
+        </View>
       ) : null;
     },
     [
       categories.length,
+      currentSubCategories,
+      subFilterMenuVisible,
+      selectedSubCategoryIds,
+      clearSubCategoryFilter,
+      toggleSubCategoryFilter,
       styles.tabBar,
       styles.tabBarIndicator,
+      styles.tabBarRow,
+      styles.tabBarFlex,
       styles.tabStyle,
-      tabBarBorderColor,
-      theme.primary,
-      theme.rippleColor,
-      theme.secondary,
-      theme.surface,
+      theme,
     ],
   );
   const renderScene = useCallback(
@@ -231,10 +318,30 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
         novelIds: number[];
         key: string;
         title: string;
+        parentId: number | null;
       };
     }) => {
-      const idsSet = new Set(route.novelIds);
-      const unfilteredNovels = library.filter(l => idsSet.has(l.id));
+      let novelIdSet: Set<number>;
+
+      if (selectedSubCategoryIds.size > 0) {
+        // Filter by selected subcategories
+        const subCatNovelIds = new Set<number>();
+        for (const cat of allCategories) {
+          if (selectedSubCategoryIds.has(cat.id)) {
+            for (const nid of cat.novelIds) {
+              subCatNovelIds.add(nid);
+            }
+          }
+        }
+        const parentIds = new Set(route.novelIds);
+        novelIdSet = new Set(
+          [...subCatNovelIds].filter(id => parentIds.has(id)),
+        );
+      } else {
+        novelIdSet = new Set(route.novelIds);
+      }
+
+      const unfilteredNovels = library.filter(l => novelIdSet.has(l.id));
 
       const novels = searchLower
         ? unfilteredNovels.filter(
@@ -272,12 +379,14 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
       );
     },
     [
+      allCategories,
       isLoading,
       library,
       navigation,
       pickAndImport,
       searchText,
       searchLower,
+      selectedSubCategoryIds,
       styles.globalSearchBtn,
       theme,
     ],
@@ -556,12 +665,22 @@ function createStyles(theme: ThemeColors) {
       margin: 16,
     },
     tabBar: {
-      borderBottomWidth: 1,
       elevation: 0,
     },
     tabBarIndicator: {
       backgroundColor: theme.primary,
       height: 3,
+    },
+    tabBarRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: Color(theme.isDark ? '#FFFFFF' : '#000000')
+        .alpha(0.12)
+        .string(),
+    },
+    tabBarFlex: {
+      flex: 1,
     },
     tabStyle: {
       minWidth: 100,

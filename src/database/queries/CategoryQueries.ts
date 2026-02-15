@@ -7,11 +7,12 @@ const getCategoriesQuery = `
     SELECT 
         Category.id, 
         Category.name, 
-        Category.sort, 
+        Category.sort,
+        Category.parentId,
         GROUP_CONCAT(NovelCategory.novelId ORDER BY NovelCategory.novelId) AS novelIds
     FROM Category 
     LEFT JOIN NovelCategory ON NovelCategory.categoryId = Category.id 
-    GROUP BY Category.id, Category.name, Category.sort
+    GROUP BY Category.id, Category.name, Category.sort, Category.parentId
     ORDER BY Category.sort;
 	`;
 
@@ -20,6 +21,10 @@ export const getCategoriesFromDb = () => {
   return db.getAllSync<Category & { novelIds: NumberList }>(getCategoriesQuery);
 };
 
+/**
+ * Get all categories with novel count for given novelIds.
+ * Returns all categories (root + sub) excluding system local category (id=2).
+ */
 export const getCategoriesWithCount = (novelIds: number[]) => {
   const getCategoriesWithCountQuery = `
   SELECT *, novelsCount 
@@ -31,19 +36,55 @@ export const getCategoriesWithCount = (novelIds: number[]) => {
     )}) GROUP BY categoryId 
   ) as NC ON Category.id = NC.categoryId
   WHERE Category.id != 2
-  ORDER BY sort
+  ORDER BY Category.parentId IS NOT NULL, Category.parentId, sort
 	`;
   return db.getAllSync<CCategory>(getCategoriesWithCountQuery);
 };
 
-const createCategoryQuery = 'INSERT INTO Category (name) VALUES (?)';
-
-export const createCategory = (categoryName: string): void => {
-  db.runSync(createCategoryQuery, categoryName);
+/**
+ * Get root categories only (parentId IS NULL).
+ */
+export const getRootCategories = () => {
+  return db.getAllSync<Category>(
+    'SELECT * FROM Category WHERE parentId IS NULL ORDER BY sort',
+  );
 };
 
-const beforeDeleteCategoryQuery = `
-    UPDATE NovelCategory SET categoryId = (SELECT id FROM Category WHERE sort = 1)
+/**
+ * Get subcategories of a parent category.
+ */
+export const getSubCategories = (parentId: number) => {
+  return db.getAllSync<Category>(
+    'SELECT * FROM Category WHERE parentId = ? ORDER BY sort',
+    parentId,
+  );
+};
+
+/**
+ * Create a new category, optionally as a subcategory.
+ */
+export const createCategory = (
+  categoryName: string,
+  parentId?: number | null,
+): void => {
+  if (parentId != null) {
+    db.runSync(
+      'INSERT INTO Category (name, parentId) VALUES (?, ?)',
+      categoryName,
+      parentId,
+    );
+  } else {
+    db.runSync('INSERT INTO Category (name) VALUES (?)', categoryName);
+  }
+};
+
+/**
+ * Before deleting a category, move orphan novels to:
+ * - parent category (if subcategory)
+ * - system default category (id=1) otherwise
+ */
+const getBeforeDeleteCategoryQuery = (fallbackCategoryId: number) => `
+    UPDATE NovelCategory SET categoryId = ${fallbackCategoryId}
     WHERE novelId IN (
       SELECT novelId FROM NovelCategory
       GROUP BY novelId
@@ -54,10 +95,20 @@ const beforeDeleteCategoryQuery = `
 const deleteCategoryQuery = 'DELETE FROM Category WHERE id = ?';
 
 export const deleteCategoryById = (category: Category): void => {
-  if (category.sort === 1 || category.id === 2) {
+  if (category.id === 1 || category.id === 2) {
     return showToast(getString('categories.cantDeleteDefault'));
   }
-  db.runSync(beforeDeleteCategoryQuery, category.id);
+  // If it's a subcategory, move orphan novels to parent; otherwise to default (id=1)
+  const fallbackId = category.parentId ?? 1;
+  db.runSync(getBeforeDeleteCategoryQuery(fallbackId), category.id);
+  // Also delete all child subcategories (their novels will be moved by CASCADE or handled recursively)
+  if (category.parentId == null) {
+    // Root category: move novels from subcategories to fallback first
+    const subCategories = getSubCategories(category.id);
+    for (const sub of subCategories) {
+      db.runSync(getBeforeDeleteCategoryQuery(1), sub.id);
+    }
+  }
   db.runSync(deleteCategoryQuery, category.id);
 };
 
@@ -70,12 +121,29 @@ export const updateCategory = (
   db.runSync(updateCategoryQuery, categoryName, categoryId);
 };
 
-const isCategoryNameDuplicateQuery = `
-  SELECT COUNT(*) as isDuplicate FROM Category WHERE name = ?
-	`;
+/**
+ * Check if a category name is duplicate.
+ * For subcategories, checks uniqueness within the same parent.
+ * For root categories, checks uniqueness among root categories.
+ */
+export const isCategoryNameDuplicate = (
+  categoryName: string,
+  parentId?: number | null,
+): boolean => {
+  let query: string;
+  let params: (string | number)[];
 
-export const isCategoryNameDuplicate = (categoryName: string): boolean => {
-  const res = db.getFirstSync(isCategoryNameDuplicateQuery, [categoryName]);
+  if (parentId != null) {
+    query =
+      'SELECT COUNT(*) as isDuplicate FROM Category WHERE name = ? AND parentId = ?';
+    params = [categoryName, parentId];
+  } else {
+    query =
+      'SELECT COUNT(*) as isDuplicate FROM Category WHERE name = ? AND parentId IS NULL';
+    params = [categoryName];
+  }
+
+  const res = db.getFirstSync(query, params);
 
   if (res instanceof Object && 'isDuplicate' in res) {
     return Boolean(res.isDuplicate);

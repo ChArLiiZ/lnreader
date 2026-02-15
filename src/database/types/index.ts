@@ -22,6 +22,7 @@ export interface DBNovelInfo extends NovelInfo {
   chaptersUnread: number;
   lastReadAt: string;
   lastUpdatedAt: string;
+  latestChapterAt: number;
 }
 
 export interface LibraryNovelInfo extends DBNovelInfo {
@@ -82,6 +83,7 @@ export interface Category {
   id: number;
   name: string;
   sort: number;
+  parentId: number | null;
 }
 
 export interface NovelCategory {

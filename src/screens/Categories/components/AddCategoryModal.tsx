@@ -18,6 +18,7 @@ import { showToast } from '@utils/showToast';
 interface AddCategoryModalProps {
   isEditMode?: boolean;
   category?: Category;
+  parentId?: number | null;
   visible: boolean;
   closeModal: () => void;
   onSuccess: () => void;
@@ -26,6 +27,7 @@ interface AddCategoryModalProps {
 const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   isEditMode,
   category,
+  parentId,
   closeModal,
   visible,
   onSuccess,
@@ -42,6 +44,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
     close();
   }
 
+  const isSubCategory = parentId != null;
+
   return (
     <Portal>
       <Modal visible={visible} onDismiss={close}>
@@ -49,6 +53,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
           {getString(
             isEditMode
               ? 'categories.editCategories'
+              : isSubCategory
+              ? 'categories.addSubCategory'
               : 'categories.addCategories',
           )}
         </Text>
@@ -65,13 +71,18 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
           <Button
             title={getString(isEditMode ? 'common.ok' : 'common.add')}
             onPress={async () => {
-              if (isCategoryNameDuplicate(categoryName)) {
+              if (
+                isCategoryNameDuplicate(
+                  categoryName,
+                  isEditMode ? category?.parentId : parentId,
+                )
+              ) {
                 showToast(getString('categories.duplicateError'));
               } else {
                 if (isEditMode && category) {
                   updateCategory(category?.id, categoryName);
                 } else {
-                  createCategory(categoryName);
+                  createCategory(categoryName, parentId);
                 }
                 finalize();
               }

@@ -116,6 +116,7 @@ const ThirdRoute = () => {
     showDownloadBadges = true,
     showNumberOfNovels = false,
     showUnreadBadges = true,
+    showLatestChapterBadge = false,
     displayMode = DisplayModes.Comfortable,
     setLibrarySettings,
   } = useLibrarySettings();
@@ -151,6 +152,18 @@ const ThirdRoute = () => {
         onPress={() =>
           setLibrarySettings({
             showNumberOfNovels: !showNumberOfNovels,
+          })
+        }
+        theme={theme}
+      />
+      <Checkbox
+        label={getString(
+          'libraryScreen.bottomSheet.display.latestChapterBadge',
+        )}
+        status={showLatestChapterBadge}
+        onPress={() =>
+          setLibrarySettings({
+            showLatestChapterBadge: !showLatestChapterBadge,
           })
         }
         theme={theme}

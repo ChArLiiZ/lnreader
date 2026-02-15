@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Appbar, List } from '@components';
 import { getString } from '@strings/translations';
 import { useBoolean } from '@hooks';
 import { useCategories, useTheme } from '@hooks/persisted';
+import { useLibrarySettings } from '@hooks/persisted/useSettings';
 import { useNavigation } from '@react-navigation/native';
 import { Portal } from 'react-native-paper';
 import DefaultCategoryDialog from './DefaultCategoryDialog';
@@ -11,14 +12,43 @@ const SettingsLibraryScreen = () => {
   const theme = useTheme();
   const { goBack, navigate } = useNavigation();
   const { categories } = useCategories();
+  const { defaultCategoryId = 0, setLibrarySettings } = useLibrarySettings();
 
   const defaultCategoryDialog = useBoolean();
 
   const setDefaultCategoryId = (categoryId: number) => {
-    // TODO: update default category
-
-    categoryId;
+    setLibrarySettings({ defaultCategoryId: categoryId });
+    defaultCategoryDialog.setFalse();
   };
+
+  const defaultCategoryName = useMemo(() => {
+    if (defaultCategoryId === -1) {
+      return getString('categories.alwaysAsk');
+    }
+    if (defaultCategoryId === 0) {
+      return (
+        categories.find(c => c.id === 1)?.name ??
+        getString('categories.default')
+      );
+    }
+    return (
+      categories.find(c => c.id === defaultCategoryId)?.name ??
+      getString('categories.default')
+    );
+  }, [defaultCategoryId, categories]);
+
+  // Prepend "Always ask" virtual option
+  const dialogCategories = useMemo(() => {
+    return [
+      {
+        id: -1,
+        name: getString('categories.alwaysAsk'),
+        sort: -1,
+        parentId: null,
+      },
+      ...categories,
+    ];
+  }, [categories]);
 
   return (
     <>
@@ -38,18 +68,18 @@ const SettingsLibraryScreen = () => {
         />
         <List.Item
           title={getString('categories.defaultCategory')}
-          description={categories.find(category => category.sort === 1)?.name}
+          description={defaultCategoryName}
           onPress={defaultCategoryDialog.setTrue}
           theme={theme}
         />
       </List.Section>
       <Portal>
         <DefaultCategoryDialog
-          categories={categories}
-          defaultCategoryId={categories[0]?.id}
+          categories={dialogCategories}
+          defaultCategoryId={defaultCategoryId === 0 ? 1 : defaultCategoryId}
           visible={defaultCategoryDialog.value}
           hideDialog={defaultCategoryDialog.setFalse}
-          setDefaultCategory={setDefaultCategoryId}
+          setDefaultCategory={id => setDefaultCategoryId(id === 1 ? 0 : id)}
         />
       </Portal>
     </>

@@ -15,6 +15,8 @@ interface CategoryCardProps {
   getCategories: () => Promise<void>;
   drag: () => void;
   isActive: boolean;
+  isSubCategory?: boolean;
+  onAddSubCategory?: () => void;
 }
 
 const CategoryCard: React.FC<CategoryCardProps> = ({
@@ -22,6 +24,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   getCategories,
   drag,
   isActive,
+  isSubCategory = false,
+  onAddSubCategory,
 }) => {
   const theme = useTheme();
 
@@ -37,6 +41,9 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
     setFalse: closeDeleteCategoryModal,
   } = useBoolean();
 
+  const isSystem = category.id === 2;
+  const isProtected = category.id === 1 || category.id === 2;
+
   return (
     <>
       <View
@@ -44,6 +51,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
           styles.cardCtn,
           {
             backgroundColor: theme.secondaryContainer,
+            marginStart: isSubCategory ? 40 : 16,
           },
           isActive && styles.activeCard,
         ]}
@@ -62,6 +70,15 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
             />
           </TouchableOpacity>
           <View style={styles.nameCtn}>
+            {isSubCategory && (
+              <IconButton
+                name="subdirectory-arrow-right"
+                color={theme.onSurfaceVariant}
+                theme={theme}
+                padding={0}
+                size={16}
+              />
+            )}
             <Text
               style={[
                 styles.name,
@@ -69,12 +86,12 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
                   color: theme.onSurface,
                 },
               ]}
-              onPress={showCategoryModal}
-              disabled={category.id === 2}
+              onPress={isProtected ? undefined : showCategoryModal}
+              disabled={isProtected}
             >
               {category.name}
             </Text>
-            {category.id === 2 && (
+            {isSystem && (
               <Badge
                 style={[
                   styles.badge,
@@ -88,24 +105,34 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
             )}
           </View>
           <View style={styles.flex} />
-          <View style={[category.id === 2 && styles.disabledOpacity]}>
+          {/* Add subcategory button - only for root categories that are not system */}
+          {!isSubCategory && !isProtected && onAddSubCategory && (
+            <IconButton
+              name="plus-circle-outline"
+              color={theme.onSurface}
+              style={styles.manageBtn}
+              onPress={onAddSubCategory}
+              theme={theme}
+            />
+          )}
+          <View style={[isProtected && styles.disabledOpacity]}>
             <IconButton
               name="pencil-outline"
-              color={category.id === 2 ? theme.outline : theme.onSurface}
+              color={isProtected ? theme.outline : theme.onSurface}
               style={styles.manageBtn}
               onPress={showCategoryModal}
               theme={theme}
-              disabled={category.id === 2}
+              disabled={isProtected}
             />
           </View>
-          <View style={[category.id === 2 && styles.disabledOpacity]}>
+          <View style={[isProtected && styles.disabledOpacity]}>
             <IconButton
               name="delete-outline"
-              color={category.id === 2 ? theme.outline : theme.onSurface}
+              color={isProtected ? theme.outline : theme.onSurface}
               style={styles.manageBtn}
               onPress={showDeleteCategoryModal}
               theme={theme}
-              disabled={category.id === 2}
+              disabled={isProtected}
             />
           </View>
         </View>
@@ -139,7 +166,8 @@ const styles = StyleSheet.create({
   cardCtn: {
     borderRadius: 12,
     marginBottom: 8,
-    marginHorizontal: 16,
+    marginEnd: 16,
+    marginStart: 16,
     paddingHorizontal: 8,
     paddingVertical: 8,
   },
@@ -153,7 +181,7 @@ const styles = StyleSheet.create({
     marginStart: 16,
   },
   name: {
-    marginStart: 16,
+    marginStart: 8,
     marginEnd: 8,
   },
   nameCtn: {

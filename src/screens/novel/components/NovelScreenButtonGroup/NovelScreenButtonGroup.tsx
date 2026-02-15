@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
 
@@ -10,6 +10,7 @@ import { getString } from '@strings/translations';
 import SetCategoryModal from '../SetCategoriesModal';
 import { NovelScreenProps } from '@navigators/types';
 import { useTrackedNovel, useTracker } from '@hooks/persisted';
+import { useLibrarySettings } from '@hooks/persisted/useSettings';
 import Animated, { ZoomIn, ZoomOut } from 'react-native-reanimated';
 import { MaterialDesignIconName } from '@type/icon';
 
@@ -72,6 +73,7 @@ const NovelScreenButtonGroup: React.FC<NovelScreenButtonGroupProps> = ({
   const { navigate } = useNavigation<NovelScreenProps['navigation']>();
   const { tracker } = useTracker();
   const { trackedNovel } = useTrackedNovel(novel.id);
+  const { defaultCategoryId = 0 } = useLibrarySettings();
 
   const followButtonColor = inLibrary ? theme.primary : theme.outline;
   const trackerButtonColor = trackedNovel ? theme.primary : theme.outline;
@@ -96,12 +98,28 @@ const NovelScreenButtonGroup: React.FC<NovelScreenButtonGroupProps> = ({
     setFalse: closeSetCategoryModal,
   } = useBoolean();
 
+  const handleFollowWithCategory = useCallback(() => {
+    handleFollowNovel();
+    // When defaultCategoryId is -1 (always ask) and novel is not yet in library,
+    // show the category picker after adding to library
+    if (defaultCategoryId === -1 && !inLibrary && novel.id !== 'NO_ID') {
+      // Use a small delay to ensure the novel is added first
+      setTimeout(showSetCategoryModal, 300);
+    }
+  }, [
+    handleFollowNovel,
+    defaultCategoryId,
+    inLibrary,
+    novel.id,
+    showSetCategoryModal,
+  ]);
+
   return (
     <>
       <View style={styles.buttonGroupContainer}>
         <Button
           theme={theme}
-          onPress={handleFollowNovel}
+          onPress={handleFollowWithCategory}
           onLongPress={showSetCategoryModal}
           icon={inLibrary ? 'heart' : 'heart-outline'}
           label={getString(

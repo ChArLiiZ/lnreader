@@ -70,6 +70,14 @@ export interface LibrarySettings {
   novelsPerRow?: number;
   incognitoMode?: boolean;
   downloadedOnlyMode?: boolean;
+  showLatestChapterBadge?: boolean;
+  /**
+   * Default category ID for adding novels to library.
+   * -1 = Always ask user to choose
+   *  0 = System default category (ID 1)
+   *  >0 = Specific category ID
+   */
+  defaultCategoryId?: number;
 }
 
 export interface ChapterGeneralSettings {
@@ -245,6 +253,7 @@ const defaultLibrarySettings: LibrarySettings = {
   showUnreadBadges: true,
   novelsPerRow: 3,
   sortOrder: LibrarySortOrder.DateAdded_DESC,
+  defaultCategoryId: 0,
 };
 
 export const useLibrarySettings = () => {

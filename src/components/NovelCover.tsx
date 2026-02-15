@@ -23,6 +23,7 @@ import { getString } from '@strings/translations';
 import SourceScreenSkeletonLoading from '@screens/browse/loadingAnimation/SourceScreenSkeletonLoading';
 import { defaultCover } from '@plugins/helpers/constants';
 import { ActivityIndicator } from 'react-native-paper';
+import dayjs from 'dayjs';
 
 interface UnreadBadgeProps {
   chaptersDownloaded: number;
@@ -96,6 +97,7 @@ function NovelCover<
     displayMode = DisplayModes.Comfortable,
     showDownloadBadges = true,
     showUnreadBadges = true,
+    showLatestChapterBadge = false,
     novelsPerRow = 3,
   } = useLibrarySettings();
 
@@ -195,6 +197,16 @@ function NovelCover<
           ) : null}
           {inActivity ? <InActivityBadge theme={theme} /> : null}
         </View>
+        {showLatestChapterBadge &&
+        isFromDB(item) &&
+        item.latestChapterAt > 0 ? (
+          <View style={styles.latestChapterBadgeContainer}>
+            <LatestChapterBadge
+              timestamp={item.latestChapterAt}
+              theme={theme}
+            />
+          </View>
+        ) : null}
         <View style={[{ height: coverHeight }, styles.standardBorderRadius]}>
           <Image
             source={{ uri, headers }}
@@ -347,6 +359,27 @@ const CustomBadge = ({
   </Text>
 );
 
+const LatestChapterBadge = ({
+  timestamp,
+  theme,
+}: {
+  timestamp: number;
+  theme: ThemeColors;
+}) => (
+  <Text
+    numberOfLines={1}
+    style={[
+      styles.latestChapterBadge,
+      {
+        backgroundColor: theme.tertiary,
+        color: theme.onTertiary,
+      },
+    ]}
+  >
+    {dayjs(timestamp).fromNow()}
+  </Text>
+);
+
 const CoverInfoOverlay = ({ info }: { info: string }) => (
   <View style={styles.coverInfoContainer}>
     <Text numberOfLines={1} style={styles.coverInfoText}>
@@ -475,6 +508,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     paddingHorizontal: 4,
     paddingVertical: 2,
+  },
+  latestChapterBadge: {
+    borderRadius: 4,
+    fontSize: 10,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  latestChapterBadgeContainer: {
+    position: 'absolute',
+    right: 10,
+    top: 10,
+    zIndex: 1,
   },
   linearGradient: {
     borderRadius: 4,

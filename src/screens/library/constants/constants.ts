@@ -43,6 +43,8 @@ export enum LibrarySortOrder {
   LastRead_DESC = 'lastReadAt DESC',
   LastUpdated_ASC = 'lastUpdatedAt ASC',
   LastUpdated_DESC = 'lastUpdatedAt DESC',
+  LatestChapter_ASC = 'latestChapterAt ASC',
+  LatestChapter_DESC = 'latestChapterAt DESC',
 }
 
 export const librarySortOrderList = [
@@ -80,6 +82,11 @@ export const librarySortOrderList = [
     label: getString('libraryScreen.bottomSheet.sortOrders.dateAdded'),
     ASC: LibrarySortOrder.DateAdded_ASC,
     DESC: LibrarySortOrder.DateAdded_DESC,
+  },
+  {
+    label: getString('libraryScreen.bottomSheet.sortOrders.latestChapter'),
+    ASC: LibrarySortOrder.LatestChapter_ASC,
+    DESC: LibrarySortOrder.LatestChapter_DESC,
   },
 ];
 

@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FAB } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import DraggableFlatList, {
@@ -20,6 +20,35 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLibraryContext } from '@components/Context/LibraryContext';
 import { ExtendedCategory } from '@screens/library/hooks/useLibrary';
 
+/**
+ * Flatten categories into a tree-ordered list:
+ * root1, sub1a, sub1b, root2, sub2a, ...
+ */
+function flattenCategoriesTree(
+  categories: ExtendedCategory[],
+): ExtendedCategory[] {
+  const roots = categories.filter(c => c.parentId == null && c.id !== 1);
+  const subsByParent = new Map<number, ExtendedCategory[]>();
+
+  for (const cat of categories) {
+    if (cat.parentId != null) {
+      const subs = subsByParent.get(cat.parentId) || [];
+      subs.push(cat);
+      subsByParent.set(cat.parentId, subs);
+    }
+  }
+
+  const result: ExtendedCategory[] = [];
+  for (const root of roots) {
+    result.push(root);
+    const subs = subsByParent.get(root.id) || [];
+    subs.sort((a, b) => a.sort - b.sort);
+    result.push(...subs);
+  }
+
+  return result;
+}
+
 const CategoriesScreen = () => {
   const { categories, setCategories, refreshCategories, isLoading } =
     useLibraryContext();
@@ -34,25 +63,43 @@ const CategoriesScreen = () => {
     setFalse: closeCategoryModal,
   } = useBoolean();
 
+  // State for adding subcategories
+  const [addSubParentId, setAddSubParentId] = useState<number | null>(null);
+  const {
+    value: subCategoryModalVisible,
+    setTrue: showSubCategoryModal,
+    setFalse: closeSubCategoryModal,
+  } = useBoolean();
+
   useEffect(() => {
     refreshCategories();
   }, [refreshCategories]);
 
-  const userCategories = React.useMemo(() => {
+  const treeCategories = useMemo(() => {
     if (!categories || categories.length === 0) {
       return [];
     }
-
-    return categories.filter(cat => cat.id !== 1);
+    return flattenCategoriesTree(categories);
   }, [categories]);
+
+  const handleAddSubCategory = useCallback(
+    (parentId: number) => {
+      setAddSubParentId(parentId);
+      showSubCategoryModal();
+    },
+    [showSubCategoryModal],
+  );
 
   const onDragEnd = ({ data }: { data: ExtendedCategory[] }) => {
     if (!categories || categories.length === 0) {
       return;
     }
 
+    // Separate system categories, root categories, and subcategories
     const systemCategories = categories.filter(cat => cat.id === 1);
 
+    // Reconstruct sort orders: root categories maintain their tree order
+    // Only allow drag reorder among siblings (same parentId)
     const updatedOrderCategories = [...systemCategories, ...data].map(
       (category, index) => ({
         ...category,
@@ -74,6 +121,10 @@ const CategoriesScreen = () => {
       getCategories={refreshCategories}
       drag={drag}
       isActive={isActive}
+      isSubCategory={item.parentId != null}
+      onAddSubCategory={
+        item.parentId == null ? () => handleAddSubCategory(item.id) : undefined
+      }
     />
   );
 
@@ -88,7 +139,7 @@ const CategoriesScreen = () => {
         <CategorySkeletonLoading width={360.7} height={89.5} theme={theme} />
       ) : (
         <DraggableFlatList
-          data={userCategories}
+          data={treeCategories}
           contentContainerStyle={styles.contentCtn}
           renderItem={renderItem}
           keyExtractor={(item, index) => `${item.id}-${index}`}
@@ -113,10 +164,22 @@ const CategoriesScreen = () => {
         icon={'plus'}
       />
 
+      {/* Add root category modal */}
       <AddCategoryModal
         visible={categoryModalVisible}
         closeModal={closeCategoryModal}
         onSuccess={refreshCategories}
+      />
+
+      {/* Add subcategory modal */}
+      <AddCategoryModal
+        visible={subCategoryModalVisible}
+        closeModal={() => {
+          closeSubCategoryModal();
+          setAddSubParentId(null);
+        }}
+        onSuccess={refreshCategories}
+        parentId={addSubParentId}
       />
     </SafeAreaView>
   );

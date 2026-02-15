@@ -153,6 +153,9 @@ export interface StringMap {
   'browseSettingsScreen.multi': 'string';
   'browseSettingsScreen.languages': 'string';
   'categories.addCategories': 'string';
+  'categories.addSubCategory': 'string';
+  'categories.alwaysAsk': 'string';
+  'categories.allSubCategories': 'string';
   'categories.cantDeleteDefault': 'string';
   'categories.default': 'string';
   'categories.defaultCategory': 'string';
@@ -165,6 +168,7 @@ export interface StringMap {
   'categories.local': 'string';
   'categories.setCategories': 'string';
   'categories.setModalEmptyMsg': 'string';
+  'categories.subCategoryFilter': 'string';
   'repositories.emptyMsg': 'string';
   'common.about': 'string';
   'common.add': 'string';
@@ -279,6 +283,7 @@ export interface StringMap {
   'libraryScreen.bottomSheet.display.displayMode': 'string';
   'libraryScreen.bottomSheet.display.download': 'string';
   'libraryScreen.bottomSheet.display.downloadBadges': 'string';
+  'libraryScreen.bottomSheet.display.latestChapterBadge': 'string';
   'libraryScreen.bottomSheet.display.list': 'string';
   'libraryScreen.bottomSheet.display.noTitle': 'string';
   'libraryScreen.bottomSheet.display.numberOfItems': 'string';
@@ -294,6 +299,7 @@ export interface StringMap {
   'libraryScreen.bottomSheet.sortOrders.download': 'string';
   'libraryScreen.bottomSheet.sortOrders.lastRead': 'string';
   'libraryScreen.bottomSheet.sortOrders.lastUpdated': 'string';
+  'libraryScreen.bottomSheet.sortOrders.latestChapter': 'string';
   'libraryScreen.bottomSheet.sortOrders.totalChapters': 'string';
   'libraryScreen.bottomSheet.sortOrders.unread': 'string';
   'libraryScreen.empty': 'string';
