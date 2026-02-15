@@ -328,8 +328,18 @@ export const getPageChaptersBatched = (
 export const getLatestChapterReleaseTime = async (
   novelId: number,
 ): Promise<string | undefined> => {
+  // Prefer Novel.latestChapterAt (epoch millis, reliably parsed) over raw Chapter.releaseTime
+  const novel = await db.getFirstAsync<{ latestChapterAt: number }>(
+    'SELECT latestChapterAt FROM Novel WHERE id = ?',
+    novelId,
+  );
+  if (novel?.latestChapterAt && novel.latestChapterAt > 0) {
+    return new Date(novel.latestChapterAt).toISOString();
+  }
+
+  // Fallback: get releaseTime from the most recently inserted chapter
   const result = await db.getFirstAsync<{ releaseTime: string }>(
-    "SELECT releaseTime FROM Chapter WHERE novelId = ? AND releaseTime != '' ORDER BY releaseTime DESC LIMIT 1",
+    "SELECT releaseTime FROM Chapter WHERE novelId = ? AND releaseTime IS NOT NULL AND releaseTime != '' ORDER BY id DESC LIMIT 1",
     novelId,
   );
   return result?.releaseTime || undefined;

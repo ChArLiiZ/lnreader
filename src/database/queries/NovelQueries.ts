@@ -107,15 +107,15 @@ export const switchNovelToLibraryQuery = async (
       );
       showToast(getString('browseScreen.removeFromLibrary'));
     } else {
-      // Adding to library
-      if (defaultCategoryId !== -1) {
-        const categoryId = defaultCategoryId === 0 ? 1 : defaultCategoryId;
-        await db.runAsync(
-          'INSERT OR IGNORE INTO NovelCategory (novelId, categoryId) VALUES (?, ?)',
-          novel.id,
-          categoryId,
-        );
-      }
+      // Adding to library — always assign an initial category
+      // (when defaultCategoryId === -1 "always ask", the category picker
+      //  will be shown right after, so use category 1 as a safe fallback)
+      const categoryId = defaultCategoryId > 0 ? defaultCategoryId : 1;
+      await db.runAsync(
+        'INSERT OR IGNORE INTO NovelCategory (novelId, categoryId) VALUES (?, ?)',
+        novel.id,
+        categoryId,
+      );
       showToast(getString('browseScreen.addedToLibrary'));
     }
     if (novel.pluginId === 'local') {
@@ -130,14 +130,12 @@ export const switchNovelToLibraryQuery = async (
     const novelId = await insertNovelAndChapters(pluginId, sourceNovel);
     if (novelId) {
       await db.runAsync('UPDATE Novel SET inLibrary = 1 WHERE id = ?', novelId);
-      if (defaultCategoryId !== -1) {
-        const categoryId = defaultCategoryId === 0 ? 1 : defaultCategoryId;
-        await db.runAsync(
-          'INSERT OR IGNORE INTO NovelCategory (novelId, categoryId) VALUES (?, ?)',
-          novelId,
-          categoryId,
-        );
-      }
+      const categoryId = defaultCategoryId > 0 ? defaultCategoryId : 1;
+      await db.runAsync(
+        'INSERT OR IGNORE INTO NovelCategory (novelId, categoryId) VALUES (?, ?)',
+        novelId,
+        categoryId,
+      );
       showToast(getString('browseScreen.addedToLibrary'));
     }
   }

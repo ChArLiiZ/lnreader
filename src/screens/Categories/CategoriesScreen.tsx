@@ -50,8 +50,13 @@ function flattenCategoriesTree(
 }
 
 const CategoriesScreen = () => {
-  const { categories, setCategories, refreshCategories, isLoading } =
-    useLibraryContext();
+  const {
+    allCategories,
+    categories,
+    setCategories,
+    refreshCategories,
+    isLoading,
+  } = useLibraryContext();
   const theme = useTheme();
   const { goBack } = useNavigation();
 
@@ -76,11 +81,11 @@ const CategoriesScreen = () => {
   }, [refreshCategories]);
 
   const treeCategories = useMemo(() => {
-    if (!categories || categories.length === 0) {
+    if (!allCategories || allCategories.length === 0) {
       return [];
     }
-    return flattenCategoriesTree(categories);
-  }, [categories]);
+    return flattenCategoriesTree(allCategories);
+  }, [allCategories]);
 
   const handleAddSubCategory = useCallback(
     (parentId: number) => {

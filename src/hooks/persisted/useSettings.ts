@@ -253,7 +253,7 @@ const defaultLibrarySettings: LibrarySettings = {
   showUnreadBadges: true,
   novelsPerRow: 3,
   sortOrder: LibrarySortOrder.DateAdded_DESC,
-  defaultCategoryId: 0,
+  defaultCategoryId: -1,
 };
 
 export const useLibrarySettings = () => {
