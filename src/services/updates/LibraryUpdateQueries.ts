@@ -205,7 +205,15 @@ const updateNovel = async (
             downloadNewChapters,
             String(oldTotalPages),
           );
-        } catch {}
+        } catch (error) {
+          if (__DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn(
+              `Failed to re-fetch page ${oldTotalPages} for ${novel.name}:`,
+              error,
+            );
+          }
+        }
       }
 
       // Fetch any new pages that were added
@@ -219,7 +227,15 @@ const updateNovel = async (
             downloadNewChapters,
             String(page),
           );
-        } catch {}
+        } catch (error) {
+          if (__DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn(
+              `Failed to fetch page ${page} for ${novel.name}:`,
+              error,
+            );
+          }
+        }
       }
     }
   }

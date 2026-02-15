@@ -1,4 +1,11 @@
-import React, { RefObject, useCallback, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  RefObject,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 import {
   StyleProp,
   StyleSheet,
@@ -33,8 +40,12 @@ import BottomSheet from '@components/BottomSheet/BottomSheet';
 import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { LegendList } from '@legendapp/list';
 
+/** Context to pass the active library category ID into SceneMap components */
+const ActiveCategoryContext = createContext<number | undefined>(undefined);
+
 interface LibraryBottomSheetProps {
   bottomSheetRef: RefObject<BottomSheetModalMethods | null>;
+  activeCategoryId?: number;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -75,16 +86,28 @@ const FirstRoute = () => {
 };
 
 const SecondRoute = () => {
+  const activeCategoryId = useContext(ActiveCategoryContext);
   const theme = useTheme();
-  const { sortOrder = LibrarySortOrder.DateAdded_DESC, setLibrarySettings } =
-    useLibrarySettings();
+  const {
+    sortOrder: globalSortOrder = LibrarySortOrder.DateAdded_DESC,
+    categorySortOrders = {},
+    setLibrarySettings,
+  } = useLibrarySettings();
+
+  // Use category-specific sort order if set, otherwise fall back to global
+  const catKey =
+    activeCategoryId != null ? String(activeCategoryId) : undefined;
+  const effectiveSortOrder =
+    catKey && categorySortOrders[catKey]
+      ? categorySortOrders[catKey]
+      : globalSortOrder;
 
   return (
     <View style={styles.flex}>
       <LegendList
         recycleItems
         data={librarySortOrderList}
-        extraData={[sortOrder]}
+        extraData={[effectiveSortOrder]}
         estimatedItemSize={5}
         keyExtractor={(item, index) => `sort_${index}_${item.ASC}`}
         renderItem={({ item }) => (
@@ -92,17 +115,28 @@ const SecondRoute = () => {
             label={item.label}
             theme={theme}
             status={
-              sortOrder === item.ASC
+              effectiveSortOrder === item.ASC
                 ? 'asc'
-                : sortOrder === item.DESC
+                : effectiveSortOrder === item.DESC
                 ? 'desc'
                 : undefined
             }
-            onPress={() =>
-              setLibrarySettings({
-                sortOrder: sortOrder === item.ASC ? item.DESC : item.ASC,
-              })
-            }
+            onPress={() => {
+              const newOrder =
+                effectiveSortOrder === item.ASC ? item.DESC : item.ASC;
+              if (catKey) {
+                // Save per-category sort order
+                setLibrarySettings({
+                  categorySortOrders: {
+                    ...categorySortOrders,
+                    [catKey]: newOrder,
+                  },
+                });
+              } else {
+                // Fallback: save globally (no active category)
+                setLibrarySettings({ sortOrder: newOrder });
+              }
+            }}
           />
         )}
       />
@@ -198,6 +232,7 @@ const bottomSheetSceneMap = SceneMap({
 
 const LibraryBottomSheet: React.FC<LibraryBottomSheetProps> = ({
   bottomSheetRef,
+  activeCategoryId,
   style,
 }) => {
   const theme = useTheme();
@@ -267,24 +302,26 @@ const LibraryBottomSheet: React.FC<LibraryBottomSheetProps> = ({
   }, [renderCommonOptions]);
 
   return (
-    <BottomSheet bottomSheetRef={bottomSheetRef} snapPoints={[520]}>
-      <BottomSheetView
-        style={[
-          styles.bottomSheetCtn,
-          { backgroundColor: overlay(2, theme.surface) },
-        ]}
-      >
-        <TabView
-          commonOptions={commonOptions}
-          navigationState={{ index, routes }}
-          renderTabBar={renderTabBar}
-          renderScene={bottomSheetSceneMap}
-          onIndexChange={setIndex}
-          initialLayout={{ width: layout.width }}
-          style={styles.tabView}
-        />
-      </BottomSheetView>
-    </BottomSheet>
+    <ActiveCategoryContext.Provider value={activeCategoryId}>
+      <BottomSheet bottomSheetRef={bottomSheetRef} snapPoints={[520]}>
+        <BottomSheetView
+          style={[
+            styles.bottomSheetCtn,
+            { backgroundColor: overlay(2, theme.surface) },
+          ]}
+        >
+          <TabView
+            commonOptions={commonOptions}
+            navigationState={{ index, routes }}
+            renderTabBar={renderTabBar}
+            renderScene={bottomSheetSceneMap}
+            onIndexChange={setIndex}
+            initialLayout={{ width: layout.width }}
+            style={styles.tabView}
+          />
+        </BottomSheetView>
+      </BottomSheet>
+    </ActiveCategoryContext.Provider>
   );
 };
 

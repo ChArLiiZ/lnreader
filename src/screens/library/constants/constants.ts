@@ -90,6 +90,43 @@ export const librarySortOrderList = [
   },
 ];
 
+/**
+ * Sort novels in JS by a LibrarySortOrder value.
+ * The enum values are SQL-style strings like 'name ASC' or 'id DESC'.
+ * This parses them and sorts the array accordingly.
+ */
+export function sortNovelsByOrder<T extends Record<string, any>>(
+  novels: T[],
+  sortOrder: LibrarySortOrder,
+): T[] {
+  const spaceIdx = sortOrder.lastIndexOf(' ');
+  const field = sortOrder.slice(0, spaceIdx);
+  const asc = sortOrder.slice(spaceIdx + 1) === 'ASC';
+
+  return [...novels].sort((a, b) => {
+    const aVal = a[field];
+    const bVal = b[field];
+
+    // Handle null / undefined / empty
+    if (aVal == null && bVal == null) {
+      return 0;
+    }
+    if (aVal == null) {
+      return asc ? -1 : 1;
+    }
+    if (bVal == null) {
+      return asc ? 1 : -1;
+    }
+
+    if (typeof aVal === 'string' && typeof bVal === 'string') {
+      const cmp = aVal.localeCompare(bVal);
+      return asc ? cmp : -cmp;
+    }
+
+    return asc ? Number(aVal) - Number(bVal) : Number(bVal) - Number(aVal);
+  });
+}
+
 export enum DisplayModes {
   Compact,
   Comfortable,

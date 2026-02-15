@@ -174,10 +174,11 @@ export const _restoreCategory = (category: BackupCategory) => {
     category.sort,
   );
   db.runSync(
-    'INSERT OR IGNORE INTO Category (id, name, sort) VALUES (?, ?, ?)',
+    'INSERT OR IGNORE INTO Category (id, name, sort, parentId) VALUES (?, ?, ?, ?)',
     category.id,
     category.name,
     category.sort,
+    category.parentId ?? null,
   );
   for (const novelId of category.novelIds) {
     db.runSync(

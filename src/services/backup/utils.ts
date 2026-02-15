@@ -216,7 +216,13 @@ export const restoreData = async (cacheDirPath: string) => {
       const fileContent = NativeFile.readFile(categoryFilePath);
       const categories: BackupCategory[] = JSON.parse(fileContent);
 
-      for (const category of categories) {
+      // Restore root categories first, then subcategories.
+      // This ensures a parent category exists before its children are inserted,
+      // which is required for the parentId foreign key relationship.
+      const roots = categories.filter(c => c.parentId == null);
+      const subs = categories.filter(c => c.parentId != null);
+
+      for (const category of [...roots, ...subs]) {
         try {
           _restoreCategory(category);
           categoryCount++;

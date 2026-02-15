@@ -14,6 +14,7 @@ import ServiceManager from '@services/ServiceManager';
 import { getPlugin } from '@plugins/pluginManager';
 import { useSelectionContext } from '../SelectionContext';
 import { ImageRequestInit } from '@plugins/types';
+import { useIsLibraryUpdating } from '@hooks/useLibraryUpdate';
 
 interface Props {
   categoryId: number;
@@ -31,6 +32,7 @@ export const LibraryView: React.FC<Props> = ({
   novels,
 }) => {
   const theme = useTheme();
+  const isUpdating = useIsLibraryUpdating();
   const { selectedIdsSet, hasSelection, toggleSelection } =
     useSelectionContext();
 
@@ -113,13 +115,13 @@ export const LibraryView: React.FC<Props> = ({
   const refreshControl = useMemo(
     () => (
       <RefreshControl
-        refreshing={false}
+        refreshing={isUpdating}
         onRefresh={onRefresh}
         colors={[theme.onPrimary]}
         progressBackgroundColor={theme.primary}
       />
     ),
-    [onRefresh, theme.onPrimary, theme.primary],
+    [isUpdating, onRefresh, theme.onPrimary, theme.primary],
   );
 
   return (

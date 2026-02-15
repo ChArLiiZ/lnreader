@@ -1,4 +1,4 @@
-import React, { memo, Suspense, useEffect } from 'react';
+import React, { memo, Suspense, useEffect, useRef } from 'react';
 import dayjs from 'dayjs';
 import { RefreshControl, SectionList, StyleSheet, Text } from 'react-native';
 
@@ -21,9 +21,11 @@ import ServiceManager from '@services/ServiceManager';
 import { UpdateScreenProps } from '@navigators/types';
 import { UpdateOverview } from '@database/types';
 import { useUpdateContext } from '@components/Context/UpdateContext';
+import { useIsLibraryUpdating } from '@hooks/useLibraryUpdate';
 
 const UpdatesScreen = ({ navigation }: UpdateScreenProps) => {
   const theme = useTheme();
+  const isUpdating = useIsLibraryUpdating();
   const {
     updatesOverview,
     getUpdates,
@@ -35,6 +37,15 @@ const UpdatesScreen = ({ navigation }: UpdateScreenProps) => {
   const onChangeText = (text: string) => {
     setSearchText(text);
   };
+
+  // Auto-refresh update list when a library update finishes
+  const wasUpdating = useRef(false);
+  useEffect(() => {
+    if (wasUpdating.current && !isUpdating) {
+      getUpdates();
+    }
+    wasUpdating.current = isUpdating;
+  }, [isUpdating, getUpdates]);
 
   useEffect(
     () =>
@@ -135,7 +146,7 @@ const UpdatesScreen = ({ navigation }: UpdateScreenProps) => {
           }
           refreshControl={
             <RefreshControl
-              refreshing={false}
+              refreshing={isUpdating}
               onRefresh={() =>
                 ServiceManager.manager.addTask({ name: 'UPDATE_LIBRARY' })
               }

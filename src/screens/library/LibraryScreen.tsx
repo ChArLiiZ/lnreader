@@ -28,9 +28,15 @@ import LibraryBottomSheet from './components/LibraryBottomSheet/LibraryBottomShe
 import { Banner } from './components/Banner';
 import { Actionbar } from '@components/Actionbar/Actionbar';
 
-import { useAppSettings, useHistory, useTheme } from '@hooks/persisted';
+import {
+  useAppSettings,
+  useHistory,
+  useLibrarySettings,
+  useTheme,
+} from '@hooks/persisted';
 import { useSearch, useBackHandler, useBoolean } from '@hooks';
 import { getString } from '@strings/translations';
+import { sortNovelsByOrder } from './constants/constants';
 import { FAB, IconButton, Menu, Portal } from 'react-native-paper';
 import {
   markAllChaptersRead,
@@ -93,6 +99,7 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
 
   const { importNovel } = useImport();
   const { useLibraryFAB = false } = useAppSettings();
+  const { categorySortOrders = {} } = useLibrarySettings();
 
   const { isLoading: isHistoryLoading, history, error } = useHistory();
 
@@ -343,13 +350,19 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
 
       const unfilteredNovels = library.filter(l => novelIdSet.has(l.id));
 
-      const novels = searchLower
+      const filtered = searchLower
         ? unfilteredNovels.filter(
             n =>
               n.name.toLowerCase().includes(searchLower) ||
               (n.author?.toLowerCase().includes(searchLower) ?? false),
           )
         : unfilteredNovels;
+
+      // Apply per-category sort order (falls back to the DB's global sort)
+      const catSortOrder = categorySortOrders[String(route.id)];
+      const novels = catSortOrder
+        ? sortNovelsByOrder(filtered, catSortOrder)
+        : filtered;
 
       return isLoading ? (
         <SourceScreenSkeletonLoading theme={theme} />
@@ -380,6 +393,7 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
     },
     [
       allCategories,
+      categorySortOrders,
       isLoading,
       library,
       navigation,
@@ -625,6 +639,7 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
       />
       <LibraryBottomSheet
         bottomSheetRef={bottomSheetRef}
+        activeCategoryId={categories[index]?.id}
         style={bottomSheetStyle}
       />
       <Portal>

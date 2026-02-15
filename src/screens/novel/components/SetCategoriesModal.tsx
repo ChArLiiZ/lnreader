@@ -64,8 +64,20 @@ const SetCategoryModal: React.FC<SetCategoryModalProps> = ({
 
   const getCategories = useCallback(async () => {
     const res = getCategoriesWithCount(novelIds);
-    setCategories(res);
-    setSelectedCategories(res.filter(c => c.novelsCount));
+    // Hide the system default category (id=1) if user has other root
+    // categories and the default category has no novels assigned.
+    // This mirrors the same logic used by the library / CategoriesScreen.
+    const hasUserRootCategories = res.some(
+      c => c.id !== 1 && c.id !== 2 && c.parentId == null,
+    );
+    const filtered = res.filter(c => {
+      if (c.id === 1 && hasUserRootCategories && !c.novelsCount) {
+        return false;
+      }
+      return true;
+    });
+    setCategories(filtered);
+    setSelectedCategories(filtered.filter(c => c.novelsCount));
   }, [novelIds]);
 
   useEffect(() => {

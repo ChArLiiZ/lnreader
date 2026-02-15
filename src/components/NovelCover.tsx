@@ -212,12 +212,14 @@ function NovelCover<
             source={{ uri, headers }}
             cachePolicy="disk"
             contentFit="cover"
+            recyclingKey={uri}
+            transition={200}
             style={[
               {
                 height: coverHeight,
-                width: '100%',
                 backgroundColor: coverPlaceholderColor,
               },
+              styles.fullWidth,
               styles.standardBorderRadius,
               libraryStatus && styles.opacityPoint5,
             ]}
@@ -540,6 +542,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 4.8,
   },
+  fullWidth: { width: '100%' },
   opacityPoint5: { opacity: 0.5 },
   padding4: { padding: 4 },
   selectedNovelCover: {

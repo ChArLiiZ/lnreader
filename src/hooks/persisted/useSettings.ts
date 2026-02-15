@@ -78,6 +78,11 @@ export interface LibrarySettings {
    *  >0 = Specific category ID
    */
   defaultCategoryId?: number;
+  /**
+   * Per-category sort orders. Key is the category ID (as string).
+   * Categories without an entry here use the global `sortOrder`.
+   */
+  categorySortOrders?: Record<string, LibrarySortOrder>;
 }
 
 export interface ChapterGeneralSettings {
