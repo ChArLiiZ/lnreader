@@ -195,20 +195,22 @@ function NovelCover<
           ) : null}
           {inActivity ? <InActivityBadge theme={theme} /> : null}
         </View>
-        <Image
-          source={{ uri, ...requestInit }}
-          style={[
-            {
-              height: coverHeight,
-              backgroundColor: coverPlaceholderColor,
-            },
-            styles.standardBorderRadius,
-            libraryStatus && styles.opacityPoint5,
-          ]}
-        />
-        {'info' in item && item.info ? (
-          <CoverInfoOverlay info={item.info} />
-        ) : null}
+        <View style={[{ height: coverHeight }, styles.standardBorderRadius]}>
+          <Image
+            source={{ uri, ...requestInit }}
+            style={[
+              {
+                height: coverHeight,
+                backgroundColor: coverPlaceholderColor,
+              },
+              styles.standardBorderRadius,
+              libraryStatus && styles.opacityPoint5,
+            ]}
+          />
+          {'info' in item && item.info ? (
+            <CoverInfoOverlay info={item.info} />
+          ) : null}
+        </View>
         <View style={styles.compactTitleContainer}>
           {displayMode === DisplayModes.Compact ? (
             <CompactTitle novelName={item.name} />
@@ -440,12 +442,15 @@ const styles = StyleSheet.create({
   },
   coverInfoContainer: {
     position: 'absolute',
-    bottom: 5,
-    right: 5,
-    backgroundColor: 'rgba(0,0,0,0.65)',
-    borderRadius: 4,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
+    bottom: 4,
+    left: 4,
+    right: 4,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    alignItems: 'center',
     zIndex: 2,
   },
   coverInfoText: {
