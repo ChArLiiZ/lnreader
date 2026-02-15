@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -11,35 +12,83 @@ import { useAppSettings, usePlugins, useTheme } from '@hooks/persisted';
 import { useGithubUpdateChecker } from '@hooks/common/useGithubUpdateChecker';
 
 /**
- * Navigators
+ * Navigators — BottomNavigator is eagerly loaded (home screen)
  */
 import BottomNavigator from './BottomNavigator';
-import MoreStack from './MoreStack';
 
 /**
- * Screens
+ * Lazily loaded navigators and screens
  */
+const MoreStack = lazy(() => import('./MoreStack'));
+const ReaderStack = lazy(() => import('./ReaderStack'));
+const BrowseSourceScreen = lazy(
+  () => import('../screens/BrowseSourceScreen/BrowseSourceScreen'),
+);
+const GlobalSearchScreen = lazy(
+  () => import('../screens/GlobalSearchScreen/GlobalSearchScreen'),
+);
+const Migration = lazy(() => import('../screens/browse/migration/Migration'));
+const SourceNovels = lazy(() => import('../screens/browse/SourceNovels'));
+const MigrateNovel = lazy(
+  () => import('../screens/browse/migration/MigrationNovels'),
+);
+const MalTopNovels = lazy(
+  () => import('../screens/browse/discover/MalTopNovels'),
+);
+const AniListTopNovels = lazy(
+  () => import('../screens/browse/discover/AniListTopNovels'),
+);
+const BrowseSettings = lazy(
+  () => import('../screens/browse/settings/BrowseSettings'),
+);
+const WebviewScreen = lazy(
+  () => import('@screens/WebviewScreen/WebviewScreen'),
+);
 
-import BrowseSourceScreen from '../screens/BrowseSourceScreen/BrowseSourceScreen';
-import GlobalSearchScreen from '../screens/GlobalSearchScreen/GlobalSearchScreen';
-import Migration from '../screens/browse/migration/Migration';
-import SourceNovels from '../screens/browse/SourceNovels';
-import MigrateNovel from '../screens/browse/migration/MigrationNovels';
-
-import MalTopNovels from '../screens/browse/discover/MalTopNovels';
-import AniListTopNovels from '../screens/browse/discover/AniListTopNovels';
 import NewUpdateDialog from '../components/NewUpdateDialog';
-import BrowseSettings from '../screens/browse/settings/BrowseSettings';
-import WebviewScreen from '@screens/WebviewScreen/WebviewScreen';
 import { RootStackParamList } from './types';
 import Color from 'color';
 import { useMMKVBoolean } from 'react-native-mmkv';
 import OnboardingScreen from '@screens/onboarding/OnboardingScreen';
 import ServiceManager from '@services/ServiceManager';
-import ReaderStack from './ReaderStack';
 import { LibraryContextProvider } from '@components/Context/LibraryContext';
 import { UpdateContextProvider } from '@components/Context/UpdateContext';
+import OfflineBanner from '@components/OfflineBanner/OfflineBanner';
+
+const fallbackStyle = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+});
+const LazyScreenFallback = () => (
+  <View style={fallbackStyle.container}>
+    <ActivityIndicator size="small" />
+  </View>
+);
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+// Wrap lazy components with Suspense for React Navigation compatibility
+const withSuspense = <P extends object>(
+  LazyComponent: React.LazyExoticComponent<React.ComponentType<P>>,
+) => {
+  const Wrapped = (props: P) => (
+    <Suspense fallback={<LazyScreenFallback />}>
+      <LazyComponent {...props} />
+    </Suspense>
+  );
+  Wrapped.displayName = `Suspense(${LazyComponent.displayName || 'Lazy'})`;
+  return Wrapped;
+};
+
+const LazyMoreStack = withSuspense(MoreStack);
+const LazyReaderStack = withSuspense(ReaderStack);
+const LazyBrowseSourceScreen = withSuspense(BrowseSourceScreen);
+const LazyGlobalSearchScreen = withSuspense(GlobalSearchScreen);
+const LazyMigration = withSuspense(Migration);
+const LazySourceNovels = withSuspense(SourceNovels);
+const LazyMigrateNovel = withSuspense(MigrateNovel);
+const LazyMalTopNovels = withSuspense(MalTopNovels);
+const LazyAniListTopNovels = withSuspense(AniListTopNovels);
+const LazyBrowseSettings = withSuspense(BrowseSettings);
+const LazyWebviewScreen = withSuspense(WebviewScreen);
 
 const MainNavigator = () => {
   const theme = useTheme();
@@ -107,23 +156,30 @@ const MainNavigator = () => {
     >
       <LibraryContextProvider>
         <UpdateContextProvider>
+          <OfflineBanner />
           {isNewVersion && <NewUpdateDialog newVersion={latestRelease} />}
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="BottomNavigator" component={BottomNavigator} />
-            <Stack.Screen name="ReaderStack" component={ReaderStack} />
-            <Stack.Screen name="MoreStack" component={MoreStack} />
-            <Stack.Screen name="SourceScreen" component={BrowseSourceScreen} />
-            <Stack.Screen name="BrowseMal" component={MalTopNovels} />
-            <Stack.Screen name="BrowseAL" component={AniListTopNovels} />
-            <Stack.Screen name="BrowseSettings" component={BrowseSettings} />
+            <Stack.Screen name="ReaderStack" component={LazyReaderStack} />
+            <Stack.Screen name="MoreStack" component={LazyMoreStack} />
+            <Stack.Screen
+              name="SourceScreen"
+              component={LazyBrowseSourceScreen}
+            />
+            <Stack.Screen name="BrowseMal" component={LazyMalTopNovels} />
+            <Stack.Screen name="BrowseAL" component={LazyAniListTopNovels} />
+            <Stack.Screen
+              name="BrowseSettings"
+              component={LazyBrowseSettings}
+            />
             <Stack.Screen
               name="GlobalSearchScreen"
-              component={GlobalSearchScreen}
+              component={LazyGlobalSearchScreen}
             />
-            <Stack.Screen name="Migration" component={Migration} />
-            <Stack.Screen name="SourceNovels" component={SourceNovels} />
-            <Stack.Screen name="MigrateNovel" component={MigrateNovel} />
-            <Stack.Screen name="WebviewScreen" component={WebviewScreen} />
+            <Stack.Screen name="Migration" component={LazyMigration} />
+            <Stack.Screen name="SourceNovels" component={LazySourceNovels} />
+            <Stack.Screen name="MigrateNovel" component={LazyMigrateNovel} />
+            <Stack.Screen name="WebviewScreen" component={LazyWebviewScreen} />
           </Stack.Navigator>
         </UpdateContextProvider>
       </LibraryContextProvider>

@@ -1,12 +1,8 @@
 import { useLibrarySettings } from '@hooks/persisted';
 import { DisplayModes } from '@screens/library/constants/constants';
 import React, { useMemo } from 'react';
-import {
-  StyleSheet,
-  FlatList,
-  FlatListProps,
-  ListRenderItem,
-} from 'react-native';
+import { StyleSheet, FlatListProps, ListRenderItem } from 'react-native';
+import { FlashList, FlashListProps } from '@shopify/flash-list';
 import { NovelItem } from '@plugins/types';
 import { NovelInfo } from '../database/types';
 import { useDeviceOrientation } from '@hooks';
@@ -18,7 +14,8 @@ type listDataItem =
       completeRow?: number;
     };
 
-interface NovelListProps extends FlatListProps<NovelInfo | NovelItem> {
+interface NovelListProps
+  extends Omit<FlatListProps<NovelInfo | NovelItem>, 'data'> {
   inSource?: boolean;
   data: Array<listDataItem>;
 }
@@ -69,16 +66,21 @@ const NovelList: React.FC<NovelListProps> = props => {
     extendedNovelList = [...props.data, ...extension];
   }
 
+  // Estimate item size based on display mode
+  const estimatedItemSize = isListView ? 56 : 200;
+
+  // Extract props not supported by FlashList before spreading
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { inSource, contentContainerStyle, ...restProps } = props;
+
   return (
-    <FlatList
-      contentContainerStyle={[
-        !isListView && styles.listView,
-        styles.flatListCont,
-      ]}
+    <FlashList
+      contentContainerStyle={!isListView ? styles.listView : undefined}
       numColumns={numColumns}
       key={numColumns}
       keyExtractor={novelListKeyExtractor}
-      {...props}
+      estimatedItemSize={estimatedItemSize}
+      {...(restProps as Partial<FlashListProps<NovelInfo | NovelItem>>)}
       data={extendedNovelList}
     />
   );
@@ -87,10 +89,6 @@ const NovelList: React.FC<NovelListProps> = props => {
 export default NovelList;
 
 const styles = StyleSheet.create({
-  flatListCont: {
-    flexGrow: 1,
-    paddingBottom: 56,
-  },
   listView: {
     paddingHorizontal: 4,
   },

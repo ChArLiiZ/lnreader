@@ -61,6 +61,9 @@ const createInitialSchema = () => {
  * Handles both fresh installations and existing databases
  */
 export const initializeDatabase = () => {
+  db.execSync('PRAGMA journal_mode = WAL');
+  db.execSync('PRAGMA synchronous = NORMAL');
+  db.execSync('PRAGMA temp_store = MEMORY');
   db.execSync('PRAGMA busy_timeout = 5000');
   db.execSync('PRAGMA cache_size = 10000');
   db.execSync('PRAGMA foreign_keys = ON');

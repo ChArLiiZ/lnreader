@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { NovelItem } from '@plugins/types';
+import { debounce } from 'lodash-es';
 
 import { getPlugin } from '@plugins/pluginManager';
 import { FilterToValues, Filters } from '@plugins/types/filterTypes';
@@ -117,14 +118,6 @@ export const useSearchSource = (pluginId: string) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchText, setSearchText] = useState('');
 
-  const searchSource = (searchTerm: string) => {
-    setSearchResults([]);
-    setHasNextSearchPage(true);
-    setCurrentPage(1);
-    setSearchText(searchTerm);
-    setIsSearching(true);
-  };
-
   const isScreenMounted = useRef(true);
 
   const fetchNovels = useCallback(
@@ -153,22 +146,53 @@ export const useSearchSource = (pluginId: string) => {
     [pluginId],
   );
 
+  // Debounce search requests to avoid excessive API calls
+  const debouncedFetchNovels = useMemo(
+    () => debounce(fetchNovels, 300),
+    [fetchNovels],
+  );
+
+  // Cleanup debounced function on unmount
+  useEffect(() => {
+    return () => {
+      debouncedFetchNovels.cancel();
+    };
+  }, [debouncedFetchNovels]);
+
+  const searchSource = (searchTerm: string) => {
+    setSearchResults([]);
+    setHasNextSearchPage(true);
+    setCurrentPage(1);
+    setSearchText(searchTerm);
+    setIsSearching(true);
+  };
+
+  /**
+   * On screen unmount
+   */
+  useEffect(() => {
+    return () => {
+      isScreenMounted.current = false;
+    };
+  }, []);
+
   const searchNextPage = () => {
     if (hasNextSearchPage) setCurrentPage(prevState => prevState + 1);
   };
 
   useEffect(() => {
     if (searchText) {
-      fetchNovels(searchText, currentPage);
+      debouncedFetchNovels(searchText, currentPage);
     }
-  }, [currentPage, fetchNovels, searchText]);
+  }, [currentPage, debouncedFetchNovels, searchText]);
 
   const clearSearchResults = useCallback(() => {
+    debouncedFetchNovels.cancel();
     setSearchText('');
     setSearchResults([]);
     setCurrentPage(1);
     setHasNextSearchPage(true);
-  }, []);
+  }, [debouncedFetchNovels]);
 
   return {
     isSearching,

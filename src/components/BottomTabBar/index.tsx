@@ -55,6 +55,7 @@ function CustomBottomTabBar({
           paddingBottom: insets?.bottom || 0,
         },
       ]}
+      accessibilityRole="tablist"
     >
       {state.routes.map((route, index) => {
         const label = getLabelText(route);
@@ -90,6 +91,9 @@ function CustomBottomTabBar({
             onPress={onPress}
             onLongPress={onLongPress}
             style={styles.pressable}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isFocused }}
+            accessibilityLabel={label || route.name}
           >
             {/* Icon */}
             <Animated.View

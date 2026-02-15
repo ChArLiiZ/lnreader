@@ -150,7 +150,7 @@ export default class ServiceManager {
     ) {
       const now = Date.now();
       if (now - this.lastNotifUpdate > 1000) {
-        const delay = 1000 - now - this.lastNotifUpdate;
+        const delay = Math.max(0, 1000 - (now - this.lastNotifUpdate));
         const id = ++this.currentPendingUpdate;
         setTimeout(() => {
           if (this.currentPendingUpdate !== id) {
@@ -309,6 +309,14 @@ export default class ServiceManager {
         });
       } finally {
         setMMKVObject(manager.STORE_KEY, manager.getTaskList().slice(1));
+        // Clean up completed task from startingTasks to prevent memory leak
+        const completedIdx = startingTasks.findIndex(
+          t => t.id === currentTask.id,
+        );
+        if (completedIdx !== -1) {
+          startingTasks.splice(completedIdx, 1);
+        }
+        tasksSet.delete(currentTask.id);
       }
     }
 

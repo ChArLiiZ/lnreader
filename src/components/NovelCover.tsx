@@ -5,8 +5,8 @@ import {
   Text,
   useWindowDimensions,
   Pressable,
-  Image,
 } from 'react-native';
+import { Image } from 'expo-image';
 
 import { LinearGradient } from 'expo-linear-gradient';
 import ListView from './ListView';
@@ -125,12 +125,9 @@ function NovelCover<
   const selectNovel = () => onLongPress(item);
 
   const uri = item.cover || defaultCover;
-  const requestInit = imageRequestInit || ({} as ImageRequestInit);
-  if (!requestInit.headers) {
-    requestInit.headers = {
-      'User-Agent': getUserAgent(),
-    };
-  }
+  const headers = imageRequestInit?.headers || {
+    'User-Agent': getUserAgent(),
+  };
 
   if (item.completeRow) {
     if (!addSkeletonLoading) {
@@ -167,6 +164,9 @@ function NovelCover<
         style={styles.opac}
         onPress={selectionActive ? selectNovel : onPress}
         onLongPress={selectNovel}
+        accessibilityRole="button"
+        accessibilityLabel={item.name}
+        accessibilityState={{ selected: isSelected }}
       >
         <View style={styles.badgeContainer}>
           {'badge' in item && item.badge ? (
@@ -197,7 +197,8 @@ function NovelCover<
         </View>
         <View style={[{ height: coverHeight }, styles.standardBorderRadius]}>
           <Image
-            source={{ uri, ...requestInit }}
+            source={{ uri, headers }}
+            cachePolicy="disk"
             style={[
               {
                 height: coverHeight,

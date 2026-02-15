@@ -31,6 +31,10 @@ const SwitchItem: React.FC<SwitchItemProps> = ({
     android_ripple={{ color: theme.rippleColor }}
     style={[styles.container, style]}
     onPress={onPress}
+    accessibilityRole="switch"
+    accessibilityState={{ checked: value }}
+    accessibilityLabel={label}
+    accessibilityHint={description}
   >
     <View style={styles.labelContainer}>
       <Text style={[{ color: theme.onSurface }, styles.label]}>{label}</Text>
@@ -40,11 +44,7 @@ const SwitchItem: React.FC<SwitchItemProps> = ({
         </Text>
       ) : null}
     </View>
-    <Switch
-      value={value}
-      onValueChange={onPress}
-      style={styles.switch}
-    />
+    <Switch value={value} onValueChange={onPress} style={styles.switch} />
   </Pressable>
 );
 

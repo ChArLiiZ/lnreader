@@ -83,8 +83,8 @@ const ChapterItem: React.FC<ChapterItemProps> = ({
       !unread
         ? theme.outline
         : bookmark
-          ? theme.primary
-          : theme.onSurfaceVariant,
+        ? theme.primary
+        : theme.onSurfaceVariant,
     [unread, bookmark, theme.outline, theme.primary, theme.onSurfaceVariant],
   );
 
@@ -100,6 +100,13 @@ const ChapterItem: React.FC<ChapterItemProps> = ({
         onPress={handlePress}
         onLongPress={handleLongPress}
         android_ripple={ripple}
+        accessibilityRole="button"
+        accessibilityLabel={`${
+          showChapterTitles
+            ? name
+            : getString('novelScreen.chapterChapnum', { num: chapterNumber })
+        }${unread ? ', unread' : ''}${isBookmarked ? ', bookmarked' : ''}`}
+        accessibilityState={{ selected: isSelected }}
       >
         <View style={styles.row}>
           {left}
@@ -146,8 +153,9 @@ const ChapterItem: React.FC<ChapterItemProps> = ({
               {releaseTime && !isUpdateCard ? (
                 <Text
                   style={[
-                    { color: releaseColor, marginTop: 4 },
+                    { color: releaseColor },
                     styles.text,
+                    styles.metaTopMargin,
                   ]}
                   numberOfLines={1}
                 >
@@ -158,11 +166,9 @@ const ChapterItem: React.FC<ChapterItemProps> = ({
                 <Text
                   style={[
                     styles.text,
-                    {
-                      color: theme.outline,
-                      marginStart: chapter.releaseTime ? 5 : 0,
-                      marginTop: 4,
-                    },
+                    styles.metaTopMargin,
+                    { color: theme.outline },
+                    chapter.releaseTime ? styles.metaStartMargin : undefined,
                   ]}
                   numberOfLines={1}
                 >
@@ -204,6 +210,12 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  metaStartMargin: {
+    marginStart: 5,
+  },
+  metaTopMargin: {
+    marginTop: 4,
   },
   row: {
     alignItems: 'center',

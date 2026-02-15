@@ -41,6 +41,8 @@ export const useLibrary = (): UseLibraryReturnType => {
   const [categories, setCategories] = useState<ExtendedCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
+  const isDirtyRef = useRef(true);
+  const isInitialLoadRef = useRef(true);
 
   const refreshCategories = useCallback(async () => {
     const dbCategories = getCategoriesFromDb();
@@ -76,7 +78,16 @@ export const useLibrary = (): UseLibraryReturnType => {
 
     setLibrary(novels);
     setIsLoading(false);
+    isDirtyRef.current = false;
   }, [downloadedOnlyMode, filter, refreshCategories, searchText, sortOrder]);
+
+  // Mark library as dirty when filter/sort settings change
+  useEffect(() => {
+    if (!isInitialLoadRef.current) {
+      isDirtyRef.current = true;
+    }
+    isInitialLoadRef.current = false;
+  }, [filter, sortOrder, downloadedOnlyMode, searchText]);
 
   const libraryLookup = useMemo(() => {
     const set = new Set<string>();
@@ -112,7 +123,9 @@ export const useLibrary = (): UseLibraryReturnType => {
   );
 
   useFocusEffect(() => {
-    getLibrary();
+    if (isDirtyRef.current) {
+      getLibrary();
+    }
   });
 
   const [taskQueue] = useMMKVObject<
@@ -139,6 +152,7 @@ export const useLibrary = (): UseLibraryReturnType => {
 
   useEffect(() => {
     if (prevRestoreTasksCountRef.current > 0 && restoreTasksCount === 0) {
+      isDirtyRef.current = true;
       getLibrary();
     }
     prevRestoreTasksCountRef.current = restoreTasksCount;
@@ -153,8 +167,14 @@ export const useLibrary = (): UseLibraryReturnType => {
     refreshCategories,
     novelInLibrary,
     switchNovelToLibrary,
-    refetchLibrary: getLibrary,
-    setLibrarySearchText: setSearchText,
+    refetchLibrary: () => {
+      isDirtyRef.current = true;
+      getLibrary();
+    },
+    setLibrarySearchText: (text: string) => {
+      isDirtyRef.current = true;
+      setSearchText(text);
+    },
   };
 };
 

@@ -1,5 +1,6 @@
 import { Migration } from '../types/migration';
 import { migration002 } from './002_add_novel_counters';
+import { migration003 } from './003_add_library_filter_index';
 
 /**
  * Registry of all database migrations
@@ -10,4 +11,4 @@ import { migration002 } from './002_add_novel_counters';
  * 3. Import and add it to the migrations array below
  * 4. Ensure version numbers are sequential
  */
-export const migrations: Migration[] = [migration002];
+export const migrations: Migration[] = [migration002, migration003];

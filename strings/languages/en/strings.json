@@ -216,6 +216,7 @@
     "logout": "Logout",
     "name": "Name",
     "newUpdateAvailable": "New update available",
+    "noConnection": "No internet connection",
     "ok": "Ok",
     "pause": "Pause",
     "preparing": "Preparing",

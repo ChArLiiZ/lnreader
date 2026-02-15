@@ -86,6 +86,8 @@ const Searchbar: React.FC<SearcbarProps> = ({
           onChangeText={onChangeText}
           onSubmitEditing={onSubmitEditing}
           defaultValue={searchText}
+          accessibilityRole="search"
+          accessibilityLabel={placeholder}
         />
         {searchText !== '' ? (
           <IconButtonV2

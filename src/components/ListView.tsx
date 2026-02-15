@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, Text, Pressable, Image } from 'react-native';
+import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { Image } from 'expo-image';
 
 import { coverPlaceholderColor } from '../theme/colors';
 
@@ -41,11 +42,13 @@ const ListView = ({
       ]}
       onPress={onPress}
       onLongPress={onLongPress}
+      accessibilityRole="button"
+      accessibilityLabel={item.name}
+      accessibilityState={{ selected: isSelected }}
     >
       <Image
-        source={{
-          uri: item.cover,
-        }}
+        source={{ uri: item.cover }}
+        cachePolicy="disk"
         style={[styles.extensionIcon, fadedImage]}
       />
       <Text
