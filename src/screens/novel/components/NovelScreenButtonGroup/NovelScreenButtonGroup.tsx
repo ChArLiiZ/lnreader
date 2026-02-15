@@ -11,6 +11,7 @@ import SetCategoryModal from '../SetCategoriesModal';
 import { NovelScreenProps } from '@navigators/types';
 import { useTrackedNovel, useTracker } from '@hooks/persisted';
 import { useLibrarySettings } from '@hooks/persisted/useSettings';
+import { ensureNovelHasCategory } from '@database/queries/NovelQueries';
 import Animated, { ZoomIn, ZoomOut } from 'react-native-reanimated';
 import { MaterialDesignIconName } from '@type/icon';
 
@@ -98,6 +99,17 @@ const NovelScreenButtonGroup: React.FC<NovelScreenButtonGroupProps> = ({
     setFalse: closeSetCategoryModal,
   } = useBoolean();
 
+  // Wrap closeModal to ensure the novel always has at least one category.
+  // When defaultCategoryId === -1, no category is pre-assigned, so if the
+  // user dismisses/cancels the picker, the novel would have no category
+  // and wouldn't appear in any library tab. This fallback assigns Category 1.
+  const handleCloseSetCategoryModal = useCallback(async () => {
+    closeSetCategoryModal();
+    if (novel.id !== 'NO_ID') {
+      await ensureNovelHasCategory(novel.id);
+    }
+  }, [closeSetCategoryModal, novel.id]);
+
   const handleFollowWithCategory = useCallback(() => {
     handleFollowNovel();
     // When defaultCategoryId is -1 (always ask) and novel is not yet in library,
@@ -161,7 +173,7 @@ const NovelScreenButtonGroup: React.FC<NovelScreenButtonGroupProps> = ({
       {novel.id !== 'NO_ID' && (
         <SetCategoryModal
           novelIds={[novel.id]}
-          closeModal={closeSetCategoryModal}
+          closeModal={handleCloseSetCategoryModal}
           visible={setCategoryModalVisible}
         />
       )}

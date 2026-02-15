@@ -107,15 +107,19 @@ export const switchNovelToLibraryQuery = async (
       );
       showToast(getString('browseScreen.removeFromLibrary'));
     } else {
-      // Adding to library — always assign an initial category
-      // (when defaultCategoryId === -1 "always ask", the category picker
-      //  will be shown right after, so use category 1 as a safe fallback)
-      const categoryId = defaultCategoryId > 0 ? defaultCategoryId : 1;
-      await db.runAsync(
-        'INSERT OR IGNORE INTO NovelCategory (novelId, categoryId) VALUES (?, ?)',
-        novel.id,
-        categoryId,
-      );
+      // Adding to library
+      // When defaultCategoryId === -1 ("always ask"), skip category assignment
+      // so the picker opens with nothing pre-selected.
+      // The caller is responsible for showing the category picker afterwards
+      // and ensuring a fallback category is assigned if the user dismisses it.
+      if (defaultCategoryId >= 0) {
+        const categoryId = defaultCategoryId > 0 ? defaultCategoryId : 1;
+        await db.runAsync(
+          'INSERT OR IGNORE INTO NovelCategory (novelId, categoryId) VALUES (?, ?)',
+          novel.id,
+          categoryId,
+        );
+      }
       showToast(getString('browseScreen.addedToLibrary'));
     }
     if (novel.pluginId === 'local') {
@@ -130,12 +134,14 @@ export const switchNovelToLibraryQuery = async (
     const novelId = await insertNovelAndChapters(pluginId, sourceNovel);
     if (novelId) {
       await db.runAsync('UPDATE Novel SET inLibrary = 1 WHERE id = ?', novelId);
-      const categoryId = defaultCategoryId > 0 ? defaultCategoryId : 1;
-      await db.runAsync(
-        'INSERT OR IGNORE INTO NovelCategory (novelId, categoryId) VALUES (?, ?)',
-        novelId,
-        categoryId,
-      );
+      if (defaultCategoryId >= 0) {
+        const categoryId = defaultCategoryId > 0 ? defaultCategoryId : 1;
+        await db.runAsync(
+          'INSERT OR IGNORE INTO NovelCategory (novelId, categoryId) VALUES (?, ?)',
+          novelId,
+          categoryId,
+        );
+      }
       showToast(getString('browseScreen.addedToLibrary'));
     }
   }
@@ -230,6 +236,27 @@ export const pickCustomNovelCover = async (novel: NovelInfo) => {
       novel.id,
     );
     return novelCoverUri;
+  }
+};
+
+/**
+ * Ensure a novel has at least one category assigned.
+ * If the novel has no categories, assign to default category (ID 1).
+ * This is used as a safety net when the category picker is dismissed
+ * without any selection (e.g. when defaultCategoryId === -1).
+ */
+export const ensureNovelHasCategory = async (
+  novelId: number,
+): Promise<void> => {
+  const result = db.getFirstSync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM NovelCategory WHERE novelId = ?',
+    novelId,
+  );
+  if (result && result.count === 0) {
+    await db.runAsync(
+      'INSERT OR IGNORE INTO NovelCategory (novelId, categoryId) VALUES (?, 1)',
+      novelId,
+    );
   }
 };
 

@@ -3,6 +3,7 @@ import { migration002 } from './002_add_novel_counters';
 import { migration003 } from './003_add_library_filter_index';
 import { migration004 } from './004_add_category_parent_id';
 import { migration005 } from './005_add_latest_chapter_at';
+import { migration006 } from './006_fix_category_unique_constraint';
 
 /**
  * Registry of all database migrations
@@ -18,4 +19,5 @@ export const migrations: Migration[] = [
   migration003,
   migration004,
   migration005,
+  migration006,
 ];

@@ -211,9 +211,11 @@ function NovelCover<
           <Image
             source={{ uri, headers }}
             cachePolicy="disk"
+            contentFit="cover"
             style={[
               {
                 height: coverHeight,
+                width: '100%',
                 backgroundColor: coverPlaceholderColor,
               },
               styles.standardBorderRadius,
