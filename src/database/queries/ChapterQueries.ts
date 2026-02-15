@@ -295,6 +295,16 @@ export const getPageChaptersBatched = (
   );
 };
 
+export const getLatestChapterReleaseTime = async (
+  novelId: number,
+): Promise<string | undefined> => {
+  const result = await db.getFirstAsync<{ releaseTime: string }>(
+    "SELECT releaseTime FROM Chapter WHERE novelId = ? AND releaseTime != '' ORDER BY releaseTime DESC LIMIT 1",
+    novelId,
+  );
+  return result?.releaseTime || undefined;
+};
+
 export const getNovelChaptersByNumber = (
   novelId: number,
   chapterNumber: number,
@@ -312,7 +322,9 @@ export const getFirstUnreadChapter = (
   page?: string,
 ) =>
   db.getFirstAsync<ChapterInfo>(
-    `SELECT * FROM Chapter WHERE novelId = ? AND page = ? AND unread = 1 ${filter || ''} ORDER BY position ASC LIMIT 1`,
+    `SELECT * FROM Chapter WHERE novelId = ? AND page = ? AND unread = 1 ${
+      filter || ''
+    } ORDER BY position ASC LIMIT 1`,
     novelId,
     page || '1',
   );

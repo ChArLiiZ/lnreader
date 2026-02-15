@@ -25,6 +25,7 @@ import {
   getPageChaptersBatched,
   getFirstUnreadChapter as _getFirstUnreadChapter,
   updateChapterProgress as _updateChapterProgress,
+  getLatestChapterReleaseTime,
 } from '@database/queries/ChapterQueries';
 import { fetchNovel, fetchPage } from '@services/plugin/fetch';
 import { showToast } from '@utils/showToast';
@@ -97,6 +98,9 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
   const [chapters, _setChapters] = useState<ChapterInfo[]>([]);
   const [firstUnreadChapter, setFirstUnreadChapter] = useState<
     ChapterInfo | undefined
+  >();
+  const [latestChapterReleaseTime, setLatestChapterReleaseTime] = useState<
+    string | undefined
   >();
   const [batchInformation, setBatchInformation] = useState<{
     batch: number;
@@ -290,6 +294,9 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
         page,
       );
       setFirstUnreadChapter(unread ?? undefined);
+
+      const latestRelease = await getLatestChapterReleaseTime(novel.id);
+      setLatestChapterReleaseTime(latestRelease);
     }
   }, [
     novel,
@@ -624,6 +631,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
       novel,
       lastRead,
       firstUnreadChapter,
+      latestChapterReleaseTime,
       chapters,
       novelSettings,
       batchInformation,
@@ -657,6 +665,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
       novel,
       lastRead,
       firstUnreadChapter,
+      latestChapterReleaseTime,
       chapters,
       novelSettings,
       batchInformation,

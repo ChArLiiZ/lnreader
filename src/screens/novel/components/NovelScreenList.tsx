@@ -80,6 +80,7 @@ const NovelScreenList = ({
     pageIndex,
     openPage,
     updateChapter,
+    latestChapterReleaseTime,
   } = useNovelContext();
 
   const { pluginId } = routeBaseNovel;
@@ -430,6 +431,7 @@ const NovelScreenList = ({
           theme={theme}
           totalChapters={batchInformation.totalChapters}
           trackerSheetRef={trackerSheetRef}
+          latestChapterReleaseTime={latestChapterReleaseTime}
         />
         {paginationControl}
       </>
@@ -442,6 +444,7 @@ const NovelScreenList = ({
       firstUnreadChapter,
       loading,
       lastRead,
+      latestChapterReleaseTime,
       navigateToChapter,
       navigation,
       novel,

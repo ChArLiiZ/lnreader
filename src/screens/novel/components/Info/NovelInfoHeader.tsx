@@ -6,6 +6,8 @@ import * as Clipboard from 'expo-clipboard';
 import { IconButton } from 'react-native-paper';
 import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
 
+import dayjs from 'dayjs';
+
 import { showToast } from '@utils/showToast';
 
 import {
@@ -72,6 +74,7 @@ interface NovelInfoHeaderProps {
   theme: ThemeColors;
   totalChapters?: number;
   trackerSheetRef: React.RefObject<BottomSheetModalMethods | null>;
+  latestChapterReleaseTime?: string;
 }
 
 const getStatusIcon = (status?: string) => {
@@ -244,6 +247,7 @@ const NovelInfoHeader = ({
   theme,
   totalChapters,
   trackerSheetRef,
+  latestChapterReleaseTime,
 }: NovelInfoHeaderProps) => {
   const { hideBackdrop = false } = useAppSettings();
   const { followNovel } = useNovelContext();
@@ -389,6 +393,21 @@ const NovelInfoHeader = ({
                       pluginName}
                   </NovelInfo>
                 </Row>
+                {novel.id !== 'NO_ID' && latestChapterReleaseTime ? (
+                  <Row style={styles.infoRow}>
+                    <MaterialCommunityIcons
+                      name="update"
+                      size={14}
+                      color={theme.onSurfaceVariant}
+                      style={styles.marginRight}
+                    />
+                    <NovelInfo theme={theme}>
+                      {dayjs(latestChapterReleaseTime).isValid()
+                        ? dayjs(latestChapterReleaseTime).format('LL')
+                        : latestChapterReleaseTime}
+                    </NovelInfo>
+                  </Row>
+                ) : null}
               </>
             )}
           </View>
