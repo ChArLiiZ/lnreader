@@ -6,9 +6,10 @@ import { ThemeColors } from '../../theme/types';
 interface ChipProps {
   label: string;
   theme: ThemeColors;
+  onPress?: () => void;
 }
 
-const Chip: React.FC<ChipProps> = ({ label, theme }) => (
+const Chip: React.FC<ChipProps> = ({ label, theme, onPress }) => (
   <View
     style={[
       styles.chipContainer,
@@ -20,6 +21,7 @@ const Chip: React.FC<ChipProps> = ({ label, theme }) => (
     <Pressable
       android_ripple={{ color: theme.rippleColor }}
       style={styles.pressable}
+      onPress={onPress}
     >
       <Text
         style={[

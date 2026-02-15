@@ -243,11 +243,25 @@ const TrackerButton = ({
 const genreKeyExtractor = (_item: string, index: number) => 'genre' + index;
 
 const NovelGenres = memo(
-  ({ theme, genres }: { theme: ThemeColors; genres: string }) => {
+  ({
+    theme,
+    genres,
+    onPressGenre,
+  }: {
+    theme: ThemeColors;
+    genres: string;
+    onPressGenre?: (genre: string) => void;
+  }) => {
     const data = useMemo(() => genres.split(/,\s*/), [genres]);
     const renderGenre = useCallback(
-      ({ item }: { item: string }) => <Chip label={item} theme={theme} />,
-      [theme],
+      ({ item }: { item: string }) => (
+        <Chip
+          label={item}
+          theme={theme}
+          onPress={onPressGenre ? () => onPressGenre(item) : undefined}
+        />
+      ),
+      [theme, onPressGenre],
     );
 
     return (

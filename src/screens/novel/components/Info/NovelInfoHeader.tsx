@@ -248,13 +248,15 @@ const NovelInfoHeader = ({
   const { hideBackdrop = false } = useAppSettings();
   const { followNovel } = useNovelContext();
 
-  const pluginName = useMemo(
+  const pluginInfo = useMemo(
     () =>
       (getMMKVObject<PluginItem[]>(AVAILABLE_PLUGINS) || []).find(
         plugin => plugin.id === novel.pluginId,
-      )?.name || novel.pluginId,
+      ),
     [novel.pluginId],
   );
+
+  const pluginName = pluginInfo?.name || novel.pluginId;
 
   const coverSource = useMemo(() => ({ uri: novel.cover }), [novel.cover]);
 
@@ -271,6 +273,20 @@ const NovelInfoHeader = ({
       showToast(getString('common.copiedToClipboard', { name: novel.name })),
     );
   }, [novel.name]);
+
+  const handleGenrePress = useCallback(
+    (genre: string) => {
+      if (!novel.isLocal && pluginInfo) {
+        navigation.navigate('SourceScreen', {
+          pluginId: novel.pluginId,
+          pluginName: pluginInfo.name,
+          site: pluginInfo.site,
+          initialSearchText: genre,
+        });
+      }
+    },
+    [navigation, novel.pluginId, novel.isLocal, pluginInfo],
+  );
 
   const handleFollowNovel = useCallback(() => {
     if (isLoading) {
@@ -399,7 +415,13 @@ const NovelInfoHeader = ({
               theme={theme}
             />
             {novel.genres ? (
-              <NovelGenres theme={theme} genres={novel.genres} />
+              <NovelGenres
+                theme={theme}
+                genres={novel.genres}
+                onPressGenre={
+                  !novel.isLocal && pluginInfo ? handleGenrePress : undefined
+                }
+              />
             ) : null}
           </>
         )}

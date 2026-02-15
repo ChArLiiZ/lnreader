@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { FAB } from 'react-native-paper';
 import { ErrorScreenV2, SafeAreaView, SearchbarV2 } from '@components/index';
@@ -23,7 +23,8 @@ import { useLibraryContext } from '@components/Context/LibraryContext';
 
 const BrowseSourceScreen = ({ route, navigation }: BrowseSourceScreenProps) => {
   const theme = useTheme();
-  const { pluginId, pluginName, site, showLatestNovels } = route.params;
+  const { pluginId, pluginName, site, showLatestNovels, initialSearchText } =
+    route.params;
   const imageRequestInit = getPlugin(pluginId)?.imageRequestInit;
 
   const {
@@ -50,11 +51,21 @@ const BrowseSourceScreen = ({ route, navigation }: BrowseSourceScreenProps) => {
   const novelList = searchResults.length > 0 ? searchResults : novels;
   const errorMessage = error || searchError;
 
-  const { searchText, setSearchText, clearSearchbar } = useSearch();
+  const { searchText, setSearchText, clearSearchbar } =
+    useSearch(initialSearchText);
   const onChangeText = (text: string) => setSearchText(text);
   const onSubmitEditing = () => {
     searchSource(searchText);
   };
+
+  // Auto-trigger search when navigated with initialSearchText
+  const initialSearchTriggered = useRef(false);
+  useEffect(() => {
+    if (initialSearchText && !initialSearchTriggered.current) {
+      initialSearchTriggered.current = true;
+      searchSource(initialSearchText);
+    }
+  }, [initialSearchText, searchSource]);
   const handleClearSearchbar = () => {
     clearSearchbar();
     clearSearchResults();

@@ -165,14 +165,13 @@ function NovelCover<
       <Pressable
         android_ripple={{ color: theme.rippleColor }}
         style={styles.opac}
-        onPress={
-          selectionActive
-            ? selectNovel
-            : onPress
-        }
+        onPress={selectionActive ? selectNovel : onPress}
         onLongPress={selectNovel}
       >
         <View style={styles.badgeContainer}>
+          {'badge' in item && item.badge ? (
+            <CustomBadge label={item.badge} theme={theme} />
+          ) : null}
           {libraryStatus ? <InLibraryBadge theme={theme} /> : null}
           {isFromDB(item) ? (
             <>
@@ -246,9 +245,7 @@ function NovelCover<
       }
       inLibraryBadge={libraryStatus && <InLibraryBadge theme={theme} />}
       theme={theme}
-      onPress={
-        selectionActive ? selectNovel : onPress
-      }
+      onPress={selectionActive ? selectNovel : onPress}
       onLongPress={selectNovel}
       isSelected={isSelected}
     />
@@ -321,6 +318,27 @@ const InActivityBadge = ({ theme }: { theme: ThemeColors }) => (
   >
     <ActivityIndicator animating={true} size={10} color={theme.onPrimary} />
   </View>
+);
+
+const CustomBadge = ({
+  label,
+  theme,
+}: {
+  label: string;
+  theme: ThemeColors;
+}) => (
+  <Text
+    style={[
+      styles.inLibraryBadge,
+      {
+        backgroundColor: theme.error,
+        color: theme.onError,
+      },
+      styles.standardBorderRadius,
+    ]}
+  >
+    {label}
+  </Text>
 );
 
 interface BadgeProps {

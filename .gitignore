@@ -92,3 +92,5 @@ flake.lock
 .cursor/
 .agents/
 .claude/
+
+lnreader-plugins/

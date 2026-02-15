@@ -51,6 +51,7 @@ export interface NovelItem {
   name: string;
   path: string;
   cover?: string;
+  badge?: string;
 }
 
 export interface ChapterItem {
