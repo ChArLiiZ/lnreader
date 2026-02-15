@@ -206,6 +206,9 @@ function NovelCover<
             libraryStatus && styles.opacityPoint5,
           ]}
         />
+        {'info' in item && item.info ? (
+          <CoverInfoOverlay info={item.info} />
+        ) : null}
         <View style={styles.compactTitleContainer}>
           {displayMode === DisplayModes.Compact ? (
             <CompactTitle novelName={item.name} />
@@ -341,6 +344,14 @@ const CustomBadge = ({
   </Text>
 );
 
+const CoverInfoOverlay = ({ info }: { info: string }) => (
+  <View style={styles.coverInfoContainer}>
+    <Text numberOfLines={1} style={styles.coverInfoText}>
+      {info}
+    </Text>
+  </View>
+);
+
 interface BadgeProps {
   chaptersDownloaded: number;
   chaptersUnread: number;
@@ -426,6 +437,21 @@ const styles = StyleSheet.create({
     left: 4,
     position: 'absolute',
     right: 4,
+  },
+  coverInfoContainer: {
+    position: 'absolute',
+    bottom: 5,
+    right: 5,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    zIndex: 2,
+  },
+  coverInfoText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   downloadBadge: {
     borderBottomLeftRadius: 4,
