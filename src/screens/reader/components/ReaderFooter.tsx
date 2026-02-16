@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import color from 'color';
@@ -13,6 +13,8 @@ import { useChapterContext } from '../ChapterContext';
 import { SCREEN_HEIGHT } from '@gorhom/bottom-sheet';
 import { useNovelContext } from '@screens/novel/NovelContext';
 import { useTheme } from '@hooks/persisted';
+import { hasCommentSupport } from '@services/plugin/fetch';
+import CommentsBottomSheet from '@screens/novel/components/CommentsBottomSheet';
 
 interface ChapterFooterProps {
   readerSheetRef: React.RefObject<BottomSheetModalMethods | null>;
@@ -38,6 +40,8 @@ const ChapterFooter = ({
     radius: 50,
   };
   const { navigationBarHeight } = useNovelContext();
+  const supportsComments = hasCommentSupport(novel.pluginId);
+  const [commentsVisible, setCommentsVisible] = useState(false);
 
   const entering = () => {
     'worklet';
@@ -123,6 +127,19 @@ const ChapterFooter = ({
             <IconButton icon="earth" size={26} iconColor={theme.onSurface} />
           </Pressable>
         ) : null}
+        {supportsComments ? (
+          <Pressable
+            android_ripple={rippleConfig}
+            style={styles.buttonStyles}
+            onPress={() => setCommentsVisible(true)}
+          >
+            <IconButton
+              icon="comment-text-outline"
+              size={26}
+              iconColor={theme.onSurface}
+            />
+          </Pressable>
+        ) : null}
         <Pressable
           android_ripple={rippleConfig}
           style={styles.buttonStyles}
@@ -169,6 +186,15 @@ const ChapterFooter = ({
           />
         </Pressable>
       </View>
+      {supportsComments && (
+        <CommentsBottomSheet
+          pluginId={novel.pluginId}
+          path={chapter.path}
+          novelName={novel.name}
+          visible={commentsVisible}
+          onClose={() => setCommentsVisible(false)}
+        />
+      )}
     </Animated.View>
   );
 };

@@ -100,6 +100,7 @@ export interface ChapterGeneralSettings {
   verticalSeekbar: boolean;
   removeExtraParagraphSpacing: boolean;
   bionicReading: boolean;
+  convertToTraditional: boolean;
   tapToScroll: boolean;
   TTSEnable: boolean;
 }
@@ -196,6 +197,7 @@ export const initialChapterGeneralSettings: ChapterGeneralSettings = {
   verticalSeekbar: true,
   removeExtraParagraphSpacing: false,
   bionicReading: false,
+  convertToTraditional: true,
   tapToScroll: false,
   TTSEnable: true,
 };

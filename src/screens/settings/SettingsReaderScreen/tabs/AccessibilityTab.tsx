@@ -14,6 +14,7 @@ const AccessibilityTab: React.FC = () => {
     showBatteryAndTime = false,
     keepScreenOn = true,
     bionicReading = false,
+    convertToTraditional = false,
     setChapterGeneralSettings,
   } = useChapterGeneralSettings();
 
@@ -72,6 +73,16 @@ const AccessibilityTab: React.FC = () => {
           value={bionicReading}
           onPress={() =>
             setChapterGeneralSettings({ bionicReading: !bionicReading })
+          }
+          theme={theme}
+        />
+        <SettingSwitch
+          label={getString('readerScreen.bottomSheet.convertToTraditional')}
+          value={convertToTraditional}
+          onPress={() =>
+            setChapterGeneralSettings({
+              convertToTraditional: !convertToTraditional,
+            })
           }
           theme={theme}
         />

@@ -40,12 +40,16 @@ import BottomSheet from '@components/BottomSheet/BottomSheet';
 import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { LegendList } from '@legendapp/list';
 
-/** Context to pass the active library category ID into SceneMap components */
-const ActiveCategoryContext = createContext<number | undefined>(undefined);
+/** Context to pass the active library category info into SceneMap components */
+const ActiveCategoryContext = createContext<{
+  id?: number;
+  name?: string;
+}>({});
 
 interface LibraryBottomSheetProps {
   bottomSheetRef: RefObject<BottomSheetModalMethods | null>;
   activeCategoryId?: number;
+  activeCategoryName?: string;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -86,7 +90,9 @@ const FirstRoute = () => {
 };
 
 const SecondRoute = () => {
-  const activeCategoryId = useContext(ActiveCategoryContext);
+  const { id: activeCategoryId, name: activeCategoryName } = useContext(
+    ActiveCategoryContext,
+  );
   const theme = useTheme();
   const {
     sortOrder: globalSortOrder = LibrarySortOrder.DateAdded_DESC,
@@ -102,8 +108,18 @@ const SecondRoute = () => {
       ? categorySortOrders[catKey]
       : globalSortOrder;
 
+  const hasCategorySort = !!(catKey && categorySortOrders[catKey]);
+
   return (
     <View style={styles.flex}>
+      {activeCategoryName ? (
+        <Text
+          style={[styles.sortCategoryHint, { color: theme.onSurfaceVariant }]}
+        >
+          {activeCategoryName}
+          {hasCategorySort ? ' ✦' : ''}
+        </Text>
+      ) : null}
       <LegendList
         recycleItems
         data={librarySortOrderList}
@@ -233,6 +249,7 @@ const bottomSheetSceneMap = SceneMap({
 const LibraryBottomSheet: React.FC<LibraryBottomSheetProps> = ({
   bottomSheetRef,
   activeCategoryId,
+  activeCategoryName,
   style,
 }) => {
   const theme = useTheme();
@@ -301,8 +318,13 @@ const LibraryBottomSheet: React.FC<LibraryBottomSheetProps> = ({
     };
   }, [renderCommonOptions]);
 
+  const categoryCtx = useMemo(
+    () => ({ id: activeCategoryId, name: activeCategoryName }),
+    [activeCategoryId, activeCategoryName],
+  );
+
   return (
-    <ActiveCategoryContext.Provider value={activeCategoryId}>
+    <ActiveCategoryContext.Provider value={categoryCtx}>
       <BottomSheet bottomSheetRef={bottomSheetRef} snapPoints={[520]}>
         <BottomSheetView
           style={[
@@ -336,6 +358,11 @@ const styles = StyleSheet.create({
   sectionHeader: {
     padding: 16,
     paddingBottom: 8,
+  },
+  sortCategoryHint: {
+    fontSize: 12,
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
   tabBar: {
     borderBottomWidth: 1,

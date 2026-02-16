@@ -462,13 +462,17 @@
     "tracked": "追蹤中",
     "tracking": "追蹤進度",
     "unknownStatus": "未知狀態",
-    "updatedToast": "已更新 %{name}"
+    "updatedToast": "已更新 %{name}",
+    "comments": "評論",
+    "loadingComments": "載入評論中...",
+    "noComments": "暫無評論"
   },
   "readerScreen": {
     "bottomSheet": {
       "allowTextSelection": "文字選取",
       "autoscroll": "自動捲動",
       "bionicReading": "仿生閱讀",
+      "convertToTraditional": "簡體轉繁體",
       "tapToScroll": "點擊捲動",
       "color": "顏色",
       "fontStyle": "字型樣式",

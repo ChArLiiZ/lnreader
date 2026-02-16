@@ -389,6 +389,11 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
               <script src="${assetsUriPrefix}/js/icons.js"></script>
               <script src="${assetsUriPrefix}/js/van.js"></script>
               <script src="${assetsUriPrefix}/js/text-vibe.js"></script>
+              ${
+                chapterGeneralSettings.convertToTraditional
+                  ? `<script src="${assetsUriPrefix}/js/opencc-cn2t.js"></script>`
+                  : ''
+              }
               <script src="${assetsUriPrefix}/js/core.js"></script>
               <script src="${assetsUriPrefix}/js/index.js"></script>
               <script src="${pluginCustomJS}"></script>

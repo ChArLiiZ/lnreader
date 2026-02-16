@@ -8,10 +8,12 @@ import { useBoolean } from '@hooks';
 import { ThemeColors } from '@theme/types';
 import { getString } from '@strings/translations';
 import SetCategoryModal from '../SetCategoriesModal';
+import CommentsBottomSheet from '../CommentsBottomSheet';
 import { NovelScreenProps } from '@navigators/types';
 import { useTrackedNovel, useTracker } from '@hooks/persisted';
 import { useLibrarySettings } from '@hooks/persisted/useSettings';
 import { ensureNovelHasCategory } from '@database/queries/NovelQueries';
+import { hasCommentSupport } from '@services/plugin/fetch';
 import Animated, { ZoomIn, ZoomOut } from 'react-native-reanimated';
 import { MaterialDesignIconName } from '@type/icon';
 
@@ -99,6 +101,14 @@ const NovelScreenButtonGroup: React.FC<NovelScreenButtonGroupProps> = ({
     setFalse: closeSetCategoryModal,
   } = useBoolean();
 
+  const {
+    value: commentsVisible,
+    setTrue: showComments,
+    setFalse: closeComments,
+  } = useBoolean();
+
+  const supportsComments = hasCommentSupport(novel.pluginId);
+
   // Wrap closeModal to ensure the novel always has at least one category.
   // When defaultCategoryId === -1, no category is pre-assigned, so if the
   // user dismisses/cancels the picker, the novel would have no category
@@ -161,6 +171,14 @@ const NovelScreenButtonGroup: React.FC<NovelScreenButtonGroupProps> = ({
             label={getString('novelScreen.migrate')}
           />
         ) : null}
+        {supportsComments ? (
+          <Button
+            theme={theme}
+            onPress={showComments}
+            icon="comment-text-outline"
+            label={getString('novelScreen.comments')}
+          />
+        ) : null}
         {!isLocal ? (
           <Button
             theme={theme}
@@ -175,6 +193,15 @@ const NovelScreenButtonGroup: React.FC<NovelScreenButtonGroupProps> = ({
           novelIds={[novel.id]}
           closeModal={handleCloseSetCategoryModal}
           visible={setCategoryModalVisible}
+        />
+      )}
+      {supportsComments && (
+        <CommentsBottomSheet
+          pluginId={novel.pluginId}
+          path={novel.path}
+          novelName={novel.name}
+          visible={commentsVisible}
+          onClose={closeComments}
         />
       )}
     </>

@@ -768,5 +768,17 @@ window.addEventListener('load', () => {
         .replace(/<br>(?:(?=\s*<\/?p[> ])|(?<=<\/?p>\s*<br>))\s*/g, '');
     }
     reader.chapterElement.innerHTML = html;
+
+    if (reader.generalSettings.val.convertToTraditional && window.OpenCC) {
+      const converter = OpenCC.Converter({ from: 'cn', to: 'tw' });
+      const walker = document.createTreeWalker(
+        reader.chapterElement,
+        NodeFilter.SHOW_TEXT,
+      );
+      let node;
+      while ((node = walker.nextNode())) {
+        node.textContent = converter(node.textContent);
+      }
+    }
   });
 })();

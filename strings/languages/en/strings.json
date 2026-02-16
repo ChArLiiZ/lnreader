@@ -463,13 +463,17 @@
     "tracked": "Tracked",
     "tracking": "Tracking",
     "unknownStatus": "Unknown status",
-    "updatedToast": "Updated %{name}"
+    "updatedToast": "Updated %{name}",
+    "comments": "Comments",
+    "loadingComments": "Loading comments...",
+    "noComments": "No comments"
   },
   "readerScreen": {
     "bottomSheet": {
       "allowTextSelection": "Text selection",
       "autoscroll": "Auto-scroll",
       "bionicReading": "Bionic reading",
+      "convertToTraditional": "Simplified to Traditional Chinese",
       "tapToScroll": "Tap to scroll",
       "color": "Color",
       "fontStyle": "Font style",

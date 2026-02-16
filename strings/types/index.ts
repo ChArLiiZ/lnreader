@@ -384,9 +384,13 @@ export interface StringMap {
   'novelScreen.tracking': 'string';
   'novelScreen.unknownStatus': 'string';
   'novelScreen.updatedToast': 'string';
+  'novelScreen.comments': 'string';
+  'novelScreen.loadingComments': 'string';
+  'novelScreen.noComments': 'string';
   'readerScreen.bottomSheet.allowTextSelection': 'string';
   'readerScreen.bottomSheet.autoscroll': 'string';
   'readerScreen.bottomSheet.bionicReading': 'string';
+  'readerScreen.bottomSheet.convertToTraditional': 'string';
   'readerScreen.bottomSheet.tapToScroll': 'string';
   'readerScreen.bottomSheet.color': 'string';
   'readerScreen.bottomSheet.fontStyle': 'string';

@@ -1,5 +1,6 @@
 import { getPlugin } from '@plugins/pluginManager';
 import { isUrlAbsolute } from '@plugins/helpers/isAbsoluteUrl';
+import { CommentItem } from '@plugins/types';
 
 export const fetchNovel = async (pluginId: string, novelPath: string) => {
   const plugin = getPlugin(pluginId);
@@ -44,6 +45,22 @@ export const fetchPage = async (
   }
   const res = await plugin.parsePage(novelPath, page);
   return res;
+};
+
+export const fetchComments = async (
+  pluginId: string,
+  path: string,
+): Promise<CommentItem[]> => {
+  const plugin = getPlugin(pluginId);
+  if (plugin?.parseComments) {
+    return plugin.parseComments(path);
+  }
+  return [];
+};
+
+export const hasCommentSupport = (pluginId: string): boolean => {
+  const plugin = getPlugin(pluginId);
+  return !!plugin?.parseComments;
 };
 
 export const resolveUrl = (

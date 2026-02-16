@@ -115,6 +115,13 @@ export interface ImageRequestInit {
   body?: string;
 }
 
+export interface CommentItem {
+  author: string;
+  content: string;
+  date?: string;
+  avatar?: string;
+}
+
 export interface Plugin extends PluginItem {
   imageRequestInit: ImageRequestInit;
   filters?: Filters;
@@ -128,5 +135,6 @@ export interface Plugin extends PluginItem {
   parseChapter: (chapterPath: string) => Promise<string>;
   searchNovels: (searchTerm: string, pageNo: number) => Promise<NovelItem[]>;
   resolveUrl?: (path: string, isNovel?: boolean) => string;
+  parseComments?: (path: string) => Promise<CommentItem[]>;
   webStorageUtilized?: boolean;
 }

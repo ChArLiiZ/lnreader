@@ -90,7 +90,9 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
     refetchLibrary,
     isLoading,
     selectedSubCategoryIds,
+    showAllSubCategories,
     toggleSubCategoryFilter,
+    toggleShowAllSubCategories,
     clearSubCategoryFilter,
     getSubCategoriesForParent,
     allCategories,
@@ -146,7 +148,10 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
 
     let novelIdSet: Set<number>;
 
-    if (selectedSubCategoryIds.size > 0) {
+    if (showAllSubCategories) {
+      // Show all novels in this parent category (including subcategories)
+      novelIdSet = new Set(currentCategory.novelIds);
+    } else if (selectedSubCategoryIds.size > 0) {
       // Filter: only show novels that belong to selected subcategories
       const subCatNovelIds = new Set<number>();
       for (const cat of allCategories) {
@@ -160,11 +165,30 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
       const parentIds = new Set(currentCategory.novelIds);
       novelIdSet = new Set([...subCatNovelIds].filter(id => parentIds.has(id)));
     } else {
-      novelIdSet = new Set(currentCategory.novelIds);
+      // Nothing selected and showAll is false:
+      // show only novels that belong to the parent category but NOT any subcategory
+      const allSubNovelIds = new Set<number>();
+      for (const cat of allCategories) {
+        if (cat.parentId === currentCategory.id) {
+          for (const nid of cat.novelIds) {
+            allSubNovelIds.add(nid);
+          }
+        }
+      }
+      const parentOwnIds =
+        currentCategory.originalNovelIds ?? currentCategory.novelIds;
+      novelIdSet = new Set(parentOwnIds.filter(id => !allSubNovelIds.has(id)));
     }
 
     return library.filter(l => novelIdSet.has(l.id));
-  }, [categories, index, library, selectedSubCategoryIds, allCategories]);
+  }, [
+    categories,
+    index,
+    library,
+    selectedSubCategoryIds,
+    showAllSubCategories,
+    allCategories,
+  ]);
 
   // Get subcategories for current tab
   const currentSubCategories = useMemo(() => {
@@ -172,13 +196,15 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
     return getSubCategoriesForParent(categories[index].id);
   }, [categories, index, getSubCategoriesForParent]);
 
-  // Reset subcategory filter when tab changes
+  // Reset subcategory filter and close menu when tab changes
   useEffect(() => {
     clearSubCategoryFilter();
+    setSubFilterMenuVisible(false);
   }, [index, clearSubCategoryFilter]);
 
   // Subcategory filter menu state
   const [subFilterMenuVisible, setSubFilterMenuVisible] = useState(false);
+  const filterDismissTimestampRef = useRef(0);
 
   useBackHandler(() => {
     if (selectedNovelIds.length) {
@@ -252,17 +278,25 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
           {currentSubCategories.length > 0 && (
             <Menu
               visible={subFilterMenuVisible}
-              onDismiss={() => setSubFilterMenuVisible(false)}
+              onDismiss={() => {
+                setSubFilterMenuVisible(false);
+                filterDismissTimestampRef.current = Date.now();
+              }}
               anchor={
                 <IconButton
                   icon="filter-variant"
                   iconColor={
-                    selectedSubCategoryIds.size > 0
+                    !showAllSubCategories
                       ? theme.primary
                       : theme.onSurfaceVariant
                   }
                   size={22}
-                  onPress={() => setSubFilterMenuVisible(true)}
+                  onPress={() => {
+                    if (Date.now() - filterDismissTimestampRef.current < 400) {
+                      return;
+                    }
+                    setSubFilterMenuVisible(v => !v);
+                  }}
                 />
               }
               contentStyle={{ backgroundColor: theme.surface2 }}
@@ -270,14 +304,10 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
               <Menu.Item
                 title={getString('categories.allSubCategories')}
                 titleStyle={{
-                  color:
-                    selectedSubCategoryIds.size === 0
-                      ? theme.primary
-                      : theme.onSurface,
+                  color: showAllSubCategories ? theme.primary : theme.onSurface,
                 }}
                 onPress={() => {
-                  clearSubCategoryFilter();
-                  setSubFilterMenuVisible(false);
+                  toggleShowAllSubCategories();
                 }}
               />
               {currentSubCategories.map(sub => (
@@ -304,7 +334,8 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
       currentSubCategories,
       subFilterMenuVisible,
       selectedSubCategoryIds,
-      clearSubCategoryFilter,
+      showAllSubCategories,
+      toggleShowAllSubCategories,
       toggleSubCategoryFilter,
       styles.tabBar,
       styles.tabBarIndicator,
@@ -323,6 +354,7 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
         name: string;
         sort: number;
         novelIds: number[];
+        originalNovelIds?: number[];
         key: string;
         title: string;
         parentId: number | null;
@@ -330,7 +362,10 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
     }) => {
       let novelIdSet: Set<number>;
 
-      if (selectedSubCategoryIds.size > 0) {
+      if (showAllSubCategories) {
+        // Show all novels in this parent category
+        novelIdSet = new Set(route.novelIds);
+      } else if (selectedSubCategoryIds.size > 0) {
         // Filter by selected subcategories
         const subCatNovelIds = new Set<number>();
         for (const cat of allCategories) {
@@ -345,7 +380,19 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
           [...subCatNovelIds].filter(id => parentIds.has(id)),
         );
       } else {
-        novelIdSet = new Set(route.novelIds);
+        // Nothing selected: show only novels without any subcategory
+        const allSubNovelIds = new Set<number>();
+        for (const cat of allCategories) {
+          if (cat.parentId === route.id) {
+            for (const nid of cat.novelIds) {
+              allSubNovelIds.add(nid);
+            }
+          }
+        }
+        const parentOwnIds = route.originalNovelIds ?? route.novelIds;
+        novelIdSet = new Set(
+          parentOwnIds.filter(id => !allSubNovelIds.has(id)),
+        );
       }
 
       const unfilteredNovels = library.filter(l => novelIdSet.has(l.id));
@@ -401,6 +448,7 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
       searchText,
       searchLower,
       selectedSubCategoryIds,
+      showAllSubCategories,
       styles.globalSearchBtn,
       theme,
     ],
@@ -640,6 +688,7 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
       <LibraryBottomSheet
         bottomSheetRef={bottomSheetRef}
         activeCategoryId={categories[index]?.id}
+        activeCategoryName={categories[index]?.name}
         style={bottomSheetStyle}
       />
       <Portal>

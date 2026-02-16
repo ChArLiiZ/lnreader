@@ -16,7 +16,11 @@ import ServiceManager, {
 import { useMMKVObject } from 'react-native-mmkv';
 
 // type Library = Category & { novels: LibraryNovelInfo[] };
-export type ExtendedCategory = Category & { novelIds: number[] };
+export type ExtendedCategory = Category & {
+  novelIds: number[];
+  /** Root category's own novelIds (without merged subcategory novelIds) */
+  originalNovelIds?: number[];
+};
 export type UseLibraryReturnType = {
   library: NovelInfo[];
   /** All categories from DB (root + sub) */
@@ -33,7 +37,9 @@ export type UseLibraryReturnType = {
   setLibrarySearchText: (text: string) => void;
   /** Subcategory filter */
   selectedSubCategoryIds: Set<number>;
+  showAllSubCategories: boolean;
   toggleSubCategoryFilter: (subCategoryId: number) => void;
+  toggleShowAllSubCategories: () => void;
   clearSubCategoryFilter: () => void;
   /** Get subcategories for a given parent category id */
   getSubCategoriesForParent: (parentId: number) => ExtendedCategory[];
@@ -58,6 +64,7 @@ export const useLibrary = (): UseLibraryReturnType => {
   const [selectedSubCategoryIds, setSelectedSubCategoryIds] = useState<
     Set<number>
   >(new Set());
+  const [showAllSubCategories, setShowAllSubCategories] = useState(true);
 
   const toggleSubCategoryFilter = useCallback((subCategoryId: number) => {
     setSelectedSubCategoryIds(prev => {
@@ -69,10 +76,23 @@ export const useLibrary = (): UseLibraryReturnType => {
       }
       return next;
     });
+    // Selecting a specific subcategory disables "show all"
+    setShowAllSubCategories(false);
+  }, []);
+
+  const toggleShowAllSubCategories = useCallback(() => {
+    setShowAllSubCategories(prev => {
+      if (!prev) {
+        // Turning on "show all" clears specific subcategory selections
+        setSelectedSubCategoryIds(new Set());
+      }
+      return !prev;
+    });
   }, []);
 
   const clearSubCategoryFilter = useCallback(() => {
     setSelectedSubCategoryIds(new Set());
+    setShowAllSubCategories(true);
   }, []);
 
   const refreshCategories = useCallback(async () => {
@@ -120,7 +140,7 @@ export const useLibrary = (): UseLibraryReturnType => {
       .map(rootCat => {
         const subs = subsByParent.get(rootCat.id) || [];
         if (subs.length === 0) {
-          return rootCat;
+          return { ...rootCat, originalNovelIds: rootCat.novelIds };
         }
         // Merge subcategory novelIds into the root category
         const mergedIds = new Set(rootCat.novelIds);
@@ -129,7 +149,11 @@ export const useLibrary = (): UseLibraryReturnType => {
             mergedIds.add(id);
           }
         }
-        return { ...rootCat, novelIds: Array.from(mergedIds) };
+        return {
+          ...rootCat,
+          originalNovelIds: rootCat.novelIds,
+          novelIds: Array.from(mergedIds),
+        };
       });
   }, [allCategories]);
 
@@ -205,11 +229,17 @@ export const useLibrary = (): UseLibraryReturnType => {
     ],
   );
 
-  useFocusEffect(() => {
-    if (isDirtyRef.current) {
-      getLibrary();
-    }
-  });
+  useFocusEffect(
+    useCallback(() => {
+      // Always refresh categories on focus to pick up changes from other screens
+      // (e.g. adding/removing subcategories). getCategoriesFromDb() is synchronous
+      // and very fast, so there's no performance concern.
+      refreshCategories();
+      if (isDirtyRef.current) {
+        getLibrary();
+      }
+    }, [refreshCategories, getLibrary]),
+  );
 
   const [taskQueue] = useMMKVObject<
     Array<BackgroundTask | QueuedBackgroundTask>
@@ -260,7 +290,9 @@ export const useLibrary = (): UseLibraryReturnType => {
       setSearchText(text);
     },
     selectedSubCategoryIds,
+    showAllSubCategories,
     toggleSubCategoryFilter,
+    toggleShowAllSubCategories,
     clearSubCategoryFilter,
     getSubCategoriesForParent,
   };
