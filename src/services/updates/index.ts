@@ -20,8 +20,8 @@ const MAX_RETRIES = 2;
 /** Delay between retries (ms) */
 const RETRY_DELAY_MS = 2000;
 
-/** Max concurrent novel updates */
-const CONCURRENCY = 3;
+/** Max concurrent novel updates (reduced to 1 to avoid SQLite transaction conflicts) */
+const CONCURRENCY = 1;
 
 /**
  * Deduplication window (ms).
