@@ -1,11 +1,4 @@
-import React, {
-  createContext,
-  RefObject,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from 'react';
+import React, { RefObject, useCallback, useMemo, useState } from 'react';
 import {
   StyleProp,
   StyleSheet,
@@ -14,12 +7,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import {
-  SceneMap,
-  TabBar,
-  TabDescriptor,
-  TabView,
-} from 'react-native-tab-view';
+import { TabBar, TabDescriptor, TabView } from 'react-native-tab-view';
 import color from 'color';
 
 import { useLibrarySettings, useTheme } from '@hooks/persisted';
@@ -39,12 +27,6 @@ import { BottomSheetView } from '@gorhom/bottom-sheet';
 import BottomSheet from '@components/BottomSheet/BottomSheet';
 import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { LegendList } from '@legendapp/list';
-
-/** Context to pass the active library category info into SceneMap components */
-const ActiveCategoryContext = createContext<{
-  id?: number;
-  name?: string;
-}>({});
 
 interface LibraryBottomSheetProps {
   bottomSheetRef: RefObject<BottomSheetModalMethods | null>;
@@ -89,10 +71,13 @@ const FirstRoute = () => {
   );
 };
 
-const SecondRoute = () => {
-  const { id: activeCategoryId, name: activeCategoryName } = useContext(
-    ActiveCategoryContext,
-  );
+const SecondRoute = ({
+  activeCategoryId,
+  activeCategoryName,
+}: {
+  activeCategoryId?: number;
+  activeCategoryName?: string;
+}) => {
   const theme = useTheme();
   const {
     sortOrder: globalSortOrder = LibrarySortOrder.DateAdded_DESC,
@@ -240,12 +225,6 @@ const ThirdRoute = () => {
   );
 };
 
-const bottomSheetSceneMap = SceneMap({
-  first: FirstRoute,
-  second: SecondRoute,
-  third: ThirdRoute,
-});
-
 const LibraryBottomSheet: React.FC<LibraryBottomSheetProps> = ({
   bottomSheetRef,
   activeCategoryId,
@@ -318,32 +297,46 @@ const LibraryBottomSheet: React.FC<LibraryBottomSheetProps> = ({
     };
   }, [renderCommonOptions]);
 
-  const categoryCtx = useMemo(
-    () => ({ id: activeCategoryId, name: activeCategoryName }),
+  const renderScene = useCallback(
+    ({ route }: { route: { key: string } }) => {
+      switch (route.key) {
+        case 'first':
+          return <FirstRoute />;
+        case 'second':
+          return (
+            <SecondRoute
+              activeCategoryId={activeCategoryId}
+              activeCategoryName={activeCategoryName}
+            />
+          );
+        case 'third':
+          return <ThirdRoute />;
+        default:
+          return null;
+      }
+    },
     [activeCategoryId, activeCategoryName],
   );
 
   return (
-    <ActiveCategoryContext.Provider value={categoryCtx}>
-      <BottomSheet bottomSheetRef={bottomSheetRef} snapPoints={[520]}>
-        <BottomSheetView
-          style={[
-            styles.bottomSheetCtn,
-            { backgroundColor: overlay(2, theme.surface) },
-          ]}
-        >
-          <TabView
-            commonOptions={commonOptions}
-            navigationState={{ index, routes }}
-            renderTabBar={renderTabBar}
-            renderScene={bottomSheetSceneMap}
-            onIndexChange={setIndex}
-            initialLayout={{ width: layout.width }}
-            style={styles.tabView}
-          />
-        </BottomSheetView>
-      </BottomSheet>
-    </ActiveCategoryContext.Provider>
+    <BottomSheet bottomSheetRef={bottomSheetRef} snapPoints={[520]}>
+      <BottomSheetView
+        style={[
+          styles.bottomSheetCtn,
+          { backgroundColor: overlay(2, theme.surface) },
+        ]}
+      >
+        <TabView
+          commonOptions={commonOptions}
+          navigationState={{ index, routes }}
+          renderTabBar={renderTabBar}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          initialLayout={{ width: layout.width }}
+          style={styles.tabView}
+        />
+      </BottomSheetView>
+    </BottomSheet>
   );
 };
 
