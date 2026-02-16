@@ -36,7 +36,7 @@ import {
 } from '@hooks/persisted';
 import { useSearch, useBackHandler, useBoolean } from '@hooks';
 import { getString } from '@strings/translations';
-import { sortNovelsByOrder } from './constants/constants';
+import { LibrarySortOrder, sortNovelsByOrder } from './constants/constants';
 import { FAB, IconButton, Menu, Portal } from 'react-native-paper';
 import {
   markAllChaptersRead,
@@ -56,6 +56,7 @@ import { ThemeColors } from '@theme/types';
 import { useLibraryContext } from '@components/Context/LibraryContext';
 import { xor } from 'lodash-es';
 import { SelectionContext } from './SelectionContext';
+import { ExtendedCategory } from './hooks/useLibrary';
 
 type State = NavigationState<{
   key: string;
@@ -79,6 +80,147 @@ type TabViewLabelProps = {
   style?: StyleProp<TextStyle>;
 };
 
+/**
+ * Per-tab scene component. Each tab independently reads its own sort order
+ * from MMKV, ensuring per-category sort is always correctly applied.
+ */
+interface LibraryTabSceneProps {
+  route: {
+    id: number;
+    name: string;
+    novelIds: number[];
+    originalNovelIds?: number[];
+    parentId: number | null;
+  };
+  library: NovelInfo[];
+  allCategories: ExtendedCategory[];
+  selectedSubCategoryIds: Set<number>;
+  showAllSubCategories: boolean;
+  searchText: string;
+  isLoading: boolean;
+  navigation: LibraryScreenProps['navigation'];
+  pickAndImport: () => void;
+}
+
+const LibraryTabScene = React.memo(
+  ({
+    route,
+    library,
+    allCategories,
+    selectedSubCategoryIds,
+    showAllSubCategories,
+    searchText,
+    isLoading,
+    navigation,
+    pickAndImport,
+  }: LibraryTabSceneProps) => {
+    const theme = useTheme();
+    const {
+      sortOrder: globalSortOrder = LibrarySortOrder.DateAdded_DESC,
+      categorySortOrders = {},
+    } = useLibrarySettings();
+
+    const novels = useMemo(() => {
+      // 1. Filter by category/subcategory
+      let novelIdSet: Set<number>;
+
+      if (showAllSubCategories) {
+        novelIdSet = new Set(route.novelIds);
+      } else if (selectedSubCategoryIds.size > 0) {
+        const subCatNovelIds = new Set<number>();
+        for (const cat of allCategories) {
+          if (selectedSubCategoryIds.has(cat.id)) {
+            for (const nid of cat.novelIds) {
+              subCatNovelIds.add(nid);
+            }
+          }
+        }
+        const parentIds = new Set(route.novelIds);
+        novelIdSet = new Set(
+          [...subCatNovelIds].filter(id => parentIds.has(id)),
+        );
+      } else {
+        const allSubNovelIds = new Set<number>();
+        for (const cat of allCategories) {
+          if (cat.parentId === route.id) {
+            for (const nid of cat.novelIds) {
+              allSubNovelIds.add(nid);
+            }
+          }
+        }
+        const parentOwnIds = route.originalNovelIds ?? route.novelIds;
+        novelIdSet = new Set(
+          parentOwnIds.filter(id => !allSubNovelIds.has(id)),
+        );
+      }
+
+      const filtered = library.filter(l => novelIdSet.has(l.id));
+
+      // 2. Apply search
+      const searchLower = searchText.toLowerCase();
+      const searched = searchText
+        ? filtered.filter(
+            n =>
+              n.name.toLowerCase().includes(searchLower) ||
+              (n.author?.toLowerCase().includes(searchLower) ?? false),
+          )
+        : filtered;
+
+      // 3. Always apply effective sort (per-category or global fallback)
+      const effectiveSort =
+        categorySortOrders[String(route.id)] || globalSortOrder;
+      return sortNovelsByOrder(searched, effectiveSort);
+    }, [
+      route.id,
+      route.novelIds,
+      route.originalNovelIds,
+      route.parentId,
+      library,
+      allCategories,
+      selectedSubCategoryIds,
+      showAllSubCategories,
+      searchText,
+      categorySortOrders,
+      globalSortOrder,
+    ]);
+
+    if (isLoading) {
+      return <SourceScreenSkeletonLoading theme={theme} />;
+    }
+
+    return (
+      <>
+        {searchText ? (
+          <Button
+            title={`${getString(
+              'common.searchFor',
+            )} "${searchText}" ${getString('common.globally')}`}
+            style={sceneStyles.globalSearchBtn}
+            onPress={() =>
+              navigation.navigate('GlobalSearchScreen', {
+                searchText,
+              })
+            }
+          />
+        ) : null}
+        <LibraryView
+          categoryId={route.id}
+          categoryName={route.name}
+          novels={novels}
+          pickAndImport={pickAndImport}
+          navigation={navigation}
+        />
+      </>
+    );
+  },
+);
+
+const sceneStyles = StyleSheet.create({
+  globalSearchBtn: {
+    margin: 16,
+  },
+});
+
 const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
   const { searchText, setSearchText, clearSearchbar } = useSearch();
   const theme = useTheme();
@@ -101,7 +243,6 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
 
   const { importNovel } = useImport();
   const { useLibraryFAB = false } = useAppSettings();
-  const { categorySortOrders = {} } = useLibrarySettings();
 
   const { isLoading: isHistoryLoading, history, error } = useHistory();
 
@@ -251,8 +392,6 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
     }).then(importNovel);
   }, [importNovel]);
 
-  const searchLower = useMemo(() => searchText.toLowerCase(), [searchText]);
-
   const renderTabBar = useCallback(
     (props: SceneRendererProps & { navigationState: State }) => {
       return categories.length ? (
@@ -359,98 +498,28 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
         title: string;
         parentId: number | null;
       };
-    }) => {
-      let novelIdSet: Set<number>;
-
-      if (showAllSubCategories) {
-        // Show all novels in this parent category
-        novelIdSet = new Set(route.novelIds);
-      } else if (selectedSubCategoryIds.size > 0) {
-        // Filter by selected subcategories
-        const subCatNovelIds = new Set<number>();
-        for (const cat of allCategories) {
-          if (selectedSubCategoryIds.has(cat.id)) {
-            for (const nid of cat.novelIds) {
-              subCatNovelIds.add(nid);
-            }
-          }
-        }
-        const parentIds = new Set(route.novelIds);
-        novelIdSet = new Set(
-          [...subCatNovelIds].filter(id => parentIds.has(id)),
-        );
-      } else {
-        // Nothing selected: show only novels without any subcategory
-        const allSubNovelIds = new Set<number>();
-        for (const cat of allCategories) {
-          if (cat.parentId === route.id) {
-            for (const nid of cat.novelIds) {
-              allSubNovelIds.add(nid);
-            }
-          }
-        }
-        const parentOwnIds = route.originalNovelIds ?? route.novelIds;
-        novelIdSet = new Set(
-          parentOwnIds.filter(id => !allSubNovelIds.has(id)),
-        );
-      }
-
-      const unfilteredNovels = library.filter(l => novelIdSet.has(l.id));
-
-      const filtered = searchLower
-        ? unfilteredNovels.filter(
-            n =>
-              n.name.toLowerCase().includes(searchLower) ||
-              (n.author?.toLowerCase().includes(searchLower) ?? false),
-          )
-        : unfilteredNovels;
-
-      // Apply per-category sort order (falls back to the DB's global sort)
-      const catSortOrder = categorySortOrders[String(route.id)];
-      const novels = catSortOrder
-        ? sortNovelsByOrder(filtered, catSortOrder)
-        : filtered;
-
-      return isLoading ? (
-        <SourceScreenSkeletonLoading theme={theme} />
-      ) : (
-        <>
-          {searchText ? (
-            <Button
-              title={`${getString(
-                'common.searchFor',
-              )} "${searchText}" ${getString('common.globally')}`}
-              style={styles.globalSearchBtn}
-              onPress={() =>
-                navigation.navigate('GlobalSearchScreen', {
-                  searchText,
-                })
-              }
-            />
-          ) : null}
-          <LibraryView
-            categoryId={route.id}
-            categoryName={route.name}
-            novels={novels}
-            pickAndImport={pickAndImport}
-            navigation={navigation}
-          />
-        </>
-      );
-    },
+    }) => (
+      <LibraryTabScene
+        route={route}
+        library={library}
+        allCategories={allCategories}
+        selectedSubCategoryIds={selectedSubCategoryIds}
+        showAllSubCategories={showAllSubCategories}
+        searchText={searchText}
+        isLoading={isLoading}
+        navigation={navigation}
+        pickAndImport={pickAndImport}
+      />
+    ),
     [
       allCategories,
-      categorySortOrders,
       isLoading,
       library,
       navigation,
       pickAndImport,
       searchText,
-      searchLower,
       selectedSubCategoryIds,
       showAllSubCategories,
-      styles.globalSearchBtn,
-      theme,
     ],
   );
 

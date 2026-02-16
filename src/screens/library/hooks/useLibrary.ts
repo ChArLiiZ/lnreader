@@ -7,7 +7,6 @@ import { getLibraryNovelsFromDb } from '@database/queries/LibraryQueries';
 import { Category, NovelInfo } from '@database/types';
 
 import { useLibrarySettings } from '@hooks/persisted';
-import { LibrarySortOrder } from '../constants/constants';
 import { switchNovelToLibraryQuery } from '@database/queries/NovelQueries';
 import ServiceManager, {
   BackgroundTask,
@@ -48,7 +47,6 @@ export type UseLibraryReturnType = {
 export const useLibrary = (): UseLibraryReturnType => {
   const {
     filter,
-    sortOrder = LibrarySortOrder.DateAdded_DESC,
     downloadedOnlyMode = false,
     defaultCategoryId = 0,
   } = useLibrarySettings();
@@ -171,23 +169,24 @@ export const useLibrary = (): UseLibraryReturnType => {
       setIsLoading(true);
     }
 
+    // Don't pass sortOrder to DB – sorting is handled per-category in JS
     const [_, novels] = await Promise.all([
       refreshCategories(),
-      getLibraryNovelsFromDb(sortOrder, filter, searchText, downloadedOnlyMode),
+      getLibraryNovelsFromDb(undefined, filter, searchText, downloadedOnlyMode),
     ]);
 
     setLibrary(novels);
     setIsLoading(false);
     isDirtyRef.current = false;
-  }, [downloadedOnlyMode, filter, refreshCategories, searchText, sortOrder]);
+  }, [downloadedOnlyMode, filter, refreshCategories, searchText]);
 
-  // Mark library as dirty when filter/sort settings change
+  // Mark library as dirty when filter settings change (sort is handled in JS)
   useEffect(() => {
     if (!isInitialLoadRef.current) {
       isDirtyRef.current = true;
     }
     isInitialLoadRef.current = false;
-  }, [filter, sortOrder, downloadedOnlyMode, searchText]);
+  }, [filter, downloadedOnlyMode, searchText]);
 
   const libraryLookup = useMemo(() => {
     const set = new Set<string>();
@@ -211,7 +210,7 @@ export const useLibrary = (): UseLibraryReturnType => {
       // Count is set by sql trigger
       await refreshCategories();
       const novels = await getLibraryNovelsFromDb(
-        sortOrder,
+        undefined,
         filter,
         searchText,
         downloadedOnlyMode,
@@ -225,7 +224,6 @@ export const useLibrary = (): UseLibraryReturnType => {
       filter,
       refreshCategories,
       searchText,
-      sortOrder,
     ],
   );
 
