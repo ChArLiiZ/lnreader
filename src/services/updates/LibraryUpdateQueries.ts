@@ -13,7 +13,17 @@ const updateNovelMetadata = async (
   novelId: number,
   novel: SourceNovel,
 ) => {
-  const { name, summary, author, artist, genres, status, totalPages } = novel;
+  const {
+    name,
+    summary,
+    author,
+    artist,
+    genres,
+    status,
+    totalPages,
+    rating,
+    wordCount,
+  } = novel;
   let cover = novel.cover;
   const novelDir = NOVEL_STORAGE + '/' + pluginId + '/' + novelId;
   if (NativeFile.exists(novelDir)) {
@@ -29,7 +39,7 @@ const updateNovelMetadata = async (
   await db.runAsync(
     `UPDATE Novel SET
           name = ?, cover = ?, summary = ?, author = ?, artist = ?,
-          genres = ?, status = ?, totalPages = ?
+          genres = ?, status = ?, totalPages = ?, rating = ?, wordCount = ?
           WHERE id = ?
         `,
     [
@@ -41,6 +51,8 @@ const updateNovelMetadata = async (
       genres || null,
       status || null,
       totalPages || 0,
+      rating || null,
+      wordCount || null,
       novelId,
     ],
   );

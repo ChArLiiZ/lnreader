@@ -4,6 +4,7 @@ import { debounce } from 'lodash-es';
 
 import { getPlugin } from '@plugins/pluginManager';
 import { FilterToValues, Filters } from '@plugins/types/filterTypes';
+import { classifyError, getErrorMessage } from '@utils/error';
 
 export const useBrowseSource = (
   pluginId: string,
@@ -45,13 +46,13 @@ export const useBrowseSource = (
                 setHasNextPage(false);
               }
             })
-            .catch(e => {
-              setError(e.message);
+            .catch((e: unknown) => {
+              setError(classifyError(e, pluginId).message);
               setHasNextPage(false);
             });
           setFilterValues(plugin.filters);
         } catch (err: unknown) {
-          setError(`${err}`);
+          setError(getErrorMessage(classifyError(err, pluginId)));
         } finally {
           setIsLoading(false);
         }

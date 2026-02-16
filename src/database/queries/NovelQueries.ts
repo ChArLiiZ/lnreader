@@ -18,7 +18,7 @@ export const insertNovelAndChapters = async (
   sourceNovel: SourceNovel,
 ): Promise<number | undefined> => {
   const insertNovelQuery =
-    'INSERT OR IGNORE INTO Novel (path, pluginId, name, cover, summary, author, artist, status, genres, totalPages) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    'INSERT OR IGNORE INTO Novel (path, pluginId, name, cover, summary, author, artist, status, genres, totalPages, rating, wordCount) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
   const novelId: number | undefined = (
     await db.runAsync(insertNovelQuery, [
       sourceNovel.path,
@@ -31,6 +31,8 @@ export const insertNovelAndChapters = async (
       sourceNovel.status || null,
       sourceNovel.genres || null,
       sourceNovel.totalPages || 0,
+      sourceNovel.rating || null,
+      sourceNovel.wordCount || null,
     ])
   ).lastInsertRowId;
 
@@ -168,7 +170,7 @@ export const deleteCachedNovels = async () => {
 };
 
 const restoreFromBackupQuery =
-  'INSERT OR REPLACE INTO Novel (path, name, pluginId, cover, summary, author, artist, status, genres, totalPages) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  'INSERT OR REPLACE INTO Novel (path, name, pluginId, cover, summary, author, artist, status, genres, totalPages, rating, wordCount) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
 export const restoreLibrary = async (novel: NovelInfo) => {
   const sourceNovel = await fetchNovel(novel.pluginId, novel.path);
@@ -187,6 +189,8 @@ export const restoreLibrary = async (novel: NovelInfo) => {
       novel.status || '',
       novel.genres || '',
       sourceNovel.totalPages || 0,
+      sourceNovel.rating || null,
+      sourceNovel.wordCount || null,
     );
     novelId = result.lastInsertRowId;
   });

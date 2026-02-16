@@ -96,16 +96,22 @@ export const myAnimeListTracker: Tracker = {
       return [];
     }
 
+    interface MALSearchNode {
+      node: {
+        id: number;
+        title: string;
+        main_picture: { large: string };
+        media_type: string;
+      };
+    }
     const { data } = await response.json();
-    return data
-      .filter((e: any) => e.node.media_type === 'light_novel')
-      .map((e: any) => {
-        return {
-          id: e.node.id,
-          title: e.node.title,
-          coverImage: e.node.main_picture.large,
-        };
-      });
+    return (data as MALSearchNode[])
+      .filter(e => e.node.media_type === 'light_novel')
+      .map(e => ({
+        id: e.node.id,
+        title: e.node.title,
+        coverImage: e.node.main_picture.large,
+      }));
   },
   getUserListEntry: async (id, auth) => {
     const url = `${baseApiUrl}/manga/${id}?fields=id,num_chapters,my_list_status{start_date,finish_date}`;

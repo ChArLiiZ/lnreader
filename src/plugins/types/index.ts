@@ -80,6 +80,8 @@ export interface SourceNovel extends NovelItem {
   author?: string;
   artist?: string;
   status?: NovelStatus;
+  rating?: number;
+  wordCount?: number;
   chapters: ChapterItem[];
   totalPages?: number;
 }

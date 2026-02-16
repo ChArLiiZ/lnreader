@@ -213,6 +213,7 @@
     "done": "Done",
     "downloads": "Downloads",
     "edit": "Edit",
+    "error": "Error",
     "example": "Example",
     "filter": "Filter",
     "globally": "globally",
@@ -240,6 +241,9 @@
     "sort": "Sort",
     "submit": "Submit",
     "loading": "Loading ...",
+    "noRunningTasks": "No running tasks",
+    "remaining": "remaining",
+    "taskQueue": "Task Queue",
     "warning": "Warning"
   },
   "webview": {
@@ -309,6 +313,7 @@
   },
   "globalSearch": {
     "allSources": "all sources",
+    "hasResults": "Has results",
     "searchIn": "Search a novel in"
   },
   "history": "History",
@@ -559,6 +564,7 @@
     "novelsUpdated": "%{num} novels updated",
     "searchbar": "Search updates",
     "unableToGetNovel": "Unable to get novel",
+    "noNovelsToUpdate": "There are no novels to update",
     "updatesLower": "updates",
     "updatingLibrary": "Updating library"
   },

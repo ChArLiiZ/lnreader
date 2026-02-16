@@ -42,52 +42,65 @@ export const insertChapters = async (
     return;
   }
 
+  // SQLite variable limit is 999. INSERT uses 7 columns, so max ~142 rows per batch.
+  // Use 100 for a safe margin.
+  const BATCH_SIZE = 100;
+
   await db.withTransactionAsync(async () => {
+    // Phase 1: Batch INSERT OR IGNORE — skip already-existing rows
+    for (let i = 0; i < chapters.length; i += BATCH_SIZE) {
+      const batch = chapters.slice(i, i + BATCH_SIZE);
+      const placeholders = batch.map(() => '(?, ?, ?, ?, ?, ?, ?)').join(', ');
+      const params: (string | number | null)[] = [];
+
+      for (let j = 0; j < batch.length; j++) {
+        const chapter = batch[j];
+        const index = i + j;
+        params.push(
+          chapter.path,
+          chapter.name ?? 'Chapter ' + (index + 1),
+          chapter.releaseTime || '',
+          novelId,
+          chapter.chapterNumber || null,
+          chapter.page || '1',
+          index,
+        );
+      }
+
+      await db.runAsync(
+        `INSERT OR IGNORE INTO Chapter (path, name, releaseTime, novelId, chapterNumber, page, position)
+         VALUES ${placeholders}`,
+        params,
+      );
+    }
+
+    // Phase 2: UPDATE existing rows that may have changed metadata
     for (let index = 0; index < chapters.length; index++) {
       const chapter = chapters[index];
       const chapterName = chapter.name ?? 'Chapter ' + (index + 1);
       const chapterPage = chapter.page || '1';
+      const releaseTime = chapter.releaseTime || '';
+      const chapterNumber = chapter.chapterNumber || null;
 
-      const result = await db.runAsync(
-        `
-          INSERT INTO Chapter (path, name, releaseTime, novelId, chapterNumber, page, position)
-          SELECT ?, ?, ?, ?, ?, ?, ?
-          WHERE NOT EXISTS (SELECT id FROM Chapter WHERE path = ? AND novelId = ?);
-        `,
-        chapter.path,
-        chapterName,
-        chapter.releaseTime || '',
-        novelId,
-        chapter.chapterNumber || null,
+      await db.runAsync(
+        `UPDATE Chapter SET
+           page = ?, position = ?, name = ?, releaseTime = ?, chapterNumber = ?
+         WHERE path = ? AND novelId = ?
+           AND (page != ? OR position != ? OR name != ? OR releaseTime != ? OR chapterNumber != ? OR (chapterNumber IS NULL) != (? IS NULL))`,
         chapterPage,
         index,
+        chapterName,
+        releaseTime,
+        chapterNumber,
         chapter.path,
         novelId,
+        chapterPage,
+        index,
+        chapterName,
+        releaseTime,
+        chapterNumber,
+        chapterNumber,
       );
-
-      const insertId = result.lastInsertRowId;
-
-      if (!insertId || insertId < 0) {
-        await db.runAsync(
-          `
-            UPDATE Chapter SET
-              page = ?, position = ?, name = ?, releaseTime = ?, chapterNumber = ?
-            WHERE path = ? AND novelId = ? AND (page != ? OR position != ? OR name != ? OR releaseTime != ? OR chapterNumber != ?);
-          `,
-          chapterPage,
-          index,
-          chapterName,
-          chapter.releaseTime || '',
-          chapter.chapterNumber || null,
-          chapter.path,
-          novelId,
-          chapterPage,
-          index,
-          chapterName,
-          chapter.releaseTime || '',
-          chapter.chapterNumber || null,
-        );
-      }
     }
   });
 
@@ -105,18 +118,24 @@ export const insertChapters = async (
 export const markChapterRead = (chapterId: number) =>
   db.runAsync('UPDATE Chapter SET `unread` = 0 WHERE id = ?', chapterId);
 
-export const markChaptersRead = (chapterIds: number[]) =>
-  db.execAsync(
-    `UPDATE Chapter SET \`unread\` = 0 WHERE id IN (${chapterIds.join(',')})`,
+export const markChaptersRead = (chapterIds: number[]) => {
+  const placeholders = chapterIds.map(() => '?').join(',');
+  return db.runAsync(
+    `UPDATE Chapter SET \`unread\` = 0 WHERE id IN (${placeholders})`,
+    chapterIds,
   );
+};
 
 export const markChapterUnread = (chapterId: number) =>
   db.runAsync('UPDATE Chapter SET `unread` = 1 WHERE id = ?', chapterId);
 
-export const markChaptersUnread = (chapterIds: number[]) =>
-  db.execAsync(
-    `UPDATE Chapter SET \`unread\` = 1 WHERE id IN (${chapterIds.join(',')})`,
+export const markChaptersUnread = (chapterIds: number[]) => {
+  const placeholders = chapterIds.map(() => '?').join(',');
+  return db.runAsync(
+    `UPDATE Chapter SET \`unread\` = 1 WHERE id IN (${placeholders})`,
+    chapterIds,
   );
+};
 
 export const markAllChaptersRead = (novelId: number) =>
   db.runAsync('UPDATE Chapter SET `unread` = 0 WHERE novelId = ?', novelId);
@@ -203,11 +222,13 @@ export const updateChapterProgress = (chapterId: number, progress: number) =>
 export const updateChapterProgressByIds = (
   chapterIds: number[],
   progress: number,
-) =>
-  db.runAsync(
-    `UPDATE Chapter SET progress = ? WHERE id in (${chapterIds.join(',')})`,
-    progress,
+) => {
+  const placeholders = chapterIds.map(() => '?').join(',');
+  return db.runAsync(
+    `UPDATE Chapter SET progress = ? WHERE id IN (${placeholders})`,
+    [progress, ...chapterIds],
   );
+};
 
 export const bookmarkChapter = (chapterId: number) =>
   db.runAsync(

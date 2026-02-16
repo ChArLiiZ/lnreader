@@ -18,6 +18,8 @@ export const createNovelTableQuery = `
     totalChapters INTEGER DEFAULT 0,
     lastReadAt TEXT,
     lastUpdatedAt TEXT,
+    rating REAL,
+    wordCount INTEGER,
     UNIQUE(path, pluginId)
   );
 `;

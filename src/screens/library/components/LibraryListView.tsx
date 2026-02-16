@@ -41,15 +41,20 @@ export const LibraryView: React.FC<Props> = React.memo(
       [navigation],
     );
 
+    const pluginIdsKey = useMemo(
+      () => [...new Set(novels.map(n => n.pluginId))].sort().join(','),
+      [novels],
+    );
     const imageRequestInitMap = useMemo(() => {
       const map = new Map<string, ImageRequestInit | undefined>();
-      for (const novel of novels) {
-        if (!map.has(novel.pluginId)) {
-          map.set(novel.pluginId, getPlugin(novel.pluginId)?.imageRequestInit);
+      for (const id of pluginIdsKey.split(',')) {
+        if (id) {
+          map.set(id, getPlugin(id)?.imageRequestInit);
         }
       }
       return map;
-    }, [novels]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pluginIdsKey]);
 
     const renderItem = useCallback(
       ({ item }: { item: NovelInfo }) => (

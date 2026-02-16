@@ -4,6 +4,7 @@ import {
 } from '../../database/queries/LibraryQueries';
 
 import { showToast } from '../../utils/showToast';
+import { getString } from '@strings/translations';
 import { UpdateNovelOptions, updateNovel } from './LibraryUpdateQueries';
 import { LibraryNovelInfo } from '@database/types';
 import { sleep } from '@utils/sleep';
@@ -19,8 +20,8 @@ const MAX_RETRIES = 2;
 /** Delay between retries (ms) */
 const RETRY_DELAY_MS = 2000;
 
-/** Delay between novels (ms) */
-const INTER_NOVEL_DELAY_MS = 500;
+/** Max concurrent novel updates */
+const CONCURRENCY = 3;
 
 /**
  * Deduplication window (ms).
@@ -86,39 +87,29 @@ const updateLibrary = async (
     pruneDedup();
     MMKVStorage.set(LAST_UPDATE_TIME, dayjs().format('YYYY-MM-DD HH:mm:ss'));
 
+    let completedCount = 0;
     let skippedCount = 0;
 
-    for (let i = 0; i < libraryNovels.length; i++) {
-      const novel = libraryNovels[i];
-
-      // Always update progress so the UI stays in sync
-      setMeta(meta => ({
-        ...meta,
-        progressText: novel.name,
-        progress: i / libraryNovels.length,
-      }));
-
-      // Dedup: skip if this novel was successfully updated recently
+    const updateSingleNovel = async (novel: LibraryNovelInfo) => {
       const lastUpdated = recentlyUpdatedNovels.get(novel.id);
       if (lastUpdated && Date.now() - lastUpdated < DEDUP_WINDOW_MS) {
         skippedCount++;
-        continue;
+        completedCount++;
+        return;
       }
 
-      // Retry loop
       let succeeded = false;
       for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
         try {
           await updateNovel(novel.pluginId, novel.path, novel.id, options);
           succeeded = true;
           break;
-        } catch (error: any) {
+        } catch (error: unknown) {
           if (attempt < MAX_RETRIES) {
-            // Wait before retrying
             await sleep(RETRY_DELAY_MS);
           } else {
-            // All retries exhausted
-            showToast(novel.name + ': ' + error.message);
+            const msg = error instanceof Error ? error.message : String(error);
+            showToast(novel.name + ': ' + msg);
           }
         }
       }
@@ -127,15 +118,35 @@ const updateLibrary = async (
         recentlyUpdatedNovels.set(novel.id, Date.now());
       }
 
-      await sleep(INTER_NOVEL_DELAY_MS);
-    }
+      completedCount++;
+      setMeta(meta => ({
+        ...meta,
+        progressText: novel.name,
+        progress: completedCount / libraryNovels.length,
+      }));
+    };
+
+    // Process novels with concurrency limit
+    let cursor = 0;
+    const runWorker = async () => {
+      while (cursor < libraryNovels.length) {
+        const idx = cursor++;
+        await updateSingleNovel(libraryNovels[idx]);
+      }
+    };
+
+    const workers = Array.from(
+      { length: Math.min(CONCURRENCY, libraryNovels.length) },
+      () => runWorker(),
+    );
+    await Promise.allSettled(workers);
 
     if (skippedCount > 0 && __DEV__) {
       // eslint-disable-next-line no-console
       console.log(`Skipped ${skippedCount} recently updated novel(s)`);
     }
   } else {
-    showToast("There's no novel to be updated");
+    showToast(getString('updatesScreen.noNovelsToUpdate'));
   }
 
   setMeta(meta => ({

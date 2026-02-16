@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, SectionList, Text } from 'react-native';
 import dayjs from 'dayjs';
 import { Portal } from 'react-native-paper';
@@ -44,7 +44,8 @@ const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
     );
   };
 
-  const groupHistoryByDate = (rawHistory: History[]) => {
+  const rawHistory = searchText ? searchResults : history;
+  const sections = useMemo(() => {
     const dateGroups = rawHistory.reduce<Record<string, History[]>>(
       (groups, item) => {
         const date = convertDateToISOString(item.readTime);
@@ -60,15 +61,11 @@ const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
       {},
     );
 
-    const groupedHistory = Object.keys(dateGroups).map(date => {
-      return {
-        date,
-        data: dateGroups[date],
-      };
-    });
-
-    return groupedHistory;
-  };
+    return Object.keys(dateGroups).map(date => ({
+      date,
+      data: dateGroups[date],
+    }));
+  }, [rawHistory]);
 
   const {
     value: clearHistoryDialogVisible,
@@ -121,7 +118,7 @@ const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
         <>
           <SectionList
             contentContainerStyle={styles.listContainer}
-            sections={groupHistoryByDate(searchText ? searchResults : history)}
+            sections={sections}
             keyExtractor={(item, index) => 'history' + index}
             renderSectionHeader={({ section: { date } }) => (
               <Text style={[styles.dateHeader, { color: theme.onSurface }]}>

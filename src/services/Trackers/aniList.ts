@@ -87,14 +87,18 @@ export const aniListTracker = {
   handleSearch: async (search, auth) => {
     const { data } = await queryAniList(searchQuery, { search }, auth);
 
-    return data.Page.media.map((m: any) => {
-      return {
-        id: m.id,
-        title: m.title.userPreferred,
-        coverImage: m.coverImage.extraLarge,
-        totalChapters: m.chapters || undefined,
-      };
-    });
+    interface AniListMedia {
+      id: number;
+      title: { userPreferred: string };
+      coverImage: { extraLarge: string };
+      chapters: number | null;
+    }
+    return (data.Page.media as AniListMedia[]).map(m => ({
+      id: m.id,
+      title: m.title.userPreferred,
+      coverImage: m.coverImage.extraLarge,
+      totalChapters: m.chapters || undefined,
+    }));
   },
   getUserListEntry: async (id, auth) => {
     const { data } = await queryAniList(

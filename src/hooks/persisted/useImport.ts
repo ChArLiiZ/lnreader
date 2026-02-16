@@ -1,11 +1,11 @@
-import { useLibraryContext } from '@components/Context/LibraryContext';
+import { useLibraryActions } from '@components/Context/LibraryContext';
 import ServiceManager, { BackgroundTask } from '@services/ServiceManager';
 import { DocumentPickerResult } from 'expo-document-picker';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useMMKVObject } from 'react-native-mmkv';
 
 export default function useImport() {
-  const { refetchLibrary } = useLibraryContext();
+  const { refetchLibrary } = useLibraryActions();
   const [queue] = useMMKVObject<BackgroundTask[]>(
     ServiceManager.manager.STORE_KEY,
   );

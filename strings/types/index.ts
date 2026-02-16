@@ -186,6 +186,7 @@ export interface StringMap {
   'common.done': 'string';
   'common.downloads': 'string';
   'common.edit': 'string';
+  'common.error': 'string';
   'common.example': 'string';
   'common.filter': 'string';
   'common.globally': 'string';
@@ -193,6 +194,7 @@ export interface StringMap {
   'common.logout': 'string';
   'common.name': 'string';
   'common.newUpdateAvailable': 'string';
+  'common.noConnection': 'string';
   'common.ok': 'string';
   'common.pause': 'string';
   'common.preparing': 'string';
@@ -212,6 +214,9 @@ export interface StringMap {
   'common.sort': 'string';
   'common.submit': 'string';
   'common.loading': 'string';
+  'common.noRunningTasks': 'string';
+  'common.remaining': 'string';
+  'common.taskQueue': 'string';
   'common.warning': 'string';
   'webview.refresh': 'string';
   'webview.share': 'string';
@@ -269,6 +274,7 @@ export interface StringMap {
   'generalSettingsScreen.updateTime': 'string';
   'generalSettingsScreen.useFAB': 'string';
   'globalSearch.allSources': 'string';
+  'globalSearch.hasResults': 'string';
   'globalSearch.searchIn': 'string';
   'history': 'string';
   'historyScreen.chapter': 'string';
@@ -283,10 +289,10 @@ export interface StringMap {
   'libraryScreen.bottomSheet.display.displayMode': 'string';
   'libraryScreen.bottomSheet.display.download': 'string';
   'libraryScreen.bottomSheet.display.downloadBadges': 'string';
-  'libraryScreen.bottomSheet.display.latestChapterBadge': 'string';
   'libraryScreen.bottomSheet.display.list': 'string';
   'libraryScreen.bottomSheet.display.noTitle': 'string';
   'libraryScreen.bottomSheet.display.numberOfItems': 'string';
+  'libraryScreen.bottomSheet.display.latestChapterBadge': 'string';
   'libraryScreen.bottomSheet.display.showNoOfItems': 'string';
   'libraryScreen.bottomSheet.display.unread': 'string';
   'libraryScreen.bottomSheet.display.unreadBadges': 'string';
@@ -463,6 +469,7 @@ export interface StringMap {
   'updatesScreen.novelsUpdated': 'string';
   'updatesScreen.searchbar': 'string';
   'updatesScreen.unableToGetNovel': 'string';
+  'updatesScreen.noNovelsToUpdate': 'string';
   'updatesScreen.updatesLower': 'string';
   'updatesScreen.updatingLibrary': 'string';
   'onboardingScreen.welcome': 'string';

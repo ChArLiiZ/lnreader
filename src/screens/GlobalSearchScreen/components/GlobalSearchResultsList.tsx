@@ -13,7 +13,7 @@ import { useTheme } from '@hooks/persisted';
 import { GlobalSearchResult } from '../hooks/useGlobalSearch';
 import GlobalSearchSkeletonLoading from '@screens/browse/loadingAnimation/GlobalSearchSkeletonLoading';
 import { interpolateColor } from 'react-native-reanimated';
-import { useLibraryContext } from '@components/Context/LibraryContext';
+import { useLibraryActions } from '@components/Context/LibraryContext';
 import NovelCover from '@components/NovelCover';
 
 interface GlobalSearchResultsListProps {
@@ -47,7 +47,7 @@ const GlobalSearchSourceResults: React.FC<{ item: GlobalSearchResult }> = ({
   const theme = useTheme();
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [inActivity, setInActivity] = useState<Record<string, boolean>>({});
-  const { novelInLibrary, switchNovelToLibrary } = useLibraryContext();
+  const { novelInLibrary, switchNovelToLibrary } = useLibraryActions();
   const imageRequestInit = getPlugin(item.plugin.id)?.imageRequestInit;
 
   const errorColor = theme.isDark ? '#B3261E' : '#F2B8B5';

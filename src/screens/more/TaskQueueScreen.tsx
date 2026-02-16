@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FlatList, View, Text, StyleSheet } from 'react-native';
 import {
   FAB,
+  IconButton,
   ProgressBar,
   Appbar as MaterialAppbar,
   overlay,
@@ -33,12 +34,14 @@ const DownloadQueue = ({ navigation }: TaskQueueScreenProps) => {
     }
   }, [taskQueue]);
 
-  //TODO: there should probably be a way to cancel a specific task from this screen
+  const removeTask = (taskId: string) => {
+    ServiceManager.manager.removeTask(taskId);
+  };
 
   return (
     <SafeAreaView excludeTop>
       <Appbar
-        title={'Task Queue'}
+        title={getString('common.taskQueue')}
         handleGoBack={navigation.goBack}
         theme={theme}
       >
@@ -74,27 +77,35 @@ const DownloadQueue = ({ navigation }: TaskQueueScreenProps) => {
         keyExtractor={(item, index) => 'task_' + index}
         data={taskQueue || []}
         renderItem={({ item }) => (
-          <View style={styles.padding}>
-            <Text style={{ color: theme.onSurface }}>{item.meta.name}</Text>
-            {item.meta.progressText ? (
-              <Text style={{ color: theme.onSurfaceVariant }}>
-                {item.meta.progressText}
-              </Text>
-            ) : null}
-            <ProgressBar
-              indeterminate={
-                item.meta.isRunning && item.meta.progress === undefined
-              }
-              progress={item.meta.progress}
-              color={theme.primary}
-              style={[{ backgroundColor: theme.surface2 }, styles.marginTop]}
+          <View style={styles.taskRow}>
+            <View style={styles.taskContent}>
+              <Text style={{ color: theme.onSurface }}>{item.meta.name}</Text>
+              {item.meta.progressText ? (
+                <Text style={{ color: theme.onSurfaceVariant }}>
+                  {item.meta.progressText}
+                </Text>
+              ) : null}
+              <ProgressBar
+                indeterminate={
+                  item.meta.isRunning && item.meta.progress === undefined
+                }
+                progress={item.meta.progress}
+                color={theme.primary}
+                style={[{ backgroundColor: theme.surface2 }, styles.marginTop]}
+              />
+            </View>
+            <IconButton
+              icon="close"
+              iconColor={theme.onSurfaceVariant}
+              size={20}
+              onPress={() => removeTask(item.id)}
             />
           </View>
         )}
         ListEmptyComponent={
           <EmptyView
             icon="(･o･;)"
-            description={'No running tasks'}
+            description={getString('common.noRunningTasks')}
             theme={theme}
           />
         }
@@ -137,5 +148,12 @@ const styles = StyleSheet.create({
   },
   marginTop: { marginTop: 8 },
   paddingBottom: { paddingBottom: 100, flexGrow: 1 },
-  padding: { padding: 16 },
+  taskRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 16,
+    paddingRight: 4,
+    paddingVertical: 8,
+  },
+  taskContent: { flex: 1, paddingRight: 8 },
 });

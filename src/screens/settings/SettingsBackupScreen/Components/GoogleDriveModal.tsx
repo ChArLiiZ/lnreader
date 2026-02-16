@@ -30,10 +30,14 @@ function Authorized({
   setUser: (user?: User) => void;
 }) {
   const signOut = () => {
-    GoogleSignin.signOut().then(() => {
-      setUser();
-      setBackupModal(BackupModal.UNAUTHORIZED);
-    });
+    GoogleSignin.signOut()
+      .then(() => {
+        setUser();
+        setBackupModal(BackupModal.UNAUTHORIZED);
+      })
+      .catch(() => {
+        showToast(getString('common.error'));
+      });
   };
   return (
     <>
@@ -73,8 +77,13 @@ function UnAuthorized({
         }
       })
       .then(response => {
-        setUser(response?.data);
-        setBackupModal(BackupModal.AUTHORIZED);
+        if (response?.data) {
+          setUser(response.data);
+          setBackupModal(BackupModal.AUTHORIZED);
+        }
+      })
+      .catch((err: Error) => {
+        showToast(err?.message || getString('common.error'));
       });
   };
   return (
@@ -130,13 +139,18 @@ function CreateBackup({
           disabled={backupName.trim().length === 0 || fetching}
           title={getString('common.ok')}
           onPress={() => {
-            prepare().then(folder => {
-              closeModal();
-              ServiceManager.manager.addTask({
-                name: 'DRIVE_BACKUP',
-                data: folder,
+            prepare()
+              .then(folder => {
+                closeModal();
+                ServiceManager.manager.addTask({
+                  name: 'DRIVE_BACKUP',
+                  data: folder,
+                });
+              })
+              .catch((err: Error) => {
+                setFetching(false);
+                showToast(err?.message || getString('common.error'));
               });
-            });
           }}
         />
         <Button
@@ -159,11 +173,17 @@ function RestoreBackup({
 }) {
   const [backupList, setBackupList] = useState<DriveFile[]>([]);
   useEffect(() => {
-    exists('LNReader', true, undefined, true).then(rootFolder => {
-      if (rootFolder) {
-        getBackups(rootFolder.id, true).then(backups => setBackupList(backups));
-      }
-    });
+    exists('LNReader', true, undefined, true)
+      .then(rootFolder => {
+        if (rootFolder) {
+          return getBackups(rootFolder.id, true).then(backups =>
+            setBackupList(backups),
+          );
+        }
+      })
+      .catch((err: Error) => {
+        showToast(err?.message || getString('common.error'));
+      });
   }, []);
 
   const emptyComponent = useCallback(() => {

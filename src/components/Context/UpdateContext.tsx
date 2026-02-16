@@ -1,5 +1,5 @@
 import { useUpdates } from '@hooks/persisted';
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext } from 'react';
 
 type UpdateContextType = ReturnType<typeof useUpdates>;
 
@@ -11,16 +11,10 @@ export function UpdateContextProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const useUpdateParams = useUpdates();
-  const contextValue = useMemo(
-    () => ({
-      ...useUpdateParams,
-    }),
-    [useUpdateParams],
-  );
+  const updateParams = useUpdates();
 
   return (
-    <UpdateContext.Provider value={contextValue}>
+    <UpdateContext.Provider value={updateParams}>
       {children}
     </UpdateContext.Provider>
   );

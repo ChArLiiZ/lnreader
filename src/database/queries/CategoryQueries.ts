@@ -26,19 +26,18 @@ export const getCategoriesFromDb = () => {
  * Returns all categories (root + sub) excluding system local category (id=2).
  */
 export const getCategoriesWithCount = (novelIds: number[]) => {
+  const placeholders = novelIds.map(() => '?').join(',');
   const getCategoriesWithCountQuery = `
   SELECT *, novelsCount 
   FROM Category LEFT JOIN 
   (
     SELECT categoryId, COUNT(novelId) as novelsCount 
-    FROM NovelCategory WHERE novelId in (${novelIds.join(
-      ',',
-    )}) GROUP BY categoryId 
+    FROM NovelCategory WHERE novelId IN (${placeholders}) GROUP BY categoryId 
   ) as NC ON Category.id = NC.categoryId
   WHERE Category.id != 2
   ORDER BY Category.parentId IS NOT NULL, Category.parentId, sort
 	`;
-  return db.getAllSync<CCategory>(getCategoriesWithCountQuery);
+  return db.getAllSync<CCategory>(getCategoriesWithCountQuery, novelIds);
 };
 
 /**

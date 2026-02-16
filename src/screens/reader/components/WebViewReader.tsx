@@ -1,37 +1,23 @@
-import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  AppState,
-  NativeEventEmitter,
-  NativeModules,
-  StatusBar,
-} from 'react-native';
+import React, { memo, useEffect, useMemo, useRef } from 'react';
+import { NativeEventEmitter, NativeModules, StatusBar } from 'react-native';
 import WebView from 'react-native-webview';
 import color from 'color';
 
 import { useTheme } from '@hooks/persisted';
 import { getString } from '@strings/translations';
 
-import { getPlugin } from '@plugins/pluginManager';
 import { MMKVStorage, getMMKVObject } from '@utils/mmkv/mmkv';
 import {
   CHAPTER_GENERAL_SETTINGS,
   CHAPTER_READER_SETTINGS,
-  ChapterGeneralSettings,
   ChapterReaderSettings,
-  initialChapterGeneralSettings,
   initialChapterReaderSettings,
 } from '@hooks/persisted/useSettings';
 import { getBatteryLevelSync } from 'react-native-device-info';
 import * as Speech from 'expo-speech';
-import { PLUGIN_STORAGE } from '@utils/Storages';
 import { useChapterContext } from '../ChapterContext';
-import {
-  showTTSNotification,
-  updateTTSNotification,
-  dismissTTSNotification,
-  getTTSAction,
-  clearTTSAction,
-} from '@utils/ttsNotification';
+import { useReaderSettings } from './hooks/useReaderSettings';
+import { useReaderTTS } from './hooks/useReaderTTS';
 
 type WebViewPostEvent = {
   type: string;
@@ -73,135 +59,65 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
     webViewRef,
   } = useChapterContext();
   const theme = useTheme();
-  // Use state for settings so they update when MMKV changes
-  const [readerSettings, setReaderSettings] = useState<ChapterReaderSettings>(
-    () =>
-      getMMKVObject<ChapterReaderSettings>(CHAPTER_READER_SETTINGS) ||
-      initialChapterReaderSettings,
-  );
-  const chapterGeneralSettings = useMemo(
-    () =>
-      getMMKVObject<ChapterGeneralSettings>(CHAPTER_GENERAL_SETTINGS) ||
-      initialChapterGeneralSettings,
-    // needed to preserve settings during chapter change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [chapter.id],
-  );
 
-  // Update readerSettings when chapter changes
-  useEffect(() => {
-    setReaderSettings(
-      getMMKVObject<ChapterReaderSettings>(CHAPTER_READER_SETTINGS) ||
-        initialChapterReaderSettings,
-    );
-  }, [chapter.id]);
+  const {
+    readerSettings,
+    setReaderSettings,
+    chapterGeneralSettings,
+    plugin,
+    pluginCustomJS,
+    pluginCustomCSS,
+    readerDir,
+  } = useReaderSettings(chapter.id, novel?.pluginId);
 
-  // Update battery level when chapter changes to ensure fresh value on navigation
-  const batteryLevel = useMemo(() => getBatteryLevelSync(), []);
-  const plugin = getPlugin(novel?.pluginId);
-  const pluginCustomJS = `file://${PLUGIN_STORAGE}/${plugin?.id}/custom.js`;
-  const pluginCustomCSS = `file://${PLUGIN_STORAGE}/${plugin?.id}/custom.css`;
-  const nextChapterScreenVisible = useRef<boolean>(false);
-  const autoStartTTSRef = useRef<boolean>(false);
-  const isTTSReadingRef = useRef<boolean>(false);
-  const readerSettingsRef = useRef<ChapterReaderSettings>(readerSettings);
-  const appStateRef = useRef(AppState.currentState);
-  const ttsQueueRef = useRef<string[]>([]);
-  const ttsQueueIndexRef = useRef<number>(0);
-
+  const readerSettingsRef = useRef(readerSettings);
   useEffect(() => {
     readerSettingsRef.current = readerSettings;
   }, [readerSettings]);
 
-  useEffect(() => {
-    const checkNotificationActions = setInterval(() => {
-      const action = getTTSAction();
-      if (action) {
-        clearTTSAction();
-        switch (action) {
-          case 'TTS_PLAY_PAUSE':
-            webViewRef.current?.injectJavaScript(`
-              if (window.tts) {
-                if (tts.reading) {
-                  tts.pause();
-                } else {
-                  tts.resume();
-                }
-              }
-            `);
-            break;
-          case 'TTS_STOP':
-            webViewRef.current?.injectJavaScript(`
-              if (window.tts) {
-                tts.stop();
-              }
-            `);
-            break;
-          case 'TTS_NEXT':
-            webViewRef.current?.injectJavaScript(`
-              if (window.tts && window.reader && window.reader.nextChapter) {
-                window.reader.post({ type: 'next', autoStartTTS: true });
-              }
-            `);
-            break;
-        }
-      }
-    }, 1000);
+  const {
+    autoStartTTSRef,
+    handleTTSQueue,
+    handleSpeak,
+    handleStopSpeak,
+    handleTTSState,
+  } = useReaderTTS({
+    webViewRef,
+    novelName: novel?.name || 'Unknown',
+    chapterName: chapter.name,
+    readerSettingsRef,
+  });
 
-    return () => {
-      clearInterval(checkNotificationActions);
-    };
-  }, [webViewRef]);
+  const nextChapterScreenVisible = useRef<boolean>(false);
+  const batteryLevel = useMemo(() => getBatteryLevelSync(), []);
 
-  useEffect(() => {
-    if (isTTSReadingRef.current) {
-      updateTTSNotification({
-        novelName: novel?.name || 'Unknown',
-        chapterName: chapter.name,
-        isPlaying: isTTSReadingRef.current,
-      });
-    }
-  }, [novel?.name, chapter.name]);
-
-  useEffect(() => {
-    return () => {
-      dismissTTSNotification();
-    };
-  }, []);
-
+  // MMKV listener + battery level listener
   useEffect(() => {
     const mmkvListener = MMKVStorage.addOnValueChangedListener(key => {
       switch (key) {
-        case CHAPTER_READER_SETTINGS:
-          // Update local state with new settings
+        case CHAPTER_READER_SETTINGS: {
           const newSettings =
             getMMKVObject<ChapterReaderSettings>(CHAPTER_READER_SETTINGS) ||
             initialChapterReaderSettings;
           setReaderSettings(newSettings);
-
-          // Stop any currently playing speech
           Speech.stop();
-
-          // Update WebView settings
           webViewRef.current?.injectJavaScript(
             `
             reader.readerSettings.val = ${MMKVStorage.getString(
               CHAPTER_READER_SETTINGS,
             )};
-            // Auto-restart TTS if currently reading
             if (window.tts && tts.reading) {
               const currentElement = tts.currentElement;
               const wasReading = tts.reading;
               tts.stop();
               if (wasReading) {
-                setTimeout(() => {
-                  tts.start(currentElement);
-                }, 100);
+                setTimeout(() => { tts.start(currentElement); }, 100);
               }
             }
             `,
           );
           break;
+        }
         case CHAPTER_GENERAL_SETTINGS:
           webViewRef.current?.injectJavaScript(
             `reader.generalSettings.val = ${MMKVStorage.getString(
@@ -220,74 +136,12 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
         );
       },
     );
+
     return () => {
       subscription.remove();
       mmkvListener.remove();
     };
-  }, [webViewRef]);
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', nextState => {
-      appStateRef.current = nextState;
-      if (nextState === 'active' && isTTSReadingRef.current) {
-        const index = ttsQueueIndexRef.current;
-        webViewRef.current?.injectJavaScript(`
-          if (window.tts && window.tts.allReadableElements) {
-            const idx = ${index};
-            if (idx < tts.allReadableElements.length) {
-              tts.elementsRead = idx;
-              tts.currentElement = tts.allReadableElements[idx];
-              tts.prevElement = null;
-              tts.started = true;
-              tts.reading = true;
-              tts.scrollToElement(tts.currentElement);
-              tts.currentElement.classList.add('highlight');
-            }
-          }
-        `);
-      }
-    });
-
-    return () => subscription.remove();
-  }, [webViewRef]);
-
-  const speakText = (text: string) => {
-    Speech.speak(text, {
-      onDone() {
-        const isBackground =
-          appStateRef.current === 'background' ||
-          appStateRef.current === 'inactive';
-
-        if (
-          isBackground &&
-          ttsQueueRef.current.length > 0 &&
-          ttsQueueIndexRef.current + 1 < ttsQueueRef.current.length
-        ) {
-          const nextIndex = ttsQueueIndexRef.current + 1;
-          const nextText = ttsQueueRef.current[nextIndex];
-          if (nextText) {
-            ttsQueueIndexRef.current = nextIndex;
-            speakText(nextText);
-            return;
-          }
-        }
-
-        if (isBackground) {
-          isTTSReadingRef.current = false;
-          dismissTTSNotification();
-          webViewRef.current?.injectJavaScript('tts.stop?.()');
-          return;
-        }
-
-        webViewRef.current?.injectJavaScript('tts.next?.()');
-      },
-      voice: readerSettingsRef.current.tts?.voice?.identifier,
-      pitch: readerSettingsRef.current.tts?.pitch || 1,
-      rate: readerSettingsRef.current.tts?.rate || 1,
-    });
-  };
-  const isRTL = plugin?.lang === 'Arabic' || plugin?.lang === 'Hebrew';
-  const readerDir = isRTL ? 'rtl' : 'ltr';
+  }, [webViewRef, setReaderSettings]);
 
   const webViewSource = useMemo(
     () => ({
@@ -433,7 +287,6 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
       javaScriptEnabled={true}
       webviewDebuggingEnabled={__DEV__}
       onLoadEnd={() => {
-        // Update battery level when WebView finishes loading
         const currentBatteryLevel = getBatteryLevelSync();
         webViewRef.current?.injectJavaScript(
           `if (window.reader && window.reader.batteryLevel) {
@@ -464,24 +317,11 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
         __DEV__ && onLogMessage(ev);
         const event: WebViewPostEvent = JSON.parse(ev.nativeEvent.data);
         switch (event.type) {
-          case 'tts-queue': {
-            const payload = event.data as
-              | { queue?: unknown; startIndex?: unknown }
-              | undefined;
-            const queue = Array.isArray(payload?.queue)
-              ? payload?.queue.filter(
-                  (item): item is string =>
-                    typeof item === 'string' && item.trim().length > 0,
-                )
-              : [];
-            ttsQueueRef.current = queue;
-            if (typeof payload?.startIndex === 'number') {
-              ttsQueueIndexRef.current = payload.startIndex;
-            } else {
-              ttsQueueIndexRef.current = 0;
-            }
+          case 'tts-queue':
+            handleTTSQueue(
+              (event.data as { queue?: unknown; startIndex?: unknown }) || {},
+            );
             break;
-          }
           case 'hide':
             onPress();
             break;
@@ -501,47 +341,13 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             }
             break;
           case 'speak':
-            if (event.data && typeof event.data === 'string') {
-              if (typeof event.index === 'number') {
-                ttsQueueIndexRef.current = event.index;
-              }
-              if (!isTTSReadingRef.current) {
-                isTTSReadingRef.current = true;
-                showTTSNotification({
-                  novelName: novel?.name || 'Unknown',
-                  chapterName: chapter.name,
-                  isPlaying: true,
-                });
-              } else {
-                updateTTSNotification({
-                  novelName: novel?.name || 'Unknown',
-                  chapterName: chapter.name,
-                  isPlaying: true,
-                });
-              }
-              speakText(event.data);
-            } else {
-              webViewRef.current?.injectJavaScript('tts.next?.()');
-            }
+            handleSpeak(event.data, event.index);
             break;
           case 'stop-speak':
-            Speech.stop();
-            isTTSReadingRef.current = false;
-            ttsQueueRef.current = [];
-            ttsQueueIndexRef.current = 0;
-            dismissTTSNotification();
+            handleStopSpeak();
             break;
           case 'tts-state':
-            if (event.data && typeof event.data === 'object') {
-              const data = event.data as { isReading?: boolean };
-              const isReading = data.isReading === true;
-              isTTSReadingRef.current = isReading;
-              updateTTSNotification({
-                novelName: novel?.name || 'Unknown',
-                chapterName: chapter.name,
-                isPlaying: isReading,
-              });
-            }
+            handleTTSState(event.data);
             break;
         }
       }}

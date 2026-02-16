@@ -9,6 +9,7 @@ import { useFocusEffect } from '@react-navigation/native';
 interface Props {
   defaultSearchText?: string;
   hasResultsOnly?: boolean;
+  onSearchTriggered?: (searchText: string) => void;
 }
 
 export interface GlobalSearchResult {
@@ -21,6 +22,7 @@ export interface GlobalSearchResult {
 export const useGlobalSearch = ({
   defaultSearchText,
   hasResultsOnly = false,
+  onSearchTriggered,
 }: Props) => {
   const isMounted = useRef(true); //if user closes the search screen, cancel the search
   const isFocused = useRef(true); //if the user opens a sub-screen (e.g. novel screen), pause the search
@@ -52,6 +54,7 @@ export const useGlobalSearch = ({
         return;
       }
       lastSearch.current = searchText;
+      onSearchTriggered?.(searchText);
       const defaultResult: GlobalSearchResult[] = filteredInstalledPlugins.map(
         plugin => ({
           isLoading: true,
@@ -149,7 +152,8 @@ export const useGlobalSearch = ({
         }
       })();
     },
-    [filteredInstalledPlugins, globalSearchConcurrency],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filteredInstalledPlugins, globalSearchConcurrency, onSearchTriggered],
   );
 
   const debouncedGlobalSearch = useMemo(

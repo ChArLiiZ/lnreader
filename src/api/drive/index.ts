@@ -80,7 +80,6 @@ export const getBackups = async (parentId: string, marked?: boolean) => {
 
 export const readDir = async (parentId: string, marked?: boolean) => {
   let fileList: DriveFile[] = [];
-  let pageToken = '';
   let q = `
     trashed = false and mimeType != 'application/vnd.google-apps.folder' 
     and '${parentId}' in parents 
@@ -88,16 +87,20 @@ export const readDir = async (parentId: string, marked?: boolean) => {
   if (marked) {
     q += ` and fullText contains '${LNREADER_DRIVE_MARK}' `;
   }
+  let pageToken: string | undefined;
   let hasNextPage = true;
   while (hasNextPage) {
-    const query = pageToken ? q + ` and pageToken = '${pageToken}'` : q;
-    const { nextPageToken, files } = await list({ q: query });
-    if (!nextPageToken) {
-      hasNextPage = false;
-    } else {
-      pageToken = nextPageToken;
+    const params: { q: string; pageToken?: string } = { q };
+    if (pageToken) {
+      params.pageToken = pageToken;
     }
+    const { nextPageToken, files } = await list(params);
     fileList = fileList.concat(files);
+    if (nextPageToken) {
+      pageToken = nextPageToken;
+    } else {
+      hasNextPage = false;
+    }
   }
   return fileList;
 };

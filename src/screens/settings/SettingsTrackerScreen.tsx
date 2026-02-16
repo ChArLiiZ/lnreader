@@ -22,7 +22,11 @@ interface TrackerCheckIconProps {
   checked: boolean;
 }
 
-const TrackerCheckIcon = ({ theme, checked, ...props }: TrackerCheckIconProps) => {
+const TrackerCheckIcon = ({
+  theme,
+  checked,
+  ...props
+}: TrackerCheckIconProps) => {
   if (!checked) {
     return null;
   }
@@ -258,7 +262,8 @@ const TrackerScreen = ({ navigation }: TrackerSettingsScreenProps) => {
                 new Date(Date.now())) ||
             (isTrackerAuthenticated('Kitsu') &&
               getTrackerAuth('Kitsu')?.auth?.expiresAt &&
-              getTrackerAuth('Kitsu')!.auth.expiresAt < new Date(Date.now())) ? (
+              getTrackerAuth('Kitsu')!.auth.expiresAt <
+                new Date(Date.now())) ? (
               <>
                 <List.Divider theme={theme} />
                 <List.SubHeader theme={theme}>
@@ -274,7 +279,8 @@ const TrackerScreen = ({ navigation }: TrackerSettingsScreenProps) => {
                       }
                       onPress={async () => {
                         const trackerAuth = getTrackerAuth('MyAnimeList');
-                        const revalidate = getTracker('MyAnimeList')?.revalidate;
+                        const revalidate =
+                          getTracker('MyAnimeList')?.revalidate;
                         if (revalidate && trackerAuth) {
                           const auth = await revalidate(trackerAuth.auth);
                           setTracker('MyAnimeList', auth);
@@ -298,7 +304,9 @@ const TrackerScreen = ({ navigation }: TrackerSettingsScreenProps) => {
                             setTracker('Kitsu', auth);
                             showToast('Successfully refreshed Kitsu session');
                           } catch (error) {
-                            showToast('Failed to refresh Kitsu session. Please log in again.');
+                            showToast(
+                              'Failed to refresh Kitsu session. Please log in again.',
+                            );
                             removeTracker('Kitsu');
                           }
                         }

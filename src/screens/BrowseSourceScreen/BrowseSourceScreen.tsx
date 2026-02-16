@@ -19,7 +19,7 @@ import { NovelInfo } from '@database/types';
 import SourceScreenSkeletonLoading from '@screens/browse/loadingAnimation/SourceScreenSkeletonLoading';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BrowseSourceScreenProps } from '@navigators/types';
-import { useLibraryContext } from '@components/Context/LibraryContext';
+import { useLibraryActions } from '@components/Context/LibraryContext';
 
 const BrowseSourceScreen = ({ route, navigation }: BrowseSourceScreenProps) => {
   const theme = useTheme();
@@ -79,7 +79,7 @@ const BrowseSourceScreen = ({ route, navigation }: BrowseSourceScreenProps) => {
     });
   };
 
-  const { novelInLibrary, switchNovelToLibrary } = useLibraryContext();
+  const { novelInLibrary, switchNovelToLibrary } = useLibraryActions();
   const [inActivity, setInActivity] = useState<Record<string, boolean>>({});
 
   const navigateToNovel = useCallback(

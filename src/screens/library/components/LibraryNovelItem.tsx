@@ -1,8 +1,9 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import NovelCover from '@components/NovelCover';
 import { NovelInfo } from '@database/types';
 import { ThemeColors } from '@theme/types';
 import { ImageRequestInit } from '@plugins/types';
+import { deriveR18Badge, buildNovelInfoString } from '@utils/format';
 
 interface LibraryNovelItemProps {
   item: NovelInfo;
@@ -35,9 +36,18 @@ const LibraryNovelItem = memo(function LibraryNovelItem({
     }
   }, [hasSelection, item, onSelect, onNavigate]);
 
+  const displayItem = useMemo(
+    () => ({
+      ...item,
+      badge: deriveR18Badge(item.genres),
+      info: buildNovelInfoString(item.rating, item.wordCount),
+    }),
+    [item],
+  );
+
   return (
     <NovelCover
-      item={item}
+      item={displayItem}
       theme={theme}
       isSelected={isSelected}
       hasSelection={hasSelection}

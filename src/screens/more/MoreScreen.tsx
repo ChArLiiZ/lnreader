@@ -116,17 +116,14 @@ const MoreScreen = ({ navigation }: MoreStackScreenProps) => {
                 </Text>
               </View>
             </View>
-            <Switch
-              value={incognitoMode}
-              onValueChange={enableIncognitoMode}
-            />
+            <Switch value={incognitoMode} onValueChange={enableIncognitoMode} />
           </Pressable>
           <List.Divider theme={theme} />
           <List.Item
-            title={'Task Queue'}
+            title={getString('common.taskQueue')}
             description={
               taskQueue && taskQueue.length > 0
-                ? taskQueue.length + ' remaining'
+                ? taskQueue.length + ' ' + getString('common.remaining')
                 : ''
             }
             icon="progress-download"

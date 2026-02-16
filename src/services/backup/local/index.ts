@@ -76,12 +76,12 @@ export const createBackup = async (
     }));
 
     showToast(getString('backupScreen.backupCreated'));
-  } catch (error: any) {
+  } catch (error: unknown) {
     setMeta?.(meta => ({
       ...meta,
       isRunning: false,
     }));
-    showToast(error.message);
+    showToast(error instanceof Error ? error.message : String(error));
   }
 };
 
@@ -151,7 +151,6 @@ export const restoreBackup = async (
 
     await sleep(200);
 
-    // TODO: unlink here too?
     await NativeZipArchive.unzip(
       CACHE_DIR_PATH + '/' + ZipBackupName.DOWNLOAD,
       ROOT_STORAGE,
@@ -164,11 +163,23 @@ export const restoreBackup = async (
     }));
 
     showToast(getString('backupScreen.backupRestored'));
-  } catch (error: any) {
+  } catch (error: unknown) {
     setMeta?.(meta => ({
       ...meta,
       isRunning: false,
     }));
-    showToast(error.message);
+    showToast(error instanceof Error ? error.message : String(error));
+  } finally {
+    try {
+      if (NativeFile.exists(CACHE_DIR_PATH)) {
+        NativeFile.unlink(CACHE_DIR_PATH);
+      }
+      const zipPath = CACHE_DIR_PATH + '.zip';
+      if (NativeFile.exists(zipPath)) {
+        NativeFile.unlink(zipPath);
+      }
+    } catch {
+      // Ignore cleanup errors
+    }
   }
 };

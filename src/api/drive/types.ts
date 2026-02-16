@@ -8,7 +8,10 @@ export interface DriveFile {
   createdTime?: string;
 }
 
-export interface DriveReponse {
+/** @deprecated Use DriveResponse instead */
+export type DriveReponse = DriveResponse;
+
+export interface DriveResponse {
   nextPageToken?: string;
   kind: string;
   incompleteSearch: boolean;
@@ -21,7 +24,7 @@ export interface DriveRequestParams {
   pageSize?: number;
   fields?: string;
   pageToken?: string;
-  uploadType?: string; // only for upload
+  uploadType?: string;
   addParents?: string;
   removeParents?: string;
 }
@@ -33,5 +36,5 @@ export interface DriveCreateRequestData {
     description?: string;
     parents?: string[];
   };
-  content?: string; // uri if upload file
+  content?: string;
 }

@@ -1,5 +1,4 @@
 import { DriveFile } from '@api/drive/types';
-import { sleep } from '@utils/sleep';
 import { exists } from '@api/drive';
 import { getString } from '@strings/translations';
 import { CACHE_DIR_PATH, prepareBackupData, restoreData } from '../utils';
@@ -7,6 +6,7 @@ import { download, updateMetadata, uploadMedia } from '@api/drive/request';
 import { ZipBackupName } from '../types';
 import { ROOT_STORAGE } from '@utils/Storages';
 import { BackgroundTaskMetadata } from '@services/ServiceManager';
+import NativeFile from '@specs/NativeFile';
 
 export const createDriveBackup = async (
   backupFolder: DriveFile,
@@ -29,9 +29,10 @@ export const createDriveBackup = async (
     progressText: getString('backupScreen.uploadingData'),
   }));
 
-  await sleep(500);
-
   const file = await uploadMedia(CACHE_DIR_PATH);
+  if (!file?.id || !file?.parents?.length) {
+    throw new Error('Failed to upload data backup: invalid response');
+  }
 
   await updateMetadata(
     file.id,
@@ -50,6 +51,10 @@ export const createDriveBackup = async (
   }));
 
   const file2 = await uploadMedia(ROOT_STORAGE);
+  if (!file2?.id || !file2?.parents?.length) {
+    throw new Error('Failed to upload downloads backup: invalid response');
+  }
+
   await updateMetadata(
     file2.id,
     {
@@ -80,39 +85,51 @@ export const driveRestore = async (
     progressText: getString('backupScreen.downloadingData'),
   }));
 
-  const zipDataFile = await exists(ZipBackupName.DATA, false, backupFolder.id);
-  const zipDownloadFile = await exists(
-    ZipBackupName.DOWNLOAD,
-    false,
-    backupFolder.id,
-  );
-  if (!zipDataFile || !zipDownloadFile) {
-    throw new Error(getString('backupScreen.invalidBackupFolder'));
+  try {
+    const zipDataFile = await exists(
+      ZipBackupName.DATA,
+      false,
+      backupFolder.id,
+    );
+    const zipDownloadFile = await exists(
+      ZipBackupName.DOWNLOAD,
+      false,
+      backupFolder.id,
+    );
+    if (!zipDataFile || !zipDownloadFile) {
+      throw new Error(getString('backupScreen.invalidBackupFolder'));
+    }
+
+    await download(zipDataFile, CACHE_DIR_PATH);
+
+    setMeta(meta => ({
+      ...meta,
+      progress: 1 / 3,
+      progressText: getString('backupScreen.restoringData'),
+    }));
+
+    await restoreData(CACHE_DIR_PATH);
+
+    setMeta(meta => ({
+      ...meta,
+      progress: 2 / 3,
+      progressText: getString('backupScreen.downloadingDownloadedFiles'),
+    }));
+
+    await download(zipDownloadFile, ROOT_STORAGE);
+
+    setMeta(meta => ({
+      ...meta,
+      progress: 3 / 3,
+      isRunning: false,
+    }));
+  } finally {
+    try {
+      if (NativeFile.exists(CACHE_DIR_PATH)) {
+        NativeFile.unlink(CACHE_DIR_PATH);
+      }
+    } catch {
+      // Ignore cleanup errors
+    }
   }
-
-  await download(zipDataFile, CACHE_DIR_PATH);
-  await sleep(500);
-
-  setMeta(meta => ({
-    ...meta,
-    progress: 1 / 3,
-    progressText: getString('backupScreen.restoringData'),
-  }));
-
-  await restoreData(CACHE_DIR_PATH);
-  await sleep(500);
-
-  setMeta(meta => ({
-    ...meta,
-    progress: 2 / 3,
-    progressText: getString('backupScreen.downloadingDownloadedFiles'),
-  }));
-
-  await download(zipDownloadFile, ROOT_STORAGE);
-
-  setMeta(meta => ({
-    ...meta,
-    progress: 3 / 3,
-    isRunning: false,
-  }));
 };

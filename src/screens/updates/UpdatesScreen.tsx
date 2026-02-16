@@ -1,4 +1,4 @@
-import React, { memo, Suspense, useEffect, useRef } from 'react';
+import React, { memo, Suspense, useEffect, useMemo, useRef } from 'react';
 import dayjs from 'dayjs';
 import { RefreshControl, SectionList, StyleSheet, Text } from 'react-native';
 
@@ -37,6 +37,31 @@ const UpdatesScreen = ({ navigation }: UpdateScreenProps) => {
   const onChangeText = (text: string) => {
     setSearchText(text);
   };
+
+  const sections = useMemo(
+    () =>
+      updatesOverview
+        .filter(v =>
+          searchText
+            ? v.novelName.toLowerCase().includes(searchText.toLowerCase())
+            : true,
+        )
+        .reduce(
+          (
+            acc: { data: UpdateOverview[]; date: string }[],
+            cur: UpdateOverview,
+          ) => {
+            if (acc.length === 0 || acc.at(-1)?.date !== cur.updateDate) {
+              acc.push({ data: [cur], date: cur.updateDate });
+              return acc;
+            }
+            acc.at(-1)?.data.push(cur);
+            return acc;
+          },
+          [],
+        ),
+    [updatesOverview, searchText],
+  );
 
   // Auto-refresh update list when a library update finishes
   const wasUpdating = useRef(false);
@@ -94,26 +119,7 @@ const UpdatesScreen = ({ navigation }: UpdateScreenProps) => {
               {dayjs(date).calendar()}
             </Text>
           )}
-          sections={updatesOverview
-            .filter(v =>
-              searchText
-                ? v.novelName.toLowerCase().includes(searchText.toLowerCase())
-                : true,
-            )
-            .reduce(
-              (
-                acc: { data: UpdateOverview[]; date: string }[],
-                cur: UpdateOverview,
-              ) => {
-                if (acc.length === 0 || acc.at(-1)?.date !== cur.updateDate) {
-                  acc.push({ data: [cur], date: cur.updateDate });
-                  return acc;
-                }
-                acc.at(-1)?.data.push(cur);
-                return acc;
-              },
-              [],
-            )}
+          sections={sections}
           keyExtractor={item => 'updatedGroup' + item.novelId}
           renderItem={({ item }) => (
             <Suspense fallback={<UpdatesSkeletonLoading theme={theme} />}>

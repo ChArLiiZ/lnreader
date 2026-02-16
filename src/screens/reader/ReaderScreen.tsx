@@ -121,9 +121,7 @@ export const ChapterContent = ({
     );
   }
   return (
-    <View
-      style={[{ paddingStart: left, paddingEnd: right }, styles.container]}
-    >
+    <View style={[{ paddingStart: left, paddingEnd: right }, styles.container]}>
       {keepScreenOn ? <KeepScreenAwake /> : null}
       {loading ? (
         <ChapterLoadingScreen />

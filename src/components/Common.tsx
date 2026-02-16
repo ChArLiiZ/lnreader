@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleProp, View, ViewStyle, StyleSheet } from 'react-native';
 
 const Row = ({
   children,
   style = {},
 }: {
   children?: React.ReactNode;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 }) => <View style={[styles.row, style]}>{children}</View>;
 
 export { Row };

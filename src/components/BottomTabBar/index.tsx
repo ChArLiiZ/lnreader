@@ -28,7 +28,7 @@ function CustomBottomTabBar({
   renderIcon,
 }: CustomBottomTabBarProps) {
   const getLabelText = useCallback(
-    (route: any) => {
+    (route: (typeof state.routes)[number]) => {
       if (!showLabelsInNav && route.name !== state.routeNames[state.index]) {
         return '';
       }

@@ -17,7 +17,10 @@ import { getString } from '@strings/translations';
 import CategoryCard from './components/CategoryCard';
 import CategorySkeletonLoading from './components/CategorySkeletonLoading';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLibraryContext } from '@components/Context/LibraryContext';
+import {
+  useLibraryData,
+  useLibraryActions,
+} from '@components/Context/LibraryContext';
 import { ExtendedCategory } from '@screens/library/hooks/useLibrary';
 
 /**
@@ -50,13 +53,8 @@ function flattenCategoriesTree(
 }
 
 const CategoriesScreen = () => {
-  const {
-    allCategories,
-    categories,
-    setCategories,
-    refreshCategories,
-    isLoading,
-  } = useLibraryContext();
+  const { allCategories, categories, isLoading } = useLibraryData();
+  const { setCategories, refreshCategories } = useLibraryActions();
   const theme = useTheme();
   const { goBack } = useNavigation();
 

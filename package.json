@@ -16,6 +16,8 @@
     "lint:fix": "pnpm run lint -- --fix",
     "format": "prettier --write \"./src/**/*.{js,jsx,ts,tsx}\" ./scripts",
     "format:check": "prettier --check \"./src/**/*.{js,jsx,ts,tsx}\" ./scripts",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "type-check": "tsc --noEmit",
     "clean:full": "rm -rf node_modules/ ./android/build/ ./android/app/build/ ./android/app/.cxx && pnpm i && cd android/ && ./gradlew clean && cd .. && pnpm run dev:start -- --reset-cache",
     "prepare": "husky install",
@@ -122,6 +124,7 @@
     "@react-native/metro-config": "^0.81.5",
     "@react-native/typescript-config": "^0.81.5",
     "@types/color": "^4.2.0",
+    "@types/jest": "^30.0.0",
     "@types/lodash-es": "^4.17.12",
     "@types/react": "~19.1.17",
     "@types/sanitize-html": "^2.16.0",
@@ -129,9 +132,11 @@
     "babel-plugin-react-compiler": "19.1.0-rc.3",
     "eslint": "^8.57.1",
     "husky": "^7.0.4",
+    "jest": "^30.2.0",
     "lint-staged": "^12.5.0",
     "prettier": "2.8.8",
     "react-native-dotenv": "^3.4.11",
+    "ts-jest": "^29.4.6",
     "typescript": "~5.9.3"
   },
   "lint-staged": {

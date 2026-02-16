@@ -127,9 +127,10 @@ function NovelCover<
   const selectNovel = () => onLongPress(item);
 
   const uri = item.cover || defaultCover;
-  const headers = imageRequestInit?.headers || {
-    'User-Agent': getUserAgent(),
-  };
+  const headers = useMemo(
+    () => imageRequestInit?.headers || { 'User-Agent': getUserAgent() },
+    [imageRequestInit?.headers],
+  );
 
   if (item.completeRow) {
     if (!addSkeletonLoading) {
@@ -228,7 +229,14 @@ function NovelCover<
             <CoverInfoOverlay info={item.info} />
           ) : null}
         </View>
-        <View style={styles.compactTitleContainer}>
+        <View
+          style={[
+            styles.compactTitleContainer,
+            'info' in item && item.info
+              ? styles.compactTitleWithInfo
+              : undefined,
+          ]}
+        >
           {displayMode === DisplayModes.Compact ? (
             <CompactTitle novelName={item.name} />
           ) : null}
@@ -477,6 +485,9 @@ const styles = StyleSheet.create({
     left: 4,
     position: 'absolute',
     right: 4,
+  },
+  compactTitleWithInfo: {
+    bottom: 26,
   },
   coverInfoContainer: {
     position: 'absolute',

@@ -295,20 +295,23 @@ export default class ServiceManager {
         if (!currentTask?.task?.name) {
           // Skip invalid tasks
           setMMKVObject(manager.STORE_KEY, manager.getTaskList().slice(1));
+          manager.invalidateCache();
           continue;
         }
         await manager.executeTask(currentTask, startingTasks);
         doneTasks[currentTask.task.name] += 1;
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : String(error);
         await Notifications.scheduleNotificationAsync({
           content: {
             title: currentTask.meta?.name || 'Task Error',
-            body: error?.message || String(error),
+            body: msg,
           },
           trigger: null,
         });
       } finally {
         setMMKVObject(manager.STORE_KEY, manager.getTaskList().slice(1));
+        manager.invalidateCache();
         // Clean up completed task from startingTasks to prevent memory leak
         const completedIdx = startingTasks.findIndex(
           t => t.id === currentTask.id,
@@ -380,26 +383,41 @@ export default class ServiceManager {
     }
   }
 
+  private _taskListCache: QueuedBackgroundTask[] | null = null;
+
+  /** Invalidate cached task list. Call after any mutation to STORE_KEY. */
+  invalidateCache() {
+    this._taskListCache = null;
+  }
+
   getTaskList() {
-    const tasks = getMMKVObject<Array<any>>(this.STORE_KEY) || [];
+    if (this._taskListCache) {
+      return this._taskListCache;
+    }
+
+    const tasks =
+      getMMKVObject<Array<QueuedBackgroundTask | BackgroundTask>>(
+        this.STORE_KEY,
+      ) || [];
 
     const convertedTasks = tasks
       .map(task => {
-        if (task?.task && task?.meta && task?.id) {
-          return task as QueuedBackgroundTask;
+        const qTask = task as QueuedBackgroundTask;
+        if (qTask?.task && qTask?.meta && qTask?.id) {
+          return qTask;
         }
 
-        if (task?.name && !task?.task) {
-          const backgroundTask = task as BackgroundTask;
+        const bgTask = task as BackgroundTask;
+        if (bgTask?.name && !qTask?.task) {
           return {
-            task: backgroundTask,
+            task: bgTask,
             meta: {
-              name: this.getTaskName(backgroundTask),
+              name: this.getTaskName(bgTask),
               isRunning: false,
               progress: undefined,
               progressText:
-                backgroundTask.name === 'DOWNLOAD_CHAPTER'
-                  ? (backgroundTask as DownloadChapterTask).data?.chapterName
+                bgTask.name === 'DOWNLOAD_CHAPTER'
+                  ? (bgTask as DownloadChapterTask).data?.chapterName
                   : undefined,
             },
             id: makeId(),
@@ -410,12 +428,16 @@ export default class ServiceManager {
       })
       .filter((task): task is QueuedBackgroundTask => task !== null);
 
-    const hasOldFormat = tasks.some(task => task?.name && !task?.task);
+    const hasOldFormat = tasks.some(t => {
+      const bt = t as BackgroundTask;
+      return bt?.name && !(t as QueuedBackgroundTask)?.task;
+    });
 
     if (hasOldFormat) {
       setMMKVObject(this.STORE_KEY, convertedTasks);
     }
 
+    this._taskListCache = convertedTasks;
     return convertedTasks;
   }
 
@@ -443,7 +465,28 @@ export default class ServiceManager {
       }));
 
       setMMKVObject(this.STORE_KEY, currentTasks.concat(newTasks));
+      this.invalidateCache();
       this.start();
+    }
+  }
+
+  removeTask(taskId: string) {
+    const taskList = this.getTaskList();
+    const isRunning = taskList[0]?.id === taskId;
+    if (isRunning) {
+      this.pause();
+      setMMKVObject(
+        this.STORE_KEY,
+        taskList.filter(t => t.id !== taskId),
+      );
+      this.invalidateCache();
+      this.resume();
+    } else {
+      setMMKVObject(
+        this.STORE_KEY,
+        taskList.filter(t => t.id !== taskId),
+      );
+      this.invalidateCache();
     }
   }
 
@@ -455,17 +498,20 @@ export default class ServiceManager {
         this.STORE_KEY,
         taskList.filter(t => t.task?.name !== name),
       );
+      this.invalidateCache();
       this.resume();
     } else {
       setMMKVObject(
         this.STORE_KEY,
         taskList.filter(t => t.task?.name !== name),
       );
+      this.invalidateCache();
     }
   }
 
   clearTaskList() {
     setMMKVObject(this.STORE_KEY, []);
+    this.invalidateCache();
   }
 
   pause() {

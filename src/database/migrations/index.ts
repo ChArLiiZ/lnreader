@@ -5,6 +5,8 @@ import { migration004 } from './004_add_category_parent_id';
 import { migration005 } from './005_add_latest_chapter_at';
 import { migration006 } from './006_fix_category_unique_constraint';
 import { migration007 } from './007_fix_category_unique_constraint_v2';
+import { migration008 } from './008_add_novel_category_indexes';
+import { migration009 } from './009_add_novel_rating_wordcount';
 
 /**
  * Registry of all database migrations
@@ -22,4 +24,6 @@ export const migrations: Migration[] = [
   migration005,
   migration006,
   migration007,
+  migration008,
+  migration009,
 ];

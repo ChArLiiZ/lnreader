@@ -1,5 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import {
+  createBottomTabNavigator,
+  BottomTabBarProps,
+} from '@react-navigation/bottom-tabs';
 
 import Library from '../screens/library/LibraryScreen';
 import Updates from '../screens/updates/UpdatesScreen';
@@ -60,7 +63,7 @@ const BottomNavigator = () => {
   );
 
   const renderTabBar = useCallback(
-    (props: any) => (
+    (props: BottomTabBarProps) => (
       <BottomTabBar
         {...props}
         theme={theme}

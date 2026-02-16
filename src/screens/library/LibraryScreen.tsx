@@ -53,7 +53,11 @@ import * as DocumentPicker from 'expo-document-picker';
 import ServiceManager from '@services/ServiceManager';
 import useImport from '@hooks/persisted/useImport';
 import { ThemeColors } from '@theme/types';
-import { useLibraryContext } from '@components/Context/LibraryContext';
+import {
+  useLibraryData,
+  useLibraryActions,
+  useLibrarySettingsContext,
+} from '@components/Context/LibraryContext';
 import { xor } from 'lodash-es';
 import { SelectionContext } from './SelectionContext';
 import { ExtendedCategory } from './hooks/useLibrary';
@@ -229,17 +233,21 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
   const {
     library,
     categories,
-    refetchLibrary,
     isLoading,
     selectedSubCategoryIds,
     showAllSubCategories,
+    allCategories,
+  } = useLibraryData();
+  const {
+    refetchLibrary,
     toggleSubCategoryFilter,
     toggleShowAllSubCategories,
     clearSubCategoryFilter,
     getSubCategoriesForParent,
-    allCategories,
+  } = useLibraryActions();
+  const {
     settings: { showNumberOfNovels, downloadedOnlyMode, incognitoMode },
-  } = useLibraryContext();
+  } = useLibrarySettingsContext();
 
   const { importNovel } = useImport();
   const { useLibraryFAB = false } = useAppSettings();

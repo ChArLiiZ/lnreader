@@ -14,6 +14,8 @@ export interface NovelInfo {
   inLibrary: boolean;
   isLocal: boolean;
   totalPages: number;
+  rating?: number;
+  wordCount?: number;
 }
 
 export interface DBNovelInfo extends NovelInfo {

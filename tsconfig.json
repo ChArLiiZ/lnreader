@@ -5,7 +5,10 @@
     "**/node_modules",
     "**/Pods",
     "babel.config.js",
-    "metro.config.js"
+    "metro.config.js",
+    "**/__tests__/**",
+    "jest.config.ts",
+    "lnreader-plugins/**"
   ],
   "compilerOptions": {
     "baseUrl": ".",
