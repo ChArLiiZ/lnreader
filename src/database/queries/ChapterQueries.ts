@@ -13,6 +13,12 @@ import { db } from '@database/db';
 import NativeFile from '@specs/NativeFile';
 import dayjs from 'dayjs';
 
+export interface DownloadedChapterStorageEntry {
+  chapterId: number;
+  novelId: number;
+  pluginId: string;
+}
+
 /**
  * Parse releaseTime strings from chapters and return the max epoch millis.
  */
@@ -448,6 +454,18 @@ export const getDownloadedChapters = () =>
     SELECT
       Chapter.*,
       Novel.pluginId, Novel.name as novelName, Novel.cover as novelCover, Novel.path as novelPath
+    FROM Chapter
+    JOIN Novel
+    ON Chapter.novelId = Novel.id
+    WHERE Chapter.isDownloaded = 1
+  `);
+
+export const getDownloadedChapterStorageEntries = () =>
+  db.getAllAsync<DownloadedChapterStorageEntry>(`
+    SELECT
+      Chapter.id as chapterId,
+      Chapter.novelId as novelId,
+      Novel.pluginId as pluginId
     FROM Chapter
     JOIN Novel
     ON Chapter.novelId = Novel.id

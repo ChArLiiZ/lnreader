@@ -10,6 +10,7 @@ import {
   CACHE_DIR_PATH,
   cleanupBackupTempData,
   prepareBackupData,
+  prepareDownloadedChaptersBackupData,
   restoreData,
 } from '../utils';
 import NativeZipArchive from '@specs/NativeZipArchive';
@@ -55,8 +56,12 @@ export const createBackup = async (
 
     await sleep(200);
 
+    const downloadStageDirPath = await prepareDownloadedChaptersBackupData(
+      CACHE_DIR_PATH,
+    );
+
     await NativeZipArchive.zip(
-      ROOT_STORAGE,
+      downloadStageDirPath,
       CACHE_DIR_PATH + '/' + ZipBackupName.DOWNLOAD,
     );
 

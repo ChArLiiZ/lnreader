@@ -7,7 +7,10 @@ import {
   _restoreNovelAndChapters,
   getAllNovels,
 } from '@database/queries/NovelQueries';
-import { getNovelChapters } from '@database/queries/ChapterQueries';
+import {
+  getDownloadedChapterStorageEntries,
+  getNovelChapters,
+} from '@database/queries/ChapterQueries';
 import {
   _restoreCategory,
   getAllNovelCategories,
@@ -19,9 +22,12 @@ import ServiceManager from '@services/ServiceManager';
 import NativeFile from '@specs/NativeFile';
 import { showToast } from '@utils/showToast';
 import { getString } from '@strings/translations';
+import { NOVEL_STORAGE } from '@utils/Storages';
 
 export const CACHE_DIR_PATH =
   NativeFile.getConstants().ExternalCachesDirectoryPath + '/BackupData';
+export const DOWNLOAD_STAGE_DIR_PATH = CACHE_DIR_PATH + '/DownloadedChapters';
+const NOVEL_STORAGE_BACKUP_ROOT = 'Novels';
 
 const INVALID_BACKUP_NAME_CHARS = /[\\/:*?"<>|'`]/g;
 
@@ -44,6 +50,49 @@ export const cleanupBackupTempData = () => {
   if (NativeFile.exists(zipPath)) {
     NativeFile.unlink(zipPath);
   }
+};
+
+const copyDirectoryRecursive = (sourcePath: string, destPath: string) => {
+  if (!NativeFile.exists(sourcePath)) {
+    return;
+  }
+
+  NativeFile.mkdir(destPath);
+  const items = NativeFile.readDir(sourcePath);
+
+  for (const item of items) {
+    const targetPath = destPath + '/' + item.name;
+    if (item.isDirectory) {
+      copyDirectoryRecursive(item.path, targetPath);
+    } else {
+      NativeFile.copyFile(item.path, targetPath);
+    }
+  }
+};
+
+export const prepareDownloadedChaptersBackupData = async (
+  cacheDirPath: string,
+) => {
+  const downloadStageDirPath = cacheDirPath + '/DownloadedChapters';
+  if (NativeFile.exists(downloadStageDirPath)) {
+    NativeFile.unlink(downloadStageDirPath);
+  }
+  NativeFile.mkdir(downloadStageDirPath);
+
+  const entries = await getDownloadedChapterStorageEntries();
+  const copiedPaths = new Set<string>();
+  for (const entry of entries) {
+    const sourcePath = `${NOVEL_STORAGE}/${entry.pluginId}/${entry.novelId}/${entry.chapterId}`;
+    if (copiedPaths.has(sourcePath) || !NativeFile.exists(sourcePath)) {
+      continue;
+    }
+
+    copiedPaths.add(sourcePath);
+    const destPath = `${downloadStageDirPath}/${NOVEL_STORAGE_BACKUP_ROOT}/${entry.pluginId}/${entry.novelId}/${entry.chapterId}`;
+    copyDirectoryRecursive(sourcePath, destPath);
+  }
+
+  return downloadStageDirPath;
 };
 
 const backupMMKVData = () => {

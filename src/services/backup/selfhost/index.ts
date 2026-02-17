@@ -5,6 +5,7 @@ import {
   CACHE_DIR_PATH,
   cleanupBackupTempData,
   prepareBackupData,
+  prepareDownloadedChaptersBackupData,
   restoreData,
 } from '../utils';
 import { ZipBackupName } from '../types';
@@ -50,7 +51,15 @@ export const createSelfHostBackup = async (
 
     await sleep(200);
 
-    await upload(host, backupFolder, ZipBackupName.DOWNLOAD, ROOT_STORAGE);
+    const downloadStageDirPath = await prepareDownloadedChaptersBackupData(
+      CACHE_DIR_PATH,
+    );
+    await upload(
+      host,
+      backupFolder,
+      ZipBackupName.DOWNLOAD,
+      downloadStageDirPath,
+    );
 
     setMeta(meta => ({
       ...meta,

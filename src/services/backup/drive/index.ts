@@ -5,6 +5,7 @@ import {
   CACHE_DIR_PATH,
   cleanupBackupTempData,
   prepareBackupData,
+  prepareDownloadedChaptersBackupData,
   restoreData,
 } from '../utils';
 import { download, updateMetadata, uploadMedia } from '@api/drive/request';
@@ -55,7 +56,10 @@ export const createDriveBackup = async (
       progressText: getString('backupScreen.uploadingDownloadedFiles'),
     }));
 
-    const file2 = await uploadMedia(ROOT_STORAGE);
+    const downloadStageDirPath = await prepareDownloadedChaptersBackupData(
+      CACHE_DIR_PATH,
+    );
+    const file2 = await uploadMedia(downloadStageDirPath);
     if (!file2?.id || !file2?.parents?.length) {
       throw new Error('Failed to upload downloads backup: invalid response');
     }
