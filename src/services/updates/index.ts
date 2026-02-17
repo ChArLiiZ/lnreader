@@ -23,6 +23,12 @@ const RETRY_DELAY_MS = 2000;
 /** Max concurrent novel updates (reduced to 1 to avoid SQLite transaction conflicts) */
 const CONCURRENCY = 1;
 
+/** Min interval between progress metadata writes (ms) */
+const PROGRESS_UPDATE_INTERVAL_MS = 400;
+
+/** Min progress delta before forcing a metadata write */
+const PROGRESS_UPDATE_MIN_DELTA = 0.01; // 1%
+
 /**
  * Deduplication window (ms).
  * Novels updated within this window are skipped if queued again
@@ -89,12 +95,35 @@ const updateLibrary = async (
 
     let completedCount = 0;
     let skippedCount = 0;
+    let lastMetaUpdateAt = 0;
+    let lastReportedProgress = 0;
+
+    const reportProgress = (novelName: string, force = false) => {
+      const progress = completedCount / libraryNovels.length;
+      const now = Date.now();
+      const timeDue = now - lastMetaUpdateAt >= PROGRESS_UPDATE_INTERVAL_MS;
+      const progressDue =
+        progress - lastReportedProgress >= PROGRESS_UPDATE_MIN_DELTA;
+
+      if (!force && !timeDue && !progressDue) {
+        return;
+      }
+
+      lastMetaUpdateAt = now;
+      lastReportedProgress = progress;
+      setMeta(meta => ({
+        ...meta,
+        progressText: novelName,
+        progress,
+      }));
+    };
 
     const updateSingleNovel = async (novel: LibraryNovelInfo) => {
       const lastUpdated = recentlyUpdatedNovels.get(novel.id);
       if (lastUpdated && Date.now() - lastUpdated < DEDUP_WINDOW_MS) {
         skippedCount++;
         completedCount++;
+        reportProgress(novel.name, completedCount === libraryNovels.length);
         return;
       }
 
@@ -119,11 +148,7 @@ const updateLibrary = async (
       }
 
       completedCount++;
-      setMeta(meta => ({
-        ...meta,
-        progressText: novel.name,
-        progress: completedCount / libraryNovels.length,
-      }));
+      reportProgress(novel.name, completedCount === libraryNovels.length);
     };
 
     // Process novels with concurrency limit

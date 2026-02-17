@@ -26,7 +26,7 @@ const updateNovelMetadata = async (
   } = novel;
   let cover = novel.cover;
   const novelDir = NOVEL_STORAGE + '/' + pluginId + '/' + novelId;
-  if (NativeFile.exists(novelDir)) {
+  if (!NativeFile.exists(novelDir)) {
     NativeFile.mkdir(novelDir);
   }
   if (cover) {

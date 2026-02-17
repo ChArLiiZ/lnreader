@@ -10,6 +10,7 @@ npm-debug.*
 web-build/
 .env
 reader_playground/index.html
+*.code-workspace
 # macOS
 .DS_Store
 

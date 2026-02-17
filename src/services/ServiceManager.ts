@@ -81,6 +81,7 @@ export default class ServiceManager {
   STORE_KEY = 'APP_SERVICE';
   lastNotifUpdate = 0;
   currentPendingUpdate = 0;
+  private notificationUpdateTimer: ReturnType<typeof setTimeout> | null = null;
   private static instance?: ServiceManager;
 
   private constructor() {}
@@ -109,8 +110,10 @@ export default class ServiceManager {
 
   async start() {
     if (!this.isRunning) {
-      const notificationsAllowed = await askForPostNotificationsPermission();
-      if (!notificationsAllowed) return;
+      // Don't block background tasks on Android 13+ notification permission.
+      // Foreground work should still be allowed to run even if notifications
+      // are denied by the user.
+      await askForPostNotificationsPermission().catch(() => false);
       BackgroundService.start(ServiceManager.launch, {
         taskName: 'app_services',
         taskTitle: 'App Service',
@@ -149,38 +152,35 @@ export default class ServiceManager {
       taskList[0].task?.name !== 'DOWNLOAD_CHAPTER'
     ) {
       const now = Date.now();
-      if (now - this.lastNotifUpdate > 1000) {
-        const delay = Math.max(0, 1000 - (now - this.lastNotifUpdate));
-        const id = ++this.currentPendingUpdate;
-        setTimeout(() => {
-          if (this.currentPendingUpdate !== id) {
-            return;
-          }
-          BackgroundService.updateNotification({
-            taskTitle: taskList[0].meta?.name || 'Unknown Task',
-            taskDesc: taskList[0].meta?.progressText ?? '',
-            progressBar: {
-              indeterminate: taskList[0].meta?.progress === undefined,
-              value: (taskList[0].meta?.progress || 0) * 100,
-              max: 100,
-            },
-          });
-        }, delay);
-      } else {
-        this.lastNotifUpdate = now;
+      const elapsed = now - this.lastNotifUpdate;
+      const delay = elapsed >= 1000 ? 0 : 1000 - elapsed;
+      const id = ++this.currentPendingUpdate;
+
+      if (this.notificationUpdateTimer) {
+        clearTimeout(this.notificationUpdateTimer);
+        this.notificationUpdateTimer = null;
+      }
+
+      this.notificationUpdateTimer = setTimeout(() => {
+        if (this.currentPendingUpdate !== id) {
+          return;
+        }
+        this.lastNotifUpdate = Date.now();
+        this.notificationUpdateTimer = null;
         BackgroundService.updateNotification({
           taskTitle: taskList[0].meta?.name || 'Unknown Task',
           taskDesc: taskList[0].meta?.progressText ?? '',
           progressBar: {
             indeterminate: taskList[0].meta?.progress === undefined,
-            value: (taskList[0].meta?.progress || 0) * 100,
+            value: Math.round((taskList[0].meta?.progress || 0) * 100),
             max: 100,
           },
         });
-      }
+      }, delay);
     }
 
     setMMKVObject(this.STORE_KEY, taskList);
+    this._taskListCache = taskList;
   }
 
   //gets the progress bar for download chapters notification
@@ -236,6 +236,10 @@ export default class ServiceManager {
     });
     this.lastNotifUpdate = Date.now();
     this.currentPendingUpdate = 0;
+    if (this.notificationUpdateTimer) {
+      clearTimeout(this.notificationUpdateTimer);
+      this.notificationUpdateTimer = null;
+    }
 
     switch (task.task.name) {
       case 'IMPORT_EPUB':
@@ -466,6 +470,11 @@ export default class ServiceManager {
 
       setMMKVObject(this.STORE_KEY, currentTasks.concat(newTasks));
       this.invalidateCache();
+    }
+
+    // Even when all requested tasks are duplicates, try to start processing the
+    // existing queue so users can retrigger a stuck/non-running queue from UI.
+    if (this.getTaskList().length > 0) {
       this.start();
     }
   }
@@ -510,6 +519,10 @@ export default class ServiceManager {
   }
 
   clearTaskList() {
+    if (this.notificationUpdateTimer) {
+      clearTimeout(this.notificationUpdateTimer);
+      this.notificationUpdateTimer = null;
+    }
     setMMKVObject(this.STORE_KEY, []);
     this.invalidateCache();
   }
