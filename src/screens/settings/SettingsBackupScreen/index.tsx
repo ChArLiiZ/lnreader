@@ -20,7 +20,9 @@ const BackupSettings = ({ navigation }: BackupSettingsScreenProps) => {
     autoBackupEnabled,
     autoBackupIntervalHours,
     autoBackupLastRunAt,
+    autoBackupTargetType,
     autoBackupTargetUri,
+    autoBackupDriveFolderName,
     setAppSettings,
   } = useAppSettings();
   const {
@@ -48,6 +50,9 @@ const BackupSettings = ({ navigation }: BackupSettingsScreenProps) => {
   const lastAutoBackupText = autoBackupLastRunAt
     ? dayjs(autoBackupLastRunAt).format('YYYY-MM-DD HH:mm')
     : getString('backupScreen.never');
+  const resolvedAutoBackupTargetType =
+    autoBackupTargetType === 'drive' ? 'drive' : 'local';
+  const isAutoBackupTargetLocal = resolvedAutoBackupTargetType === 'local';
 
   const pickAutoBackupFolder = async () => {
     if (Platform.OS !== 'android') {
@@ -101,22 +106,55 @@ const BackupSettings = ({ navigation }: BackupSettingsScreenProps) => {
             }
             label={getString('backupScreen.autoBackupEnabled')}
             description={
-              autoBackupTargetUri
-                ? getString('backupScreen.autoBackupEnabledWithPath', {
-                    path: decodeURIComponent(autoBackupTargetUri),
+              isAutoBackupTargetLocal
+                ? autoBackupTargetUri
+                  ? getString('backupScreen.autoBackupEnabledWithPath', {
+                      path: decodeURIComponent(autoBackupTargetUri),
+                    })
+                  : getString('backupScreen.autoBackupEnabledNoPath')
+                : autoBackupDriveFolderName
+                ? getString('backupScreen.autoBackupEnabledWithDriveFolder', {
+                    folder: autoBackupDriveFolderName,
                   })
-                : getString('backupScreen.autoBackupEnabledNoPath')
+                : getString('backupScreen.autoBackupEnabledNoDriveFolder')
             }
             theme={theme}
           />
           <List.Item
-            title={getString('backupScreen.autoBackupFolder')}
-            description={
-              autoBackupTargetUri
-                ? decodeURIComponent(autoBackupTargetUri)
-                : getString('backupScreen.autoBackupNoFolderSelected')
+            title={getString('backupScreen.autoBackupDestination')}
+            description={getString(
+              isAutoBackupTargetLocal
+                ? 'backupScreen.autoBackupDestinationLocal'
+                : 'backupScreen.autoBackupDestinationDrive',
+            )}
+            onPress={() =>
+              setAppSettings({
+                autoBackupTargetType: isAutoBackupTargetLocal
+                  ? 'drive'
+                  : 'local',
+              })
             }
-            onPress={pickAutoBackupFolder}
+            theme={theme}
+          />
+          <List.Item
+            title={
+              isAutoBackupTargetLocal
+                ? getString('backupScreen.autoBackupFolder')
+                : getString('backupScreen.autoBackupDriveFolder')
+            }
+            description={
+              isAutoBackupTargetLocal
+                ? autoBackupTargetUri
+                  ? decodeURIComponent(autoBackupTargetUri)
+                  : getString('backupScreen.autoBackupNoFolderSelected')
+                : autoBackupDriveFolderName ||
+                  getString('backupScreen.autoBackupDriveNoFolderSelected')
+            }
+            onPress={
+              isAutoBackupTargetLocal
+                ? pickAutoBackupFolder
+                : openGoogleDriveModal
+            }
             theme={theme}
           />
           <List.Item

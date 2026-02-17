@@ -5,7 +5,7 @@ import { getMMKVObject, setMMKVObject } from '@utils/mmkv/mmkv';
 import { importEpub } from './epub/import';
 import { getString } from '@strings/translations';
 import { updateLibrary } from './updates';
-import { DriveFile } from '@api/drive/types';
+import { DriveFile, DriveFolderRef } from '@api/drive/types';
 import { createDriveBackup, driveRestore } from './backup/drive';
 import {
   createSelfHostBackup,
@@ -44,8 +44,8 @@ export type BackgroundTask =
         categoryName?: string;
       };
     }
-  | { name: 'DRIVE_BACKUP'; data: DriveFile }
-  | { name: 'DRIVE_RESTORE'; data: DriveFile }
+  | { name: 'DRIVE_BACKUP'; data: DriveFolderRef }
+  | { name: 'DRIVE_RESTORE'; data: DriveFile | DriveFolderRef }
   | { name: 'SELF_HOST_BACKUP'; data: SelfHostData }
   | { name: 'SELF_HOST_RESTORE'; data: SelfHostData }
   | {

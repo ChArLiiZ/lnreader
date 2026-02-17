@@ -1,4 +1,4 @@
-import { DriveFile } from '@api/drive/types';
+import { DriveFile, DriveFolderRef } from '@api/drive/types';
 import { exists } from '@api/drive';
 import { getString } from '@strings/translations';
 import {
@@ -14,7 +14,7 @@ import { ROOT_STORAGE } from '@utils/Storages';
 import { BackgroundTaskMetadata } from '@services/ServiceManager';
 
 export const createDriveBackup = async (
-  backupFolder: DriveFile,
+  backupFolder: DriveFolderRef,
   setMeta: (
     transformer: (meta: BackgroundTaskMetadata) => BackgroundTaskMetadata,
   ) => void,
@@ -89,7 +89,7 @@ export const createDriveBackup = async (
 };
 
 export const driveRestore = async (
-  backupFolder: DriveFile,
+  backupFolder: DriveFile | DriveFolderRef,
   setMeta: (
     transformer: (meta: BackgroundTaskMetadata) => BackgroundTaskMetadata,
   ) => void,

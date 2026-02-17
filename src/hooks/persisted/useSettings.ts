@@ -47,7 +47,10 @@ export interface AppSettings {
   refreshNovelMetadata: boolean;
   autoBackupEnabled: boolean;
   autoBackupIntervalHours: number;
+  autoBackupTargetType: 'local' | 'drive';
   autoBackupTargetUri: string;
+  autoBackupDriveFolderId: string;
+  autoBackupDriveFolderName: string;
   autoBackupLastRunAt: number;
 
   /**
@@ -173,7 +176,10 @@ const initialAppSettings: AppSettings = {
   refreshNovelMetadata: false,
   autoBackupEnabled: false,
   autoBackupIntervalHours: 24,
+  autoBackupTargetType: 'local',
   autoBackupTargetUri: '',
+  autoBackupDriveFolderId: '',
+  autoBackupDriveFolderName: '',
   autoBackupLastRunAt: 0,
 
   /**

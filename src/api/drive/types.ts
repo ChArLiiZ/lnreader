@@ -8,6 +8,12 @@ export interface DriveFile {
   createdTime?: string;
 }
 
+export interface DriveFolderRef {
+  id: string;
+  name?: string;
+  parents?: string[];
+}
+
 /** @deprecated Use DriveResponse instead */
 export type DriveReponse = DriveResponse;
 

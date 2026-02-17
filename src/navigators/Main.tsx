@@ -56,13 +56,14 @@ import { RootStackParamList } from './types';
 import Color from 'color';
 import { useMMKVBoolean } from 'react-native-mmkv';
 import OnboardingScreen from '@screens/onboarding/OnboardingScreen';
-import ServiceManager from '@services/ServiceManager';
+import ServiceManager, { type BackgroundTask } from '@services/ServiceManager';
 import { LibraryContextProvider } from '@components/Context/LibraryContext';
 import { UpdateContextProvider } from '@components/Context/UpdateContext';
 import OfflineBanner from '@components/OfflineBanner/OfflineBanner';
 import { hasPermission as hasSafPermission } from 'react-native-saf-x';
 import { showToast } from '@utils/showToast';
 import { getString } from '@strings/translations';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const fallbackStyle = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -105,7 +106,10 @@ const MainNavigator = () => {
     updateLibraryOnLaunch,
     autoBackupEnabled,
     autoBackupIntervalHours,
+    autoBackupTargetType,
     autoBackupTargetUri,
+    autoBackupDriveFolderId,
+    autoBackupDriveFolderName,
     autoBackupLastRunAt,
     setAppSettings,
   } = useAppSettings();
@@ -134,7 +138,7 @@ const MainNavigator = () => {
   }, [isOnboarded, refreshPlugins, updateLibraryOnLaunch]);
 
   useEffect(() => {
-    if (!isOnboarded || !autoBackupEnabled || !autoBackupTargetUri) {
+    if (!isOnboarded || !autoBackupEnabled) {
       return;
     }
 
@@ -151,7 +155,17 @@ const MainNavigator = () => {
         return;
       }
 
-      if (Platform.OS === 'android') {
+      if (Platform.OS !== 'android') {
+        return;
+      }
+
+      const targetType = autoBackupTargetType === 'drive' ? 'drive' : 'local';
+      let taskToRun: BackgroundTask | null = null;
+
+      if (targetType === 'local') {
+        if (!autoBackupTargetUri) {
+          return;
+        }
         try {
           const hasPermission = await hasSafPermission(autoBackupTargetUri);
           if (!hasPermission) {
@@ -166,19 +180,42 @@ const MainNavigator = () => {
           }
           return;
         }
+
+        taskToRun = {
+          name: 'LOCAL_BACKUP',
+          data: { targetUri: autoBackupTargetUri, silent: true },
+        };
       } else {
-        return;
+        if (!autoBackupDriveFolderId) {
+          return;
+        }
+
+        GoogleSignin.configure({
+          scopes: ['https://www.googleapis.com/auth/drive.file'],
+        });
+        const signedIn = GoogleSignin.hasPreviousSignIn();
+        if (!signedIn || !GoogleSignin.getCurrentUser()) {
+          setAppSettings({ autoBackupEnabled: false });
+          showToast(getString('backupScreen.autoBackupDriveSignInRequired'));
+          return;
+        }
+
+        taskToRun = {
+          name: 'DRIVE_BACKUP',
+          data: {
+            id: autoBackupDriveFolderId,
+            name: autoBackupDriveFolderName || 'Auto Backup',
+            parents: [],
+          },
+        };
       }
 
       const taskQueue = ServiceManager.manager.getTaskList();
-      if (taskQueue.some(task => task.task.name === 'LOCAL_BACKUP')) {
+      if (taskQueue.some(task => task.task.name === taskToRun.name)) {
         return;
       }
 
-      ServiceManager.manager.addTask({
-        name: 'LOCAL_BACKUP',
-        data: { targetUri: autoBackupTargetUri, silent: true },
-      });
+      ServiceManager.manager.addTask(taskToRun);
       setAppSettings({ autoBackupLastRunAt: now });
     };
 
@@ -197,6 +234,9 @@ const MainNavigator = () => {
     };
   }, [
     autoBackupEnabled,
+    autoBackupTargetType,
+    autoBackupDriveFolderId,
+    autoBackupDriveFolderName,
     autoBackupIntervalHours,
     autoBackupLastRunAt,
     autoBackupTargetUri,

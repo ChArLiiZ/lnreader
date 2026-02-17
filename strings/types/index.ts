@@ -121,7 +121,14 @@ export interface StringMap {
   'backupScreen.autoBackupEnabled': 'string';
   'backupScreen.autoBackupEnabledWithPath': 'string';
   'backupScreen.autoBackupEnabledNoPath': 'string';
+  'backupScreen.autoBackupEnabledWithDriveFolder': 'string';
+  'backupScreen.autoBackupEnabledNoDriveFolder': 'string';
+  'backupScreen.autoBackupDestination': 'string';
+  'backupScreen.autoBackupDestinationLocal': 'string';
+  'backupScreen.autoBackupDestinationDrive': 'string';
   'backupScreen.autoBackupFolder': 'string';
+  'backupScreen.autoBackupDriveFolder': 'string';
+  'backupScreen.autoBackupDriveNoFolderSelected': 'string';
   'backupScreen.autoBackupNoFolderSelected': 'string';
   'backupScreen.autoBackupInterval': 'string';
   'backupScreen.autoBackupIntervalDesc': 'string';
@@ -129,6 +136,7 @@ export interface StringMap {
   'backupScreen.never': 'string';
   'backupScreen.autoBackupAndroidOnly': 'string';
   'backupScreen.autoBackupPermissionRevoked': 'string';
+  'backupScreen.autoBackupDriveSignInRequired': 'string';
   'browse': 'string';
   'browseScreen.addedToLibrary': 'string';
   'browseScreen.available': 'string';

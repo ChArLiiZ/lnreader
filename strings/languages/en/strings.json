@@ -132,14 +132,22 @@
     "autoBackupEnabled": "Auto backup while app is open",
     "autoBackupEnabledWithPath": "Enabled path: %{path}",
     "autoBackupEnabledNoPath": "Pick a backup folder first",
+    "autoBackupEnabledWithDriveFolder": "Enabled folder: %{folder}",
+    "autoBackupEnabledNoDriveFolder": "Choose a Google Drive backup folder first",
+    "autoBackupDestination": "Auto backup destination",
+    "autoBackupDestinationLocal": "Local folder",
+    "autoBackupDestinationDrive": "Google Drive",
     "autoBackupFolder": "Auto backup folder",
+    "autoBackupDriveFolder": "Auto backup Drive folder",
+    "autoBackupDriveNoFolderSelected": "No Drive folder selected",
     "autoBackupNoFolderSelected": "No folder selected",
     "autoBackupInterval": "Auto backup interval",
     "autoBackupIntervalDesc": "Every %{hours} hour(s). Tap to switch.",
     "lastAutoBackup": "Last auto backup: %{time}",
     "never": "Never",
     "autoBackupAndroidOnly": "Auto backup folder is currently Android only",
-    "autoBackupPermissionRevoked": "Auto backup disabled: folder permission is no longer granted"
+    "autoBackupPermissionRevoked": "Auto backup disabled: folder permission is no longer granted",
+    "autoBackupDriveSignInRequired": "Auto backup disabled: sign in to Google Drive again"
   },
   "browse": "Browse",
   "browseScreen": {

@@ -139,7 +139,15 @@
     "lastAutoBackup": "上次自動備份：%{time}",
     "never": "從未",
     "autoBackupAndroidOnly": "自動備份資料夾目前僅支援 Android",
-    "autoBackupPermissionRevoked": "自動備份已停用：資料夾權限已失效"
+    "autoBackupPermissionRevoked": "自動備份已停用：資料夾權限已失效",
+    "autoBackupEnabledWithDriveFolder": "已啟用資料夾：%{folder}",
+    "autoBackupEnabledNoDriveFolder": "請先選擇 Google Drive 備份資料夾",
+    "autoBackupDestination": "自動備份目的地",
+    "autoBackupDestinationLocal": "本機資料夾",
+    "autoBackupDestinationDrive": "Google Drive",
+    "autoBackupDriveFolder": "自動備份 Drive 資料夾",
+    "autoBackupDriveNoFolderSelected": "尚未選擇 Drive 資料夾",
+    "autoBackupDriveSignInRequired": "自動備份已停用：請重新登入 Google Drive"
   },
   "browse": "瀏覽",
   "browseScreen": {

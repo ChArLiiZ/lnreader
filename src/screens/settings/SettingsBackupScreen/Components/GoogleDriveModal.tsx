@@ -16,6 +16,7 @@ import {
   sanitizeBackupFolderName,
   toBackupFolderName,
 } from '@services/backup/utils';
+import { useAppSettings } from '@hooks/persisted/useSettings';
 
 enum BackupModal {
   UNAUTHORIZED,
@@ -103,10 +104,12 @@ function CreateBackup({
   theme,
   setBackupModal,
   closeModal,
+  onFolderPrepared,
 }: {
   theme: ThemeColors;
   setBackupModal: (backupModal: BackupModal) => void;
   closeModal: () => void;
+  onFolderPrepared: (folder: DriveFile) => void;
 }) {
   const [backupName, setBackupName] = useState('');
   const [fetching, setFetching] = useState(false);
@@ -149,6 +152,7 @@ function CreateBackup({
           onPress={() => {
             prepare()
               .then(folder => {
+                onFolderPrepared(folder);
                 closeModal();
                 ServiceManager.manager.addTask({
                   name: 'DRIVE_BACKUP',
@@ -252,6 +256,7 @@ export default function GoogleDriveModal({
   theme,
   closeModal,
 }: GoogleDriveModalProps) {
+  const { setAppSettings } = useAppSettings();
   const [backupModal, setBackupModal] = useState(BackupModal.UNAUTHORIZED);
   const [user, setUser] = useState<User | null | undefined>(null);
   useEffect(() => {
@@ -294,6 +299,12 @@ export default function GoogleDriveModal({
             theme={theme}
             setBackupModal={setBackupModal}
             closeModal={closeModal}
+            onFolderPrepared={folder =>
+              setAppSettings({
+                autoBackupDriveFolderId: folder.id,
+                autoBackupDriveFolderName: folder.name || '',
+              })
+            }
           />
         );
       case BackupModal.RESTORE_BACKUP:
