@@ -45,6 +45,10 @@ export interface AppSettings {
   updateLibraryOnLaunch: boolean;
   downloadNewChapters: boolean;
   refreshNovelMetadata: boolean;
+  autoBackupEnabled: boolean;
+  autoBackupIntervalHours: number;
+  autoBackupTargetUri: string;
+  autoBackupLastRunAt: number;
 
   /**
    * Novel settings
@@ -167,6 +171,10 @@ const initialAppSettings: AppSettings = {
   updateLibraryOnLaunch: false,
   downloadNewChapters: false,
   refreshNovelMetadata: false,
+  autoBackupEnabled: false,
+  autoBackupIntervalHours: 24,
+  autoBackupTargetUri: '',
+  autoBackupLastRunAt: 0,
 
   /**
    * Novel settings

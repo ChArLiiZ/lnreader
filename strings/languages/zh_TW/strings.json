@@ -128,7 +128,18 @@
     "selfHost": "自架伺服器",
     "selfHostDesc": "備份至您的伺服器",
     "uploadingData": "正在上傳資料",
-    "uploadingDownloadedFiles": "正在上傳已下載的檔案"
+    "uploadingDownloadedFiles": "正在上傳已下載的檔案",
+    "autoBackupEnabled": "App 開啟時自動備份",
+    "autoBackupEnabledWithPath": "已啟用路徑：%{path}",
+    "autoBackupEnabledNoPath": "請先選擇備份資料夾",
+    "autoBackupFolder": "自動備份資料夾",
+    "autoBackupNoFolderSelected": "尚未選擇資料夾",
+    "autoBackupInterval": "自動備份間隔",
+    "autoBackupIntervalDesc": "每 %{hours} 小時。點擊切換。",
+    "lastAutoBackup": "上次自動備份：%{time}",
+    "never": "從未",
+    "autoBackupAndroidOnly": "自動備份資料夾目前僅支援 Android",
+    "autoBackupPermissionRevoked": "自動備份已停用：資料夾權限已失效"
   },
   "browse": "瀏覽",
   "browseScreen": {
@@ -239,7 +250,12 @@
     "sort": "排序",
     "submit": "送出",
     "loading": "載入中…",
-    "warning": "警告"
+    "warning": "警告",
+    "error": "錯誤",
+    "noConnection": "沒有網際網路連線",
+    "noRunningTasks": "目前沒有執行中的任務",
+    "remaining": "剩餘",
+    "taskQueue": "任務佇列"
   },
   "webview": {
     "refresh": "重新整理",
@@ -308,7 +324,8 @@
   },
   "globalSearch": {
     "allSources": "所有來源",
-    "searchIn": "搜尋小說於"
+    "searchIn": "搜尋小說於",
+    "hasResults": "有結果"
   },
   "history": "歷史",
   "historyScreen": {
@@ -559,7 +576,8 @@
     "searchbar": "搜尋更新",
     "unableToGetNovel": "無法取得小說",
     "updatesLower": "更新",
-    "updatingLibrary": "正在更新書庫"
+    "updatingLibrary": "正在更新書庫",
+    "noNovelsToUpdate": "目前沒有可更新的小說"
   },
   "onboardingScreen": {
     "welcome": "歡迎",

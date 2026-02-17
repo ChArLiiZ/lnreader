@@ -15,13 +15,10 @@ import {
 } from '@database/queries/CategoryQueries';
 import { BackupCategory, BackupNovel } from '@database/types';
 import { BackupEntryName } from './types';
-import { ROOT_STORAGE } from '@utils/Storages';
 import ServiceManager from '@services/ServiceManager';
 import NativeFile from '@specs/NativeFile';
 import { showToast } from '@utils/showToast';
 import { getString } from '@strings/translations';
-
-const APP_STORAGE_URI = 'file://' + ROOT_STORAGE;
 
 export const CACHE_DIR_PATH =
   NativeFile.getConstants().ExternalCachesDirectoryPath + '/BackupData';
@@ -126,7 +123,8 @@ export const prepareBackupData = async (cacheDirPath: string) => {
         JSON.stringify({
           chapters: chapters,
           ...novel,
-          cover: novel.cover?.replace(APP_STORAGE_URI, ''),
+          // Do not backup local cover files. Keep only remote covers.
+          cover: novel.cover?.startsWith('http') ? novel.cover : null,
         }),
       );
     } catch (error: unknown) {
@@ -211,10 +209,6 @@ export const restoreData = async (cacheDirPath: string) => {
           try {
             const fileContent = NativeFile.readFile(item.path);
             const backupNovel = JSON.parse(fileContent) as BackupNovel;
-
-            if (!backupNovel.cover?.startsWith('http')) {
-              backupNovel.cover = APP_STORAGE_URI + backupNovel.cover;
-            }
 
             await _restoreNovelAndChapters(backupNovel);
             novelCount++;

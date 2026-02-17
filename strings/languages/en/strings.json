@@ -128,7 +128,18 @@
     "selfHost": "Self Host",
     "selfHostDesc": "Backup to your server",
     "uploadingData": "Uploading Data",
-    "uploadingDownloadedFiles": "Uploading Downloaded Files"
+    "uploadingDownloadedFiles": "Uploading Downloaded Files",
+    "autoBackupEnabled": "Auto backup while app is open",
+    "autoBackupEnabledWithPath": "Enabled path: %{path}",
+    "autoBackupEnabledNoPath": "Pick a backup folder first",
+    "autoBackupFolder": "Auto backup folder",
+    "autoBackupNoFolderSelected": "No folder selected",
+    "autoBackupInterval": "Auto backup interval",
+    "autoBackupIntervalDesc": "Every %{hours} hour(s). Tap to switch.",
+    "lastAutoBackup": "Last auto backup: %{time}",
+    "never": "Never",
+    "autoBackupAndroidOnly": "Auto backup folder is currently Android only",
+    "autoBackupPermissionRevoked": "Auto backup disabled: folder permission is no longer granted"
   },
   "browse": "Browse",
   "browseScreen": {

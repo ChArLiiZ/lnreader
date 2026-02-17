@@ -19,11 +19,23 @@ import NativeFile from '@specs/NativeFile';
 import { getString } from '@strings/translations';
 import { BackgroundTaskMetadata } from '@services/ServiceManager';
 import { sleep } from '@utils/sleep';
+import { Platform } from 'react-native';
+import {
+  copyFile as safCopyFile,
+  exists as safExists,
+  unlink as safUnlink,
+} from 'react-native-saf-x';
+
+interface LocalBackupOptions {
+  targetUri?: string;
+  silent?: boolean;
+}
 
 export const createBackup = async (
   setMeta?: (
     transformer: (meta: BackgroundTaskMetadata) => BackgroundTaskMetadata,
   ) => void,
+  options: LocalBackupOptions = {},
 ) => {
   try {
     setMeta?.(meta => ({
@@ -66,13 +78,25 @@ export const createBackup = async (
 
     const datetime = dayjs().format('YYYY-MM-DD_HH_mm');
     const fileName = 'lnreader_backup_' + datetime + '.zip';
+    const localZipUri = 'file://' + CACHE_DIR_PATH + '.zip';
 
-    await saveDocuments({
-      sourceUris: ['file://' + CACHE_DIR_PATH + '.zip'],
-      copy: false,
-      mimeType: 'application/zip',
-      fileName,
-    });
+    if (options.targetUri && Platform.OS === 'android') {
+      const baseUri = options.targetUri.replace(/\/+$/, '');
+      const destinationUri = `${baseUri}/${fileName}`;
+      if (await safExists(destinationUri)) {
+        await safUnlink(destinationUri);
+      }
+      await safCopyFile(localZipUri, destinationUri, {
+        replaceIfDestinationExists: true,
+      });
+    } else {
+      await saveDocuments({
+        sourceUris: [localZipUri],
+        copy: false,
+        mimeType: 'application/zip',
+        fileName,
+      });
+    }
 
     setMeta?.(meta => ({
       ...meta,
@@ -80,7 +104,9 @@ export const createBackup = async (
       isRunning: false,
     }));
 
-    showToast(getString('backupScreen.backupCreated'));
+    if (!options.silent) {
+      showToast(getString('backupScreen.backupCreated'));
+    }
   } catch (error: unknown) {
     setMeta?.(meta => ({
       ...meta,

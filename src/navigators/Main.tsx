@@ -1,5 +1,11 @@
 import React, { lazy, Suspense, useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  Platform,
+  StyleSheet,
+  View,
+} from 'react-native';
 
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -54,6 +60,9 @@ import ServiceManager from '@services/ServiceManager';
 import { LibraryContextProvider } from '@components/Context/LibraryContext';
 import { UpdateContextProvider } from '@components/Context/UpdateContext';
 import OfflineBanner from '@components/OfflineBanner/OfflineBanner';
+import { hasPermission as hasSafPermission } from 'react-native-saf-x';
+import { showToast } from '@utils/showToast';
+import { getString } from '@strings/translations';
 
 const fallbackStyle = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -92,7 +101,14 @@ const LazyWebviewScreen = withSuspense(WebviewScreen);
 
 const MainNavigator = () => {
   const theme = useTheme();
-  const { updateLibraryOnLaunch } = useAppSettings();
+  const {
+    updateLibraryOnLaunch,
+    autoBackupEnabled,
+    autoBackupIntervalHours,
+    autoBackupTargetUri,
+    autoBackupLastRunAt,
+    setAppSettings,
+  } = useAppSettings();
   const { refreshPlugins } = usePlugins();
   const [isOnboarded] = useMMKVBoolean('IS_ONBOARDED');
 
@@ -116,6 +132,77 @@ const MainNavigator = () => {
       refreshPlugins();
     }
   }, [isOnboarded, refreshPlugins, updateLibraryOnLaunch]);
+
+  useEffect(() => {
+    if (!isOnboarded || !autoBackupEnabled || !autoBackupTargetUri) {
+      return;
+    }
+
+    let disposed = false;
+    const intervalMs = Math.max(1, autoBackupIntervalHours) * 60 * 60 * 1000;
+
+    const maybeRunAutoBackup = async () => {
+      if (disposed || AppState.currentState !== 'active') {
+        return;
+      }
+
+      const now = Date.now();
+      if (autoBackupLastRunAt && now - autoBackupLastRunAt < intervalMs) {
+        return;
+      }
+
+      if (Platform.OS === 'android') {
+        try {
+          const hasPermission = await hasSafPermission(autoBackupTargetUri);
+          if (!hasPermission) {
+            setAppSettings({ autoBackupEnabled: false });
+            showToast(getString('backupScreen.autoBackupPermissionRevoked'));
+            return;
+          }
+        } catch (error) {
+          if (__DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn('Auto backup permission check failed:', error);
+          }
+          return;
+        }
+      } else {
+        return;
+      }
+
+      const taskQueue = ServiceManager.manager.getTaskList();
+      if (taskQueue.some(task => task.task.name === 'LOCAL_BACKUP')) {
+        return;
+      }
+
+      ServiceManager.manager.addTask({
+        name: 'LOCAL_BACKUP',
+        data: { targetUri: autoBackupTargetUri, silent: true },
+      });
+      setAppSettings({ autoBackupLastRunAt: now });
+    };
+
+    maybeRunAutoBackup();
+    const timer = setInterval(maybeRunAutoBackup, 60 * 1000);
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        maybeRunAutoBackup();
+      }
+    });
+
+    return () => {
+      disposed = true;
+      clearInterval(timer);
+      sub.remove();
+    };
+  }, [
+    autoBackupEnabled,
+    autoBackupIntervalHours,
+    autoBackupLastRunAt,
+    autoBackupTargetUri,
+    isOnboarded,
+    setAppSettings,
+  ]);
 
   const { isNewVersion, latestRelease } = useGithubUpdateChecker();
 

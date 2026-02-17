@@ -118,6 +118,17 @@ export interface StringMap {
   'backupScreen.selfHostDesc': 'string';
   'backupScreen.uploadingData': 'string';
   'backupScreen.uploadingDownloadedFiles': 'string';
+  'backupScreen.autoBackupEnabled': 'string';
+  'backupScreen.autoBackupEnabledWithPath': 'string';
+  'backupScreen.autoBackupEnabledNoPath': 'string';
+  'backupScreen.autoBackupFolder': 'string';
+  'backupScreen.autoBackupNoFolderSelected': 'string';
+  'backupScreen.autoBackupInterval': 'string';
+  'backupScreen.autoBackupIntervalDesc': 'string';
+  'backupScreen.lastAutoBackup': 'string';
+  'backupScreen.never': 'string';
+  'backupScreen.autoBackupAndroidOnly': 'string';
+  'backupScreen.autoBackupPermissionRevoked': 'string';
   'browse': 'string';
   'browseScreen.addedToLibrary': 'string';
   'browseScreen.available': 'string';

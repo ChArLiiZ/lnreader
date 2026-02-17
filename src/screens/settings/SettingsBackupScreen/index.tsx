@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '@hooks/persisted';
-import { Appbar, List, SafeAreaView } from '@components';
+import { Appbar, List, SafeAreaView, SwitchItem } from '@components';
 import { useBoolean } from '@hooks';
 import { BackupSettingsScreenProps } from '@navigators/types';
 import GoogleDriveModal from './Components/GoogleDriveModal';
@@ -8,10 +8,21 @@ import SelfHostModal from './Components/SelfHostModal';
 import ServiceManager from '@services/ServiceManager';
 import { ScrollView } from 'react-native-gesture-handler';
 import { getString } from '@strings/translations';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+import { showToast } from '@utils/showToast';
+import { openDocumentTree } from 'react-native-saf-x';
+import { useAppSettings } from '@hooks/persisted/useSettings';
+import dayjs from 'dayjs';
 
 const BackupSettings = ({ navigation }: BackupSettingsScreenProps) => {
   const theme = useTheme();
+  const {
+    autoBackupEnabled,
+    autoBackupIntervalHours,
+    autoBackupLastRunAt,
+    autoBackupTargetUri,
+    setAppSettings,
+  } = useAppSettings();
   const {
     value: googleDriveModalVisible,
     setFalse: closeGoogleDriveModal,
@@ -23,6 +34,35 @@ const BackupSettings = ({ navigation }: BackupSettingsScreenProps) => {
     setFalse: closeSelfHostModal,
     setTrue: openSelfHostModal,
   } = useBoolean();
+
+  const autoBackupIntervals = [6, 12, 24, 48, 72, 168];
+  const currentIntervalIndex = autoBackupIntervals.indexOf(
+    autoBackupIntervalHours,
+  );
+  const nextInterval =
+    autoBackupIntervals[
+      currentIntervalIndex === -1
+        ? 0
+        : (currentIntervalIndex + 1) % autoBackupIntervals.length
+    ];
+  const lastAutoBackupText = autoBackupLastRunAt
+    ? dayjs(autoBackupLastRunAt).format('YYYY-MM-DD HH:mm')
+    : getString('backupScreen.never');
+
+  const pickAutoBackupFolder = async () => {
+    if (Platform.OS !== 'android') {
+      showToast(getString('backupScreen.autoBackupAndroidOnly'));
+      return;
+    }
+    try {
+      const dir = await openDocumentTree(true);
+      if (dir?.uri) {
+        setAppSettings({ autoBackupTargetUri: dir.uri });
+      }
+    } catch (error: unknown) {
+      showToast(error instanceof Error ? error.message : String(error));
+    }
+  };
 
   return (
     <SafeAreaView excludeTop>
@@ -52,6 +92,49 @@ const BackupSettings = ({ navigation }: BackupSettingsScreenProps) => {
           <List.SubHeader theme={theme}>
             {getString('backupScreen.localBackup')}
           </List.SubHeader>
+          <SwitchItem
+            value={autoBackupEnabled}
+            onPress={() =>
+              setAppSettings({
+                autoBackupEnabled: !autoBackupEnabled,
+              })
+            }
+            label={getString('backupScreen.autoBackupEnabled')}
+            description={
+              autoBackupTargetUri
+                ? getString('backupScreen.autoBackupEnabledWithPath', {
+                    path: decodeURIComponent(autoBackupTargetUri),
+                  })
+                : getString('backupScreen.autoBackupEnabledNoPath')
+            }
+            theme={theme}
+          />
+          <List.Item
+            title={getString('backupScreen.autoBackupFolder')}
+            description={
+              autoBackupTargetUri
+                ? decodeURIComponent(autoBackupTargetUri)
+                : getString('backupScreen.autoBackupNoFolderSelected')
+            }
+            onPress={pickAutoBackupFolder}
+            theme={theme}
+          />
+          <List.Item
+            title={getString('backupScreen.autoBackupInterval')}
+            description={getString('backupScreen.autoBackupIntervalDesc', {
+              hours: autoBackupIntervalHours,
+            })}
+            onPress={() =>
+              setAppSettings({ autoBackupIntervalHours: nextInterval })
+            }
+            theme={theme}
+          />
+          <List.InfoItem
+            title={getString('backupScreen.lastAutoBackup', {
+              time: lastAutoBackupText,
+            })}
+            theme={theme}
+          />
           <List.Item
             title={getString('backupScreen.createBackup')}
             description={getString('backupScreen.createBackupDesc')}

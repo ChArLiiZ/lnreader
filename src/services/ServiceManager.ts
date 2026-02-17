@@ -48,7 +48,13 @@ export type BackgroundTask =
   | { name: 'DRIVE_RESTORE'; data: DriveFile }
   | { name: 'SELF_HOST_BACKUP'; data: SelfHostData }
   | { name: 'SELF_HOST_RESTORE'; data: SelfHostData }
-  | { name: 'LOCAL_BACKUP' }
+  | {
+      name: 'LOCAL_BACKUP';
+      data?: {
+        targetUri?: string;
+        silent?: boolean;
+      };
+    }
   | { name: 'LOCAL_RESTORE' }
   | { name: 'MIGRATE_NOVEL'; data: MigrateNovelData }
   | DownloadChapterTask;
@@ -255,7 +261,7 @@ export default class ServiceManager {
       case 'SELF_HOST_RESTORE':
         return selfHostRestore(task.task.data, this.setMeta.bind(this));
       case 'LOCAL_BACKUP':
-        return createBackup(this.setMeta.bind(this));
+        return createBackup(this.setMeta.bind(this), task.task.data || {});
       case 'LOCAL_RESTORE':
         return restoreBackup(this.setMeta.bind(this));
       case 'MIGRATE_NOVEL':
