@@ -2,6 +2,8 @@ import { create, list } from './request';
 import { DriveCreateRequestData, DriveFile } from './types';
 
 const LNREADER_DRIVE_MARK = '(Do not change this!) LNReader-Drive';
+const escapeDriveQueryValue = (value: string) =>
+  value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
 export const exists = async (
   fileName: string,
@@ -9,7 +11,7 @@ export const exists = async (
   parentId?: string,
   marked?: boolean,
 ) => {
-  let q = `name = '${fileName}' and trashed = false `;
+  let q = `name = '${escapeDriveQueryValue(fileName)}' and trashed = false `;
   if (marked) {
     q += ` and fullText contains '${LNREADER_DRIVE_MARK}' `;
   }

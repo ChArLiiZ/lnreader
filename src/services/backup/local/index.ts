@@ -6,7 +6,12 @@ import {
   types,
   keepLocalCopy,
 } from '@react-native-documents/picker';
-import { CACHE_DIR_PATH, prepareBackupData, restoreData } from '../utils';
+import {
+  CACHE_DIR_PATH,
+  cleanupBackupTempData,
+  prepareBackupData,
+  restoreData,
+} from '../utils';
 import NativeZipArchive from '@specs/NativeZipArchive';
 import { ROOT_STORAGE } from '@utils/Storages';
 import { ZipBackupName } from '../types';
@@ -82,6 +87,12 @@ export const createBackup = async (
       isRunning: false,
     }));
     showToast(error instanceof Error ? error.message : String(error));
+  } finally {
+    try {
+      cleanupBackupTempData();
+    } catch {
+      // Ignore cleanup errors
+    }
   }
 };
 
@@ -171,13 +182,7 @@ export const restoreBackup = async (
     showToast(error instanceof Error ? error.message : String(error));
   } finally {
     try {
-      if (NativeFile.exists(CACHE_DIR_PATH)) {
-        NativeFile.unlink(CACHE_DIR_PATH);
-      }
-      const zipPath = CACHE_DIR_PATH + '.zip';
-      if (NativeFile.exists(zipPath)) {
-        NativeFile.unlink(zipPath);
-      }
+      cleanupBackupTempData();
     } catch {
       // Ignore cleanup errors
     }

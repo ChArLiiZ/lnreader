@@ -12,6 +12,10 @@ import { exists, getBackups, makeDir } from '@api/drive';
 import { DriveFile } from '@api/drive/types';
 import dayjs from 'dayjs';
 import ServiceManager from '@services/ServiceManager';
+import {
+  sanitizeBackupFolderName,
+  toBackupFolderName,
+} from '@services/backup/utils';
 
 enum BackupModal {
   UNAUTHORIZED,
@@ -106,6 +110,7 @@ function CreateBackup({
 }) {
   const [backupName, setBackupName] = useState('');
   const [fetching, setFetching] = useState(false);
+  const normalizedBackupName = sanitizeBackupFolderName(backupName);
 
   const prepare = async () => {
     setFetching(true);
@@ -113,7 +118,10 @@ function CreateBackup({
     if (!rootFolder) {
       rootFolder = await makeDir('LNReader');
     }
-    const backupFolderName = backupName.trim() + '.backup';
+    const backupFolderName = toBackupFolderName(backupName);
+    if (!backupFolderName) {
+      throw new Error(getString('backupScreen.backupName'));
+    }
     let backupFolder = await exists(backupFolderName, true, rootFolder.id);
     if (!backupFolder) {
       backupFolder = await makeDir(backupFolderName, rootFolder.id);
@@ -125,7 +133,7 @@ function CreateBackup({
   return (
     <>
       <TextInput
-        value={backupName}
+        value={normalizedBackupName}
         placeholder={getString('backupScreen.backupName')}
         onChangeText={setBackupName}
         mode="outlined"
@@ -136,7 +144,7 @@ function CreateBackup({
       />
       <View style={styles.footerContainer}>
         <Button
-          disabled={backupName.trim().length === 0 || fetching}
+          disabled={normalizedBackupName.length === 0 || fetching}
           title={getString('common.ok')}
           onPress={() => {
             prepare()

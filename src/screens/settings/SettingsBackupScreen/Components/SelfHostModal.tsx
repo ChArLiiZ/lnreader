@@ -5,6 +5,10 @@ import ServiceManager from '@services/ServiceManager';
 import { getString } from '@strings/translations';
 import { ThemeColors } from '@theme/types';
 import { fetchTimeout } from '@utils/fetch/fetch';
+import {
+  sanitizeBackupFolderName,
+  toBackupFolderName,
+} from '@services/backup/utils';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
@@ -35,11 +39,12 @@ function CreateBackup({
   closeModal: () => void;
 }) {
   const [backupName, setBackupName] = useState('');
+  const normalizedBackupName = sanitizeBackupFolderName(backupName);
 
   return (
     <>
       <TextInput
-        value={backupName}
+        value={normalizedBackupName}
         placeholder={getString('backupScreen.backupName')}
         onChangeText={setBackupName}
         mode="outlined"
@@ -49,7 +54,7 @@ function CreateBackup({
       />
       <View style={styles.footerContainer}>
         <Button
-          disabled={backupName.trim().length === 0}
+          disabled={normalizedBackupName.length === 0}
           title={getString('common.ok')}
           onPress={() => {
             closeModal();
@@ -57,7 +62,7 @@ function CreateBackup({
               name: 'SELF_HOST_BACKUP',
               data: {
                 host,
-                backupFolder: backupName + '.backup',
+                backupFolder: toBackupFolderName(backupName),
               },
             });
           }}

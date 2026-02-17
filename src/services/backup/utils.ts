@@ -26,27 +26,62 @@ const APP_STORAGE_URI = 'file://' + ROOT_STORAGE;
 export const CACHE_DIR_PATH =
   NativeFile.getConstants().ExternalCachesDirectoryPath + '/BackupData';
 
+const INVALID_BACKUP_NAME_CHARS = /[\\/:*?"<>|'`]/g;
+
+export const sanitizeBackupFolderName = (name: string) =>
+  name.trim().replace(INVALID_BACKUP_NAME_CHARS, '_').replace(/\s+/g, ' ');
+
+export const toBackupFolderName = (name: string) => {
+  const sanitized = sanitizeBackupFolderName(name);
+  if (!sanitized) {
+    return '';
+  }
+  return sanitized.endsWith('.backup') ? sanitized : sanitized + '.backup';
+};
+
+export const cleanupBackupTempData = () => {
+  if (NativeFile.exists(CACHE_DIR_PATH)) {
+    NativeFile.unlink(CACHE_DIR_PATH);
+  }
+  const zipPath = CACHE_DIR_PATH + '.zip';
+  if (NativeFile.exists(zipPath)) {
+    NativeFile.unlink(zipPath);
+  }
+};
+
 const backupMMKVData = () => {
-  const excludeKeys = [
+  const excludeKeys = new Set([
     ServiceManager.manager.STORE_KEY,
-    OLD_TRACKED_NOVEL_PREFIX,
     SELF_HOST_BACKUP,
     LAST_UPDATE_TIME,
-  ];
+  ]);
+  const excludePrefixes = [OLD_TRACKED_NOVEL_PREFIX];
   const keys = MMKVStorage.getAllKeys().filter(
-    key => !excludeKeys.includes(key),
+    key =>
+      !excludeKeys.has(key) &&
+      !excludePrefixes.some(prefix => key.startsWith(prefix)),
   );
   const data: Record<string, string | number | boolean> = {};
+
   for (const key of keys) {
-    let value: number | string | boolean | undefined =
-      MMKVStorage.getString(key);
-    if (!value) {
-      value = MMKVStorage.getBoolean(key);
+    const stringValue = MMKVStorage.getString(key);
+    if (stringValue !== undefined) {
+      data[key] = stringValue;
+      continue;
     }
-    if (key && value) {
-      data[key] = value;
+
+    const numberValue = MMKVStorage.getNumber(key);
+    if (numberValue !== undefined) {
+      data[key] = numberValue;
+      continue;
+    }
+
+    const booleanValue = MMKVStorage.getBoolean(key);
+    if (booleanValue !== undefined) {
+      data[key] = booleanValue;
     }
   }
+
   return data;
 };
 

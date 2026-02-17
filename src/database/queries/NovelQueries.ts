@@ -321,17 +321,19 @@ const restoreObjectQuery = (table: string, obj: any) => {
 
 export const _restoreNovelAndChapters = async (backupNovel: BackupNovel) => {
   const { chapters, ...novel } = backupNovel;
-  await db.runAsync('DELETE FROM Novel WHERE id = ?', novel.id);
-  await db.runAsync(
-    restoreObjectQuery('Novel', novel),
-    ...(Object.values(novel) as (string | number)[]),
-  );
-  if (chapters.length > 0) {
-    for (const chapter of chapters) {
-      await db.runAsync(
-        restoreObjectQuery('Chapter', chapter),
-        ...(Object.values(chapter) as (string | number)[]),
-      );
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM Novel WHERE id = ?', novel.id);
+    await db.runAsync(
+      restoreObjectQuery('Novel', novel),
+      ...(Object.values(novel) as (string | number)[]),
+    );
+    if (chapters.length > 0) {
+      for (const chapter of chapters) {
+        await db.runAsync(
+          restoreObjectQuery('Chapter', chapter),
+          ...(Object.values(chapter) as (string | number)[]),
+        );
+      }
     }
-  }
+  });
 };

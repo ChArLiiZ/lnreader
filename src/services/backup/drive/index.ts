@@ -1,12 +1,16 @@
 import { DriveFile } from '@api/drive/types';
 import { exists } from '@api/drive';
 import { getString } from '@strings/translations';
-import { CACHE_DIR_PATH, prepareBackupData, restoreData } from '../utils';
+import {
+  CACHE_DIR_PATH,
+  cleanupBackupTempData,
+  prepareBackupData,
+  restoreData,
+} from '../utils';
 import { download, updateMetadata, uploadMedia } from '@api/drive/request';
 import { ZipBackupName } from '../types';
 import { ROOT_STORAGE } from '@utils/Storages';
 import { BackgroundTaskMetadata } from '@services/ServiceManager';
-import NativeFile from '@specs/NativeFile';
 
 export const createDriveBackup = async (
   backupFolder: DriveFile,
@@ -14,62 +18,70 @@ export const createDriveBackup = async (
     transformer: (meta: BackgroundTaskMetadata) => BackgroundTaskMetadata,
   ) => void,
 ) => {
-  setMeta(meta => ({
-    ...meta,
-    isRunning: true,
-    progress: 0 / 3,
-    progressText: getString('backupScreen.preparingData'),
-  }));
+  try {
+    setMeta(meta => ({
+      ...meta,
+      isRunning: true,
+      progress: 0 / 3,
+      progressText: getString('backupScreen.preparingData'),
+    }));
 
-  await prepareBackupData(CACHE_DIR_PATH);
+    await prepareBackupData(CACHE_DIR_PATH);
 
-  setMeta(meta => ({
-    ...meta,
-    progress: 1 / 3,
-    progressText: getString('backupScreen.uploadingData'),
-  }));
+    setMeta(meta => ({
+      ...meta,
+      progress: 1 / 3,
+      progressText: getString('backupScreen.uploadingData'),
+    }));
 
-  const file = await uploadMedia(CACHE_DIR_PATH);
-  if (!file?.id || !file?.parents?.length) {
-    throw new Error('Failed to upload data backup: invalid response');
+    const file = await uploadMedia(CACHE_DIR_PATH);
+    if (!file?.id || !file?.parents?.length) {
+      throw new Error('Failed to upload data backup: invalid response');
+    }
+
+    await updateMetadata(
+      file.id,
+      {
+        name: ZipBackupName.DATA,
+        mimeType: 'application/zip',
+        parents: [backupFolder.id],
+      },
+      file.parents[0],
+    );
+
+    setMeta(meta => ({
+      ...meta,
+      progress: 2 / 3,
+      progressText: getString('backupScreen.uploadingDownloadedFiles'),
+    }));
+
+    const file2 = await uploadMedia(ROOT_STORAGE);
+    if (!file2?.id || !file2?.parents?.length) {
+      throw new Error('Failed to upload downloads backup: invalid response');
+    }
+
+    await updateMetadata(
+      file2.id,
+      {
+        name: ZipBackupName.DOWNLOAD,
+        mimeType: 'application/zip',
+        parents: [backupFolder.id],
+      },
+      file2.parents[0],
+    );
+
+    setMeta(meta => ({
+      ...meta,
+      progress: 3 / 3,
+      isRunning: false,
+    }));
+  } finally {
+    try {
+      cleanupBackupTempData();
+    } catch {
+      // Ignore cleanup errors
+    }
   }
-
-  await updateMetadata(
-    file.id,
-    {
-      name: ZipBackupName.DATA,
-      mimeType: 'application/zip',
-      parents: [backupFolder.id],
-    },
-    file.parents[0],
-  );
-
-  setMeta(meta => ({
-    ...meta,
-    progress: 2 / 3,
-    progressText: getString('backupScreen.uploadingDownloadedFiles'),
-  }));
-
-  const file2 = await uploadMedia(ROOT_STORAGE);
-  if (!file2?.id || !file2?.parents?.length) {
-    throw new Error('Failed to upload downloads backup: invalid response');
-  }
-
-  await updateMetadata(
-    file2.id,
-    {
-      name: ZipBackupName.DOWNLOAD,
-      mimeType: 'application/zip',
-      parents: [backupFolder.id],
-    },
-    file2.parents[0],
-  );
-
-  setMeta(meta => ({
-    ...meta,
-    progress: 3 / 3,
-    isRunning: false,
-  }));
 };
 
 export const driveRestore = async (
@@ -125,9 +137,7 @@ export const driveRestore = async (
     }));
   } finally {
     try {
-      if (NativeFile.exists(CACHE_DIR_PATH)) {
-        NativeFile.unlink(CACHE_DIR_PATH);
-      }
+      cleanupBackupTempData();
     } catch {
       // Ignore cleanup errors
     }
