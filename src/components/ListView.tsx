@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Pressable } from 'react-native';
 import { Image } from 'expo-image';
+import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 
 import { coverPlaceholderColor } from '../theme/colors';
 
@@ -66,43 +67,38 @@ const ListView = ({
           {item.name}
         </Text>
         {genreTags.length > 0 ? (
-          <View
-            onStartShouldSetResponderCapture={() => true}
-            onMoveShouldSetResponderCapture={() => true}
+          <GHScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            directionalLockEnabled
+            nestedScrollEnabled
+            contentContainerStyle={styles.genreRow}
           >
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              directionalLockEnabled
-              nestedScrollEnabled
-              contentContainerStyle={styles.genreRow}
-            >
-              {genreTags.map(tag => (
-                <View
-                  key={tag}
+            {genreTags.map(tag => (
+              <View
+                key={tag}
+                style={[
+                  styles.genreChip,
+                  {
+                    backgroundColor: theme.surface2,
+                  },
+                ]}
+              >
+                <Text
+                  numberOfLines={1}
                   style={[
-                    styles.genreChip,
+                    styles.genreText,
                     {
-                      backgroundColor: theme.surface2,
+                      color: theme.onSurfaceVariant,
                     },
                   ]}
                 >
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      styles.genreText,
-                      {
-                        color: theme.onSurfaceVariant,
-                      },
-                    ]}
-                  >
-                    {tag}
-                  </Text>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
+                  {tag}
+                </Text>
+              </View>
+            ))}
+          </GHScrollView>
         ) : null}
       </View>
       <View style={styles.badgeContainer}>

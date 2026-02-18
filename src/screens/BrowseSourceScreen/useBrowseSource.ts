@@ -27,10 +27,35 @@ export const useBrowseSource = (
   const novelsRef = useRef<NovelItem[]>([]);
   const tagCacheRef = useRef<Record<string, string>>({});
   const inFlightTagPathsRef = useRef<Set<string>>(new Set());
+  const pendingTagUpdatesRef = useRef<Record<string, string>>({});
+  const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     novelsRef.current = novels;
   }, [novels]);
+
+  const flushTagUpdates = useCallback(() => {
+    if (!isScreenMounted.current) return;
+    const pending = pendingTagUpdatesRef.current;
+    const paths = Object.keys(pending);
+    if (paths.length === 0) return;
+    const updateMap = { ...pending };
+    pendingTagUpdatesRef.current = {};
+    setNovels(prev =>
+      prev.map(item => {
+        const genres = updateMap[item.path];
+        return genres ? { ...item, genres } : item;
+      }),
+    );
+  }, []);
+
+  const scheduleTagFlush = useCallback(() => {
+    if (flushTimerRef.current) return;
+    flushTimerRef.current = setTimeout(() => {
+      flushTimerRef.current = null;
+      flushTagUpdates();
+    }, 120);
+  }, [flushTagUpdates]);
 
   const enrichEsjTags = useCallback(
     async (sourceNovels: NovelItem[], limit = 12) => {
@@ -64,13 +89,8 @@ export const useBrowseSource = (
             const genres = parsed?.genres?.trim();
             if (genres) {
               tagCacheRef.current[next.path] = genres;
-              if (isScreenMounted.current) {
-                setNovels(prev =>
-                  prev.map(item =>
-                    item.path === next.path ? { ...item, genres } : item,
-                  ),
-                );
-              }
+              pendingTagUpdatesRef.current[next.path] = genres;
+              scheduleTagFlush();
             }
           } catch {
             // Silently ignore tag-enrichment errors.
@@ -82,7 +102,7 @@ export const useBrowseSource = (
 
       await Promise.all(Array.from({ length: workerCount }, () => worker()));
     },
-    [pluginId],
+    [pluginId, scheduleTagFlush],
   );
 
   const prefetchVisibleTags = useCallback(
@@ -151,6 +171,10 @@ export const useBrowseSource = (
   useEffect(() => {
     return () => {
       isScreenMounted.current = false;
+      if (flushTimerRef.current) {
+        clearTimeout(flushTimerRef.current);
+        flushTimerRef.current = null;
+      }
     };
   }, []);
 

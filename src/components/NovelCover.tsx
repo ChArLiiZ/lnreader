@@ -1,6 +1,5 @@
 import React, { memo, useMemo } from 'react';
 import {
-  ScrollView,
   StyleSheet,
   View,
   Text,
@@ -8,6 +7,7 @@ import {
   Pressable,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 
 import { LinearGradient } from 'expo-linear-gradient';
 import ListView from './ListView';
@@ -257,12 +257,7 @@ function NovelCover<
           />
         ) : null}
         {displayMode === DisplayModes.Comfortable && genreTags.length > 0 ? (
-          <View
-            onStartShouldSetResponderCapture={() => true}
-            onMoveShouldSetResponderCapture={() => true}
-          >
-            <GenreTagsRow tags={genreTags} theme={theme} width={coverWidth} />
-          </View>
+          <GenreTagsRow tags={genreTags} theme={theme} width={coverWidth} />
         ) : null}
       </Pressable>
     </View>
@@ -309,7 +304,7 @@ const GenreTagsRow = ({
   theme: ThemeColors;
   width?: number;
 }) => (
-  <ScrollView
+  <GHScrollView
     horizontal
     showsHorizontalScrollIndicator={false}
     keyboardShouldPersistTaps="handled"
@@ -344,7 +339,7 @@ const GenreTagsRow = ({
         </Text>
       </View>
     ))}
-  </ScrollView>
+  </GHScrollView>
 );
 
 const ComfortableTitle = ({
