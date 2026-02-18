@@ -20,7 +20,7 @@ import { Button, Menu } from '@components/index';
 import { Checkbox } from '@components/Checkbox/Checkbox';
 import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
 import { useBoolean } from '@hooks';
-import { TextInput, overlay } from 'react-native-paper';
+import { Chip, TextInput, overlay } from 'react-native-paper';
 import { getValueFor } from './filterUtils';
 import { getString } from '@strings/translations';
 import { ThemeColors } from '@theme/types';
@@ -29,6 +29,8 @@ import Switch from '@components/Switch/Switch';
 
 const insertOrRemoveIntoArray = (array: string[], val: string): string[] =>
   array.indexOf(val) > -1 ? array.filter(ele => ele !== val) : [...array, val];
+
+const normalizeTag = (value: string) => value.trim().toLocaleLowerCase();
 
 type SelectedFilters = FilterToValues<Filters>;
 
@@ -47,6 +49,7 @@ const FilterItem: React.FC<FilterItemProps> = ({
   selectedFilters,
   setSelectedFilters,
 }) => {
+  const [autocompleteQuery, setAutocompleteQuery] = useState('');
   const {
     value: isVisible,
     toggle: toggleCard,
@@ -324,6 +327,118 @@ const FilterItem: React.FC<FilterItemProps> = ({
       </View>
     );
   }
+  if (filter.type === FilterTypes.AutocompleteMulti) {
+    const selectedValues = getValueFor<(typeof filter)['type']>(
+      filter,
+      selectedFilters[filterKey],
+    );
+    const selectedSet = new Set(selectedValues.map(v => normalizeTag(v)));
+    const query = autocompleteQuery.trim();
+    const queryLower = normalizeTag(autocompleteQuery);
+    const suggestions = filter.options
+      .filter(option => {
+        const normalized = normalizeTag(option.value);
+        if (selectedSet.has(normalized)) return false;
+        if (queryLower === '') return true;
+        return (
+          normalizeTag(option.label).includes(queryLower) ||
+          normalizeTag(option.value).includes(queryLower)
+        );
+      })
+      .slice(0, 20);
+
+    const addTag = (rawValue: string) => {
+      const trimmed = rawValue.trim();
+      if (!trimmed) return;
+      const normalized = normalizeTag(trimmed);
+      if (selectedSet.has(normalized)) {
+        setAutocompleteQuery('');
+        return;
+      }
+      setSelectedFilters(prev => ({
+        ...prev,
+        [filterKey]: {
+          type: FilterTypes.AutocompleteMulti,
+          value: [...selectedValues, trimmed],
+        },
+      }));
+      setAutocompleteQuery('');
+    };
+
+    const removeTag = (target: string) => {
+      const targetNorm = normalizeTag(target);
+      setSelectedFilters(prev => ({
+        ...prev,
+        [filterKey]: {
+          type: FilterTypes.AutocompleteMulti,
+          value: selectedValues.filter(v => normalizeTag(v) !== targetNorm),
+        },
+      }));
+    };
+
+    return (
+      <View style={styles.autocompleteContainer}>
+        <View style={styles.textContainer}>
+          <TextInput
+            style={[styles.flex, { width: screenWidth - 48 }]}
+            mode="outlined"
+            label={
+              <Text
+                style={[
+                  {
+                    color: theme.onSurface,
+                    backgroundColor: overlay(2, theme.surface),
+                  },
+                ]}
+              >
+                {` ${filter.label} `}
+              </Text>
+            }
+            value={autocompleteQuery}
+            theme={{ colors: { background: 'transparent' } }}
+            outlineColor={theme.onSurface}
+            textColor={theme.onSurface}
+            returnKeyType="done"
+            onChangeText={setAutocompleteQuery}
+            onSubmitEditing={() => addTag(query)}
+          />
+        </View>
+
+        {selectedValues.length > 0 ? (
+          <View style={styles.chipsContainer}>
+            {selectedValues.map(item => (
+              <Chip
+                key={item}
+                mode="flat"
+                style={[styles.tagChip, { backgroundColor: theme.surface2 }]}
+                textStyle={{ color: theme.onSurfaceVariant }}
+                onClose={() => removeTag(item)}
+              >
+                {item}
+              </Chip>
+            ))}
+          </View>
+        ) : null}
+
+        {suggestions.length > 0 ? (
+          <View style={styles.suggestionsContainer}>
+            {suggestions.map(option => (
+              <Pressable
+                key={option.value}
+                style={[styles.suggestionItem, { borderColor: theme.outline }]}
+                android_ripple={{ color: theme.rippleColor }}
+                onPress={() => addTag(option.value)}
+              >
+                <Text style={{ color: theme.onSurfaceVariant }}>
+                  {option.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+      </View>
+    );
+  }
   return <></>;
 };
 
@@ -461,5 +576,29 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginVertical: 8,
     paddingHorizontal: 24,
+  },
+  autocompleteContainer: {
+    marginVertical: 8,
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 24,
+    paddingTop: 4,
+  },
+  tagChip: {
+    marginBottom: 4,
+  },
+  suggestionsContainer: {
+    marginTop: 8,
+    paddingHorizontal: 24,
+  },
+  suggestionItem: {
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
 });

@@ -8,6 +8,7 @@ export enum FilterTypes {
   CheckboxGroup = 'Checkbox',
   Switch = 'Switch',
   ExcludableCheckboxGroup = 'XCheckbox',
+  AutocompleteMulti = 'AutocompleteMulti',
 }
 
 type SwitchFilter = {
@@ -41,6 +42,13 @@ type ExcludableCheckboxFilter = {
   value: { include?: string[]; exclude?: string[] };
 };
 
+type AutocompleteMultiFilter = {
+  type: FilterTypes.AutocompleteMulti;
+  options: readonly FilterOption[];
+  /** Default value */
+  value: string[];
+};
+
 export type Filters = Record<
   string,
   { label: string } & (
@@ -49,6 +57,7 @@ export type Filters = Record<
     | TextFilter
     | SwitchFilter
     | ExcludableCheckboxFilter
+    | AutocompleteMultiFilter
   )
 >;
 
@@ -74,6 +83,8 @@ export type ValueOfFilter<T extends FilterTypes> =
     ? TextFilter['value']
     : T extends FilterTypes.ExcludableCheckboxGroup
     ? ExcludableCheckboxFilter['value']
+    : T extends FilterTypes.AutocompleteMulti
+    ? AutocompleteMultiFilter['value']
     : never;
 
 export const isPickerValue = (
@@ -118,4 +129,12 @@ export const isXCheckboxValue = (
     typeof q.value === 'object' &&
     !Array.isArray(q.value)
   );
+};
+
+export const isAutocompleteMultiValue = (
+  q: FilterToValues<Filters>[string],
+): q is FilterToValues<{
+  [key: string]: { label: string } & AutocompleteMultiFilter;
+}>[string] => {
+  return q.type === FilterTypes.AutocompleteMulti && Array.isArray(q.value);
 };

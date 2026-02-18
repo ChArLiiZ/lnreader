@@ -8,6 +8,7 @@ import {
   isTextValue,
   ValueOfFilter,
   isXCheckboxValue,
+  isAutocompleteMultiValue,
 } from '@plugins/types/filterTypes';
 
 export const getValueFor = <T extends FilterTypes>(
@@ -34,6 +35,10 @@ export const getValueFor = <T extends FilterTypes>(
     case FilterTypes.ExcludableCheckboxGroup:
       return (
         isXCheckboxValue(value) ? value.value : filter.value
+      ) as ValueOfFilter<T>;
+    case FilterTypes.AutocompleteMulti:
+      return (
+        isAutocompleteMultiValue(value) ? value.value : filter.value
       ) as ValueOfFilter<T>;
     default:
       throw 'Invalid filter type!';
