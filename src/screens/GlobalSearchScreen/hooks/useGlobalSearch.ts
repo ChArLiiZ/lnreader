@@ -27,6 +27,7 @@ export const useGlobalSearch = ({
   const isMounted = useRef(true); //if user closes the search screen, cancel the search
   const isFocused = useRef(true); //if the user opens a sub-screen (e.g. novel screen), pause the search
   const lastSearch = useRef(''); //if the user changes search, cancel running searches
+  const activeSearchToken = useRef(0);
   useEffect(
     () => () => {
       isMounted.current = false;
@@ -53,6 +54,7 @@ export const useGlobalSearch = ({
       if (lastSearch.current === searchText) {
         return;
       }
+      const searchToken = ++activeSearchToken.current;
       lastSearch.current = searchText;
       onSearchTriggered?.(searchText);
       const defaultResult: GlobalSearchResult[] = filteredInstalledPlugins.map(
@@ -67,15 +69,28 @@ export const useGlobalSearch = ({
       setSearchResults(defaultResult.sort(novelResultSorter));
       setProgress(0);
 
-      let running = 0;
-
       async function searchInPlugin(_plugin: PluginItem) {
+        if (
+          !isMounted.current ||
+          searchToken !== activeSearchToken.current ||
+          lastSearch.current !== searchText
+        ) {
+          return;
+        }
+
         try {
           const plugin = getPlugin(_plugin.id);
           if (!plugin) {
             throw new Error(`Unknown plugin: ${_plugin.id}`);
           }
           const res = await plugin.searchNovels(searchText, 1);
+          if (
+            !isMounted.current ||
+            searchToken !== activeSearchToken.current ||
+            lastSearch.current !== searchText
+          ) {
+            return;
+          }
 
           setSearchResults(prevState =>
             prevState
@@ -87,6 +102,13 @@ export const useGlobalSearch = ({
               .sort(novelResultSorter),
           );
         } catch (error: any) {
+          if (
+            !isMounted.current ||
+            searchToken !== activeSearchToken.current ||
+            lastSearch.current !== searchText
+          ) {
+            return;
+          }
           const errorMessage = error?.message || String(error);
           setSearchResults(prevState =>
             prevState
@@ -109,50 +131,68 @@ export const useGlobalSearch = ({
       const filteredSortedInstalledPlugins = [...filteredInstalledPlugins].sort(
         (a, b) => a.name.localeCompare(b.name),
       );
+      const totalPlugins = filteredSortedInstalledPlugins.length;
+      const step = totalPlugins > 0 ? 1 / totalPlugins : 0;
+      const concurrency = Math.max(1, globalSearchConcurrency);
+
+      const waitUntilFocused = async () => {
+        while (
+          isMounted.current &&
+          searchToken === activeSearchToken.current &&
+          lastSearch.current === searchText &&
+          !isFocused.current
+        ) {
+          await new Promise(resolve => setTimeout(resolve, 250));
+        }
+      };
 
       (async () => {
-        if (globalSearchConcurrency > 1) {
-          for (const _plugin of filteredSortedInstalledPlugins) {
-            while (running >= globalSearchConcurrency || !isFocused.current) {
-              await new Promise(resolve => setTimeout(resolve, 100));
+        let nextPluginIndex = 0;
+
+        const worker = async () => {
+          while (true) {
+            if (
+              !isMounted.current ||
+              searchToken !== activeSearchToken.current ||
+              lastSearch.current !== searchText
+            ) {
+              return;
             }
-            if (!isMounted.current || lastSearch.current !== searchText) {
-              break;
+
+            await waitUntilFocused();
+            if (
+              !isMounted.current ||
+              searchToken !== activeSearchToken.current ||
+              lastSearch.current !== searchText
+            ) {
+              return;
             }
-            running++;
-            searchInPlugin(_plugin)
-              .then(() => {
-                running--;
-                if (lastSearch.current === searchText) {
-                  setProgress(
-                    prevState =>
-                      prevState + 1 / filteredInstalledPlugins.length,
-                  );
-                }
-              })
-              .catch(() => {
-                running--;
-              });
+
+            const plugin = filteredSortedInstalledPlugins[nextPluginIndex];
+            nextPluginIndex += 1;
+            if (!plugin) {
+              return;
+            }
+
+            await searchInPlugin(plugin);
+
+            if (
+              isMounted.current &&
+              searchToken === activeSearchToken.current &&
+              lastSearch.current === searchText
+            ) {
+              setProgress(prevState => prevState + step);
+            }
           }
-        } else {
-          for (const _plugin of filteredSortedInstalledPlugins) {
-            if (!isMounted.current || lastSearch.current !== searchText) {
-              break;
-            }
-            while (!isFocused.current) {
-              await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            await searchInPlugin(_plugin);
-            if (lastSearch.current === searchText) {
-              setProgress(
-                prevState => prevState + 1 / filteredInstalledPlugins.length,
-              );
-            }
-          }
-        }
+        };
+
+        await Promise.all(
+          Array.from({ length: Math.min(concurrency, totalPlugins || 1) }, () =>
+            worker(),
+          ),
+        );
       })();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [filteredInstalledPlugins, globalSearchConcurrency, onSearchTriggered],
   );
 

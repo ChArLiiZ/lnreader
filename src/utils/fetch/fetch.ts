@@ -3,10 +3,15 @@ export const fetchTimeout = async (
   init?: any,
   timeout: number = 5000,
 ) => {
-  const constroller = new AbortController();
-  setTimeout(() => constroller.abort(), timeout);
-  return fetch(url, {
-    ...init,
-    signal: constroller.signal,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 };

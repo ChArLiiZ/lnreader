@@ -97,18 +97,55 @@ const BrowseSourceScreen = ({ route, navigation }: BrowseSourceScreenProps) => {
 
   const { bottom, right } = useSafeAreaInsets();
   const filterSheetRef = useRef<BottomSheetModal | null>(null);
+  const isPaginatingRef = useRef(false);
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (searchText) return;
       const visiblePaths = viewableItems
         .map(token => token.item as NovelItem | NovelInfo | undefined)
-        .filter(Boolean)
+        .filter((item): item is NovelItem | NovelInfo => Boolean(item))
         .map(item => item.path)
         .filter(path => Boolean(path) && !path.startsWith('loading-'));
       prefetchVisibleTags(visiblePaths);
     },
     [prefetchVisibleTags, searchText],
   );
+
+  const handleEndReached = useCallback(async () => {
+    if (isPaginatingRef.current) {
+      return;
+    }
+
+    if (searchText) {
+      if (!hasNextSearchPage) {
+        return;
+      }
+      isPaginatingRef.current = true;
+      try {
+        await Promise.resolve(searchNextPage());
+      } finally {
+        isPaginatingRef.current = false;
+      }
+      return;
+    }
+
+    if (!hasNextPage) {
+      return;
+    }
+
+    isPaginatingRef.current = true;
+    try {
+      await Promise.resolve(fetchNextPage());
+    } finally {
+      isPaginatingRef.current = false;
+    }
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    hasNextSearchPage,
+    searchNextPage,
+    searchText,
+  ]);
 
   return (
     <SafeAreaView>
@@ -173,16 +210,8 @@ const BrowseSourceScreen = ({ route, navigation }: BrowseSourceScreenProps) => {
               />
             );
           }}
-          onEndReached={() => {
-            if (searchText) {
-              if (hasNextSearchPage) {
-                searchNextPage();
-              }
-            } else if (hasNextPage) {
-              fetchNextPage();
-            }
-          }}
-          onEndReachedThreshold={1.5}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.6}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
         />

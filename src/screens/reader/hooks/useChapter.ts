@@ -27,7 +27,7 @@ import { sanitizeChapterText } from '../utils/sanitizeChapterText';
 import { parseChapterNumber } from '@utils/parseChapterNumber';
 import WebView from 'react-native-webview';
 import { useFullscreenMode } from '@hooks';
-import { Dimensions, NativeEventEmitter } from 'react-native';
+import { AppState, Dimensions, NativeEventEmitter } from 'react-native';
 import * as Speech from 'expo-speech';
 import { defaultTo } from 'lodash-es';
 import { showToast } from '@utils/showToast';
@@ -53,6 +53,9 @@ export default function useChapter(
   const [chapter, setChapter] = useState(initialChapter);
   const [loading, setLoading] = useState(true);
   const [chapterText, setChapterText] = useState('');
+  const [isAppActive, setIsAppActive] = useState(
+    AppState.currentState === 'active',
+  );
 
   const [[nextChapter, prevChapter], setAdjacentChapter] = useState<
     ChapterInfo[] | undefined[]
@@ -229,8 +232,22 @@ export default function useChapter(
   );
 
   const scrollInterval = useRef<NodeJS.Timeout>(null);
+
   useEffect(() => {
-    if (autoScroll) {
+    const subscription = AppState.addEventListener('change', state => {
+      setIsAppActive(state === 'active');
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
+    if (scrollInterval.current) {
+      clearInterval(scrollInterval.current);
+      scrollInterval.current = null;
+    }
+
+    if (autoScroll && isAppActive) {
       scrollInterval.current = setInterval(() => {
         webViewRef.current?.injectJavaScript(`(()=>{
           window.scrollBy({top:${defaultTo(
@@ -239,18 +256,21 @@ export default function useChapter(
           )},behavior:'smooth'})
         })()`);
       }, autoScrollInterval * 1000);
-    } else {
-      if (scrollInterval.current) {
-        clearInterval(scrollInterval.current);
-      }
     }
 
     return () => {
       if (scrollInterval.current) {
         clearInterval(scrollInterval.current);
+        scrollInterval.current = null;
       }
     };
-  }, [autoScroll, autoScrollInterval, autoScrollOffset, webViewRef]);
+  }, [
+    autoScroll,
+    autoScrollInterval,
+    autoScrollOffset,
+    isAppActive,
+    webViewRef,
+  ]);
 
   const updateTracker = useCallback(() => {
     const chapterNumber = parseChapterNumber(novel.name, chapter.name);

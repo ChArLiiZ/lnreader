@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { MMKVStorage } from '@utils/mmkv/mmkv';
 
 const TTS_NOTIFICATION_ID = 'tts-control';
-const TTS_ACTION_KEY = 'TTS_NOTIFICATION_ACTION';
+export const TTS_ACTION_KEY = 'TTS_NOTIFICATION_ACTION';
 
 export const updateTTSCategory = async (isPlaying: boolean) => {
   await Notifications.setNotificationCategoryAsync('TTS_CONTROLS', [
@@ -84,4 +84,24 @@ export const getTTSAction = (): string | undefined => {
 
 export const clearTTSAction = () => {
   MMKVStorage.delete(TTS_ACTION_KEY);
+};
+
+export const subscribeTTSAction = (onAction: (action: string) => void) => {
+  const emitAction = () => {
+    const action = getTTSAction();
+    if (!action) {
+      return;
+    }
+    clearTTSAction();
+    onAction(action);
+  };
+
+  // Handle actions received before the reader hook subscribes.
+  emitAction();
+
+  return MMKVStorage.addOnValueChangedListener(changedKey => {
+    if (changedKey === TTS_ACTION_KEY) {
+      emitAction();
+    }
+  });
 };

@@ -7,8 +7,7 @@ import {
   showTTSNotification,
   updateTTSNotification,
   dismissTTSNotification,
-  getTTSAction,
-  clearTTSAction,
+  subscribeTTSAction,
 } from '@utils/ttsNotification';
 
 interface UseReaderTTSOptions {
@@ -30,37 +29,33 @@ export function useReaderTTS({
   const ttsQueueIndexRef = useRef<number>(0);
   const autoStartTTSRef = useRef<boolean>(false);
 
-  // Poll for notification actions
+  // Listen for notification actions without 1s polling.
   useEffect(() => {
-    const checkNotificationActions = setInterval(() => {
-      const action = getTTSAction();
-      if (action) {
-        clearTTSAction();
-        switch (action) {
-          case 'TTS_PLAY_PAUSE':
-            webViewRef.current?.injectJavaScript(`
-              if (window.tts) {
-                if (tts.reading) { tts.pause(); } else { tts.resume(); }
-              }
-            `);
-            break;
-          case 'TTS_STOP':
-            webViewRef.current?.injectJavaScript(`
-              if (window.tts) { tts.stop(); }
-            `);
-            break;
-          case 'TTS_NEXT':
-            webViewRef.current?.injectJavaScript(`
-              if (window.tts && window.reader && window.reader.nextChapter) {
-                window.reader.post({ type: 'next', autoStartTTS: true });
-              }
-            `);
-            break;
-        }
+    const subscription = subscribeTTSAction(action => {
+      switch (action) {
+        case 'TTS_PLAY_PAUSE':
+          webViewRef.current?.injectJavaScript(`
+            if (window.tts) {
+              if (tts.reading) { tts.pause(); } else { tts.resume(); }
+            }
+          `);
+          break;
+        case 'TTS_STOP':
+          webViewRef.current?.injectJavaScript(`
+            if (window.tts) { tts.stop(); }
+          `);
+          break;
+        case 'TTS_NEXT':
+          webViewRef.current?.injectJavaScript(`
+            if (window.tts && window.reader && window.reader.nextChapter) {
+              window.reader.post({ type: 'next', autoStartTTS: true });
+            }
+          `);
+          break;
       }
-    }, 1000);
+    });
 
-    return () => clearInterval(checkNotificationActions);
+    return () => subscription.remove();
   }, [webViewRef]);
 
   // Update notification on chapter change

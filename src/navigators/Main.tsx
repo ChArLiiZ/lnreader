@@ -84,7 +84,9 @@ const withSuspense = <P extends object>(
       <LazyComponent {...props} />
     </Suspense>
   );
-  Wrapped.displayName = `Suspense(${LazyComponent.displayName || 'Lazy'})`;
+  const lazyDisplayName = (LazyComponent as { displayName?: string })
+    .displayName;
+  Wrapped.displayName = `Suspense(${lazyDisplayName || 'Lazy'})`;
   return Wrapped;
 };
 
@@ -143,7 +145,38 @@ const MainNavigator = () => {
     }
 
     let disposed = false;
+    let lastRunAt = autoBackupLastRunAt;
+    let timer: NodeJS.Timeout | null = null;
     const intervalMs = Math.max(1, autoBackupIntervalHours) * 60 * 60 * 1000;
+    const idleCheckMs = 5 * 60 * 1000;
+
+    const clearTimer = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    };
+
+    const getDelayUntilNextRun = () => {
+      if (AppState.currentState !== 'active') {
+        return idleCheckMs;
+      }
+      if (!lastRunAt) {
+        return 0;
+      }
+      return Math.max(0, intervalMs - (Date.now() - lastRunAt));
+    };
+
+    const scheduleNextRun = () => {
+      if (disposed) {
+        return;
+      }
+      clearTimer();
+      timer = setTimeout(async () => {
+        await maybeRunAutoBackup();
+        scheduleNextRun();
+      }, getDelayUntilNextRun());
+    };
 
     const maybeRunAutoBackup = async () => {
       if (disposed || AppState.currentState !== 'active') {
@@ -151,7 +184,7 @@ const MainNavigator = () => {
       }
 
       const now = Date.now();
-      if (autoBackupLastRunAt && now - autoBackupLastRunAt < intervalMs) {
+      if (lastRunAt && now - lastRunAt < intervalMs) {
         return;
       }
 
@@ -216,20 +249,20 @@ const MainNavigator = () => {
       }
 
       ServiceManager.manager.addTask(taskToRun);
+      lastRunAt = now;
       setAppSettings({ autoBackupLastRunAt: now });
     };
 
-    maybeRunAutoBackup();
-    const timer = setInterval(maybeRunAutoBackup, 60 * 1000);
+    scheduleNextRun();
     const sub = AppState.addEventListener('change', state => {
       if (state === 'active') {
-        maybeRunAutoBackup();
+        scheduleNextRun();
       }
     });
 
     return () => {
       disposed = true;
-      clearInterval(timer);
+      clearTimer();
       sub.remove();
     };
   }, [
