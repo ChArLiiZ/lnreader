@@ -108,8 +108,8 @@
       "restore": "Drive Restore",
       "restoreInterruped": "Drive Restore Interrupted"
     },
-    "googeDrive": "Googe Drive",
-    "googeDriveDesc": "Backup to your Google Drive",
+    "googleDrive": "Googe Drive",
+    "googleDriveDesc": "Backup to your Google Drive",
     "invalidBackupFolder": "Invalid backup folder",
     "localBackup": "Local Backup",
     "noBackupFound": "No backup found",

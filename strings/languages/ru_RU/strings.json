@@ -108,8 +108,8 @@
       "restore": "Восстановление диска",
       "restoreInterruped": "Восстановление диска прервано"
     },
-    "googeDrive": "Google Диск",
-    "googeDriveDesc": "Резервное копирование на Google Диск",
+    "googleDrive": "Google Диск",
+    "googleDriveDesc": "Резервное копирование на Google Диск",
     "invalidBackupFolder": "Неверная папка резервной копии",
     "localBackup": "Локальное резервное копирование",
     "noBackupFound": "Резервные копии не найдены",

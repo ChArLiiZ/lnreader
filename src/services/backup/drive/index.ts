@@ -12,6 +12,8 @@ import { download, updateMetadata, uploadMedia } from '@api/drive/request';
 import { ZipBackupName } from '../types';
 import { ROOT_STORAGE } from '@utils/Storages';
 import { BackgroundTaskMetadata } from '@services/ServiceManager';
+import NativeFile from '@specs/NativeFile';
+import { showToast } from '@utils/showToast';
 
 export const createDriveBackup = async (
   backupFolder: DriveFolderRef,
@@ -102,6 +104,10 @@ export const driveRestore = async (
   }));
 
   try {
+    if (NativeFile.exists(CACHE_DIR_PATH)) {
+      NativeFile.unlink(CACHE_DIR_PATH);
+    }
+
     const zipDataFile = await exists(
       ZipBackupName.DATA,
       false,
@@ -139,6 +145,13 @@ export const driveRestore = async (
       progress: 3 / 3,
       isRunning: false,
     }));
+  } catch (error: unknown) {
+    setMeta(meta => ({
+      ...meta,
+      isRunning: false,
+    }));
+    showToast(error instanceof Error ? error.message : String(error));
+    throw error;
   } finally {
     try {
       cleanupBackupTempData();

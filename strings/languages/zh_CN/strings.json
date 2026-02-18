@@ -108,8 +108,8 @@
       "restore": "云端硬盘恢复",
       "restoreInterruped": "Drive Restore Interrupted"
     },
-    "googeDrive": "Google 云端硬盘",
-    "googeDriveDesc": "备份到您的 Google 云端硬盘",
+    "googleDrive": "Google 云端硬盘",
+    "googleDriveDesc": "备份到您的 Google 云端硬盘",
     "invalidBackupFolder": "备份文件夹有误",
     "localBackup": "Local Backup",
     "noBackupFound": "没有找到备份",

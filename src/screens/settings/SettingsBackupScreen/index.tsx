@@ -89,8 +89,8 @@ const BackupSettings = ({ navigation }: BackupSettingsScreenProps) => {
           />
 
           <List.Item
-            title={getString('backupScreen.googeDrive')}
-            description={getString('backupScreen.googeDriveDesc')}
+            title={getString('backupScreen.googleDrive')}
+            description={getString('backupScreen.googleDriveDesc')}
             theme={theme}
             onPress={openGoogleDriveModal}
           />

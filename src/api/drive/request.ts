@@ -169,7 +169,7 @@ export const updateMetadata = async (
 export const uploadMedia = async (
   sourceDirPath: string,
 ): Promise<DriveFile> => {
-  const accessToken = await getAccessToken();
+  const accessToken = await getAccessToken(true); // force-refresh before large transfer
 
   const params: DriveRequestParams = {
     fields: 'id, parents',
@@ -184,7 +184,7 @@ export const uploadMedia = async (
 };
 
 export const download = async (file: DriveFile, distDirPath: string) => {
-  const accessToken = await getAccessToken();
+  const accessToken = await getAccessToken(true); // force-refresh before large transfer
   const url = BASE_URL + '/' + file.id + '?alt=media';
   return NativeZipArchive.remoteUnzip(distDirPath, url, {
     Authorization: `Bearer ${accessToken}`,

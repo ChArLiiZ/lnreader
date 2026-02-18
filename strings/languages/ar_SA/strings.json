@@ -108,8 +108,8 @@
       "restore": "استعادة من الدرايف",
       "restoreInterruped": "انقطعت الاستعادة من الدرايف"
     },
-    "googeDrive": "جوجل درايف",
-    "googeDriveDesc": "نسخ احتياطي إلى جوجل درايف الخاص بك",
+    "googleDrive": "جوجل درايف",
+    "googleDriveDesc": "نسخ احتياطي إلى جوجل درايف الخاص بك",
     "invalidBackupFolder": "مجلد نسخة احتياطية غير صالح",
     "localBackup": "نسخ احتياطي محلي",
     "noBackupFound": "لم يتم العثور على نسخة احتياطية",

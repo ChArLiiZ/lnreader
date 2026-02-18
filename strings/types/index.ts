@@ -99,8 +99,10 @@ export interface StringMap {
   'backupScreen.drive.googleDriveBackup': 'string';
   'backupScreen.drive.restore': 'string';
   'backupScreen.drive.restoreInterruped': 'string';
-  'backupScreen.googeDrive': 'string';
-  'backupScreen.googeDriveDesc': 'string';
+  'backupScreen.googleDrive': 'string';
+  'backupScreen.googleDriveDesc': 'string';
+  'backupScreen.extractingBackup': 'string';
+  'backupScreen.backupVersionMismatch': 'string';
   'backupScreen.invalidBackupFolder': 'string';
   'backupScreen.localBackup': 'string';
   'backupScreen.noBackupFound': 'string';

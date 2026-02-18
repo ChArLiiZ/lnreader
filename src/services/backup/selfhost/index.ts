@@ -11,6 +11,8 @@ import {
 import { ZipBackupName } from '../types';
 import { ROOT_STORAGE } from '@utils/Storages';
 import { BackgroundTaskMetadata } from '@services/ServiceManager';
+import NativeFile from '@specs/NativeFile';
+import { showToast } from '@utils/showToast';
 
 export interface SelfHostData {
   host: string;
@@ -89,6 +91,10 @@ export const selfHostRestore = async (
       progressText: getString('backupScreen.downloadingData'),
     }));
 
+    if (NativeFile.exists(CACHE_DIR_PATH)) {
+      NativeFile.unlink(CACHE_DIR_PATH);
+    }
+
     await download(host, backupFolder, ZipBackupName.DATA, CACHE_DIR_PATH);
 
     setMeta(meta => ({
@@ -116,6 +122,13 @@ export const selfHostRestore = async (
       progress: 3 / 3,
       isRunning: false,
     }));
+  } catch (error: unknown) {
+    setMeta(meta => ({
+      ...meta,
+      isRunning: false,
+    }));
+    showToast(error instanceof Error ? error.message : String(error));
+    throw error;
   } finally {
     try {
       cleanupBackupTempData();

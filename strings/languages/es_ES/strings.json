@@ -108,8 +108,8 @@
       "restore": "Recuperación del Disco",
       "restoreInterruped": "Drive Restore Interrupted"
     },
-    "googeDrive": "Google Drive",
-    "googeDriveDesc": "Realizar copia de seguridad a tu Google Drive",
+    "googleDrive": "Google Drive",
+    "googleDriveDesc": "Realizar copia de seguridad a tu Google Drive",
     "invalidBackupFolder": "Carpeta para Copia de seguridad inválida",
     "localBackup": "Local Backup",
     "noBackupFound": "No se encontró ninguna copia de seguridad",

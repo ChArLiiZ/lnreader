@@ -108,8 +108,8 @@
       "restore": "Drive Restore",
       "restoreInterruped": "Drive Restore Interrupted"
     },
-    "googeDrive": "Googe Drive",
-    "googeDriveDesc": "Backup to your Google Drive",
+    "googleDrive": "Googe Drive",
+    "googleDriveDesc": "Backup to your Google Drive",
     "invalidBackupFolder": "Invalid backup folder",
     "localBackup": "Local Backup",
     "noBackupFound": "No backup found",
@@ -147,7 +147,9 @@
     "never": "Never",
     "autoBackupAndroidOnly": "Auto backup folder is currently Android only",
     "autoBackupPermissionRevoked": "Auto backup disabled: folder permission is no longer granted",
-    "autoBackupDriveSignInRequired": "Auto backup disabled: sign in to Google Drive again"
+    "autoBackupDriveSignInRequired": "Auto backup disabled: sign in to Google Drive again",
+    "extractingBackup": "Extracting Backup",
+    "backupVersionMismatch": "Warning: backup was created with app v%{backupVersion} (current: %{appVersion}). Some data may not restore correctly."
   },
   "browse": "Browse",
   "browseScreen": {

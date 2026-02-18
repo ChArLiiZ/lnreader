@@ -108,8 +108,8 @@
       "restore": "Khôi phục qua Drive",
       "restoreInterruped": "Drive Restore Interrupted"
     },
-    "googeDrive": "Google Drive",
-    "googeDriveDesc": "Sao lưu vào Google Drive của bạn",
+    "googleDrive": "Google Drive",
+    "googleDriveDesc": "Sao lưu vào Google Drive của bạn",
     "invalidBackupFolder": "Thư mục sao lưu không hợp lệ",
     "localBackup": "Local Backup",
     "noBackupFound": "Không tìm thấy sao lưu",

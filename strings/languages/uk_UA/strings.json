@@ -108,8 +108,8 @@
       "restore": "Відновлення з Google Drive",
       "restoreInterruped": "Drive Restore Interrupted"
     },
-    "googeDrive": "Google Drive",
-    "googeDriveDesc": "Резервне копіювання у ваш Google Drive",
+    "googleDrive": "Google Drive",
+    "googleDriveDesc": "Резервне копіювання у ваш Google Drive",
     "invalidBackupFolder": "Некоректна папка резервної копії",
     "localBackup": "Local Backup",
     "noBackupFound": "Резервну копію не знайдено",

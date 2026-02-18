@@ -168,7 +168,7 @@ export const restoreBackup = async (
     setMeta?.(meta => ({
       ...meta,
       progress: 1 / 4,
-      progressText: getString('backupScreen.restoringData'),
+      progressText: getString('backupScreen.extractingBackup'),
     }));
 
     await sleep(200);

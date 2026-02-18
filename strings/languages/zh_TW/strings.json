@@ -108,8 +108,8 @@
       "restore": "雲端硬碟還原",
       "restoreInterruped": "雲端硬碟還原已中斷"
     },
-    "googeDrive": "Google 雲端硬碟",
-    "googeDriveDesc": "備份至您的 Google 雲端硬碟",
+    "googleDrive": "Google 雲端硬碟",
+    "googleDriveDesc": "備份至您的 Google 雲端硬碟",
     "invalidBackupFolder": "無效的備份資料夾",
     "localBackup": "本機備份",
     "noBackupFound": "找不到備份",

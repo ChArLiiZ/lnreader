@@ -108,8 +108,8 @@
       "restore": "Pemulihan Drive",
       "restoreInterruped": "Pemulihan Drive Terhenti"
     },
-    "googeDrive": "Google Drive",
-    "googeDriveDesc": "Cadangkan ke Google Drive Anda",
+    "googleDrive": "Google Drive",
+    "googleDriveDesc": "Cadangkan ke Google Drive Anda",
     "invalidBackupFolder": "Folder cadangan tidak valid",
     "localBackup": "Cadangan Lokal",
     "noBackupFound": "Tidak ada cadangan ditemukan",

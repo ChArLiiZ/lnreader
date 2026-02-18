@@ -18,7 +18,7 @@ LNReader is a free, open-source light novel reader for Android (7.0+), built wit
 ```bash
 pnpm install                    # Install dependencies
 pnpm run dev:start              # Start Metro bundler
-pnpm run dev:android            # Run on Android
+pnpm run dev:android            # Run on Android (debug, active arch only)
 pnpm run dev:clean-start        # Metro with cache reset
 pnpm run build:release:android  # Build release APK
 pnpm run lint                   # ESLint check
@@ -26,6 +26,9 @@ pnpm run lint:fix               # Auto-fix lint issues
 pnpm run format                 # Prettier format
 pnpm run format:check           # Check formatting
 pnpm run type-check             # TypeScript type check
+pnpm run test                   # Run Jest tests
+pnpm run test:watch             # Run Jest in watch mode
+pnpm run clean:full             # Full clean: remove node_modules, build artifacts, reinstall
 ```
 
 ## Project Structure
@@ -41,9 +44,11 @@ src/
   screens/        # Feature screens (library, browse, novel, reader, settings, etc.)
   services/       # Business logic (download, backup, epub, migrate, updates)
   theme/          # MD3 theming, colors, types
+  type/           # Shared TypeScript types
   utils/          # Shared utilities, constants, fetch helpers
 strings/          # i18n translations (languages/, types/)
 specs/            # Native module specs (TurboModules)
+scripts/          # Build scripts (env file generation, string type generation)
 ```
 
 ## Path Aliases
@@ -53,29 +58,34 @@ Configured in both `tsconfig.json` and `babel.config.js`:
 | Alias | Path |
 |-------|------|
 | `@components` | `src/components` |
-| `@database` | `src/database` |
-| `@hooks` | `src/hooks` |
-| `@screens` | `src/screens` |
-| `@strings` | `strings` |
-| `@services` | `src/services` |
-| `@plugins` | `src/plugins` |
-| `@utils` | `src/utils` |
-| `@theme` | `src/theme` |
-| `@navigators` | `src/navigators` |
-| `@api` | `src/api` |
-| `@type` | `src/type` |
-| `@specs` | `specs` |
+| `@database/*` | `src/database/*` |
+| `@hooks/*` | `src/hooks/*` |
+| `@screens/*` | `src/screens/*` |
+| `@strings/*` | `strings/*` |
+| `@services/*` | `src/services/*` |
+| `@plugins/*` | `src/plugins/*` |
+| `@utils/*` | `src/utils/*` |
+| `@theme/*` | `src/theme/*` |
+| `@navigators/*` | `src/navigators/*` |
+| `@api/*` | `src/api/*` |
+| `@type/*` | `src/type/*` |
+| `@native/*` | `src/native/*` |
+| `@specs/*` | `specs/*` |
 
 ## Code Conventions
 
 ### Style & Formatting
-- **Prettier**: 2-space indent, single quotes, trailing commas (all), no parens on single-arg arrows, auto line endings
+- **Prettier**: 2-space indent, single quotes, trailing commas (all), no parens on single-arg arrows, `quoteProps: 'preserve'`, `endOfLine: 'auto'`
 - **ESLint**: `@react-native` base config. Key rules:
   - `no-console: error` — no console.log statements
   - `prefer-const: error` — use `const` over `let`
   - `no-var: error` — no `var`
   - `curly: ['error', 'multi-line', 'consistent']`
   - `no-duplicate-imports: error`
+  - `no-useless-return: error`
+  - `block-scoped-var: error`
+  - `@typescript-eslint/no-shadow: warn`
+  - `react-hooks/exhaustive-deps: warn`
 
 ### Naming
 - Components & screens: **PascalCase** files (`LibraryScreen.tsx`, `Appbar.tsx`)
@@ -110,3 +120,5 @@ Configured in both `tsconfig.json` and `babel.config.js`:
 - **Background Actions** service for downloads, library updates, backups
 - **React Compiler** (v19) enabled via Babel — components auto-memoized
 - **Material Design 3** via React Native Paper for consistent UI
+- **Husky + lint-staged** enforces ESLint fix + Prettier check on commit
+- **env file generation** via scripts before builds (`generate:env:debug` / `generate:env:release`)

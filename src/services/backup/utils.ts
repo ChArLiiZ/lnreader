@@ -23,6 +23,7 @@ import NativeFile from '@specs/NativeFile';
 import { showToast } from '@utils/showToast';
 import { getString } from '@strings/translations';
 import { NOVEL_STORAGE } from '@utils/Storages';
+import { sleep } from '@utils/sleep';
 
 export const CACHE_DIR_PATH =
   NativeFile.getConstants().ExternalCachesDirectoryPath + '/BackupData';
@@ -90,6 +91,7 @@ export const prepareDownloadedChaptersBackupData = async (
     copiedPaths.add(sourcePath);
     const destPath = `${downloadStageDirPath}/${NOVEL_STORAGE_BACKUP_ROOT}/${entry.pluginId}/${entry.novelId}/${entry.chapterId}`;
     copyDirectoryRecursive(sourcePath, destPath);
+    await sleep(0); // yield JS thread between chapter copies to prevent UI jank
   }
 
   return downloadStageDirPath;
@@ -240,8 +242,29 @@ export const prepareBackupData = async (cacheDirPath: string) => {
 export const restoreData = async (cacheDirPath: string) => {
   const novelDirPath = cacheDirPath + '/' + BackupEntryName.NOVEL_AND_CHAPTERS;
 
-  // version
-  // nothing to do
+  // version — warn if backup was created with a newer major version
+  try {
+    const versionFilePath = cacheDirPath + '/' + BackupEntryName.VERSION;
+    if (NativeFile.exists(versionFilePath)) {
+      const parsed = JSON.parse(NativeFile.readFile(versionFilePath)) as {
+        version?: string;
+      };
+      if (parsed.version) {
+        const [backupMajor] = parsed.version.split('.').map(Number);
+        const [currentMajor] = (version as string).split('.').map(Number);
+        if (backupMajor > currentMajor) {
+          showToast(
+            getString('backupScreen.backupVersionMismatch', {
+              backupVersion: parsed.version,
+              appVersion: version as string,
+            }),
+          );
+        }
+      }
+    }
+  } catch {
+    // version check is best-effort; proceed with restore regardless
+  }
 
   // novels
   showToast(getString('backupScreen.restoringNovels'));
