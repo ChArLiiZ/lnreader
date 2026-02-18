@@ -257,7 +257,12 @@ function NovelCover<
           />
         ) : null}
         {displayMode === DisplayModes.Comfortable && genreTags.length > 0 ? (
-          <GenreTagsRow tags={genreTags} theme={theme} width={coverWidth} />
+          <View
+            onStartShouldSetResponderCapture={() => true}
+            onMoveShouldSetResponderCapture={() => true}
+          >
+            <GenreTagsRow tags={genreTags} theme={theme} width={coverWidth} />
+          </View>
         ) : null}
       </Pressable>
     </View>
@@ -308,6 +313,8 @@ const GenreTagsRow = ({
     horizontal
     showsHorizontalScrollIndicator={false}
     keyboardShouldPersistTaps="handled"
+    directionalLockEnabled
+    nestedScrollEnabled
     style={[
       styles.genreRowContainer,
       width !== undefined ? { maxWidth: width } : undefined,

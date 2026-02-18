@@ -24,11 +24,16 @@ export const useBrowseSource = (
   const [hasNextPage, setHasNextPage] = useState(true);
 
   const isScreenMounted = useRef(true);
+  const novelsRef = useRef<NovelItem[]>([]);
   const tagCacheRef = useRef<Record<string, string>>({});
   const inFlightTagPathsRef = useRef<Set<string>>(new Set());
 
+  useEffect(() => {
+    novelsRef.current = novels;
+  }, [novels]);
+
   const enrichEsjTags = useCallback(
-    async (sourceNovels: NovelItem[]) => {
+    async (sourceNovels: NovelItem[], limit = 12) => {
       if (pluginId !== 'esjzone') return;
       const plugin = getPlugin(pluginId);
       if (!plugin?.parseNovel) return;
@@ -36,12 +41,13 @@ export const useBrowseSource = (
       const targets = sourceNovels
         .filter(novel => {
           if (!novel.path) return false;
+          if (novel.path.startsWith('loading-')) return false;
           if (novel.genres) return false;
           if (tagCacheRef.current[novel.path]) return false;
           if (inFlightTagPathsRef.current.has(novel.path)) return false;
           return true;
         })
-        .slice(0, 12);
+        .slice(0, limit);
 
       if (targets.length === 0) return;
 
@@ -79,6 +85,19 @@ export const useBrowseSource = (
     [pluginId],
   );
 
+  const prefetchVisibleTags = useCallback(
+    (visiblePaths: string[]) => {
+      if (pluginId !== 'esjzone' || visiblePaths.length === 0) return;
+      const prioritized = visiblePaths
+        .map(path => novelsRef.current.find(novel => novel.path === path))
+        .filter((novel): novel is NovelItem => Boolean(novel));
+      enrichEsjTags(prioritized, 8).catch(() => {
+        // Ignore background tag enrichment errors.
+      });
+    },
+    [enrichEsjTags, pluginId],
+  );
+
   const fetchNovels = useCallback(
     async (page: number, filters?: FilterToValues<Filters>) => {
       if (isScreenMounted.current === true) {
@@ -103,7 +122,7 @@ export const useBrowseSource = (
               if (!res.length) {
                 setHasNextPage(false);
               }
-              enrichEsjTags(withCachedTags).catch(() => {
+              enrichEsjTags(withCachedTags, 4).catch(() => {
                 // Ignore background tag enrichment errors.
               });
             })
@@ -176,6 +195,7 @@ export const useBrowseSource = (
     setFilters,
     clearFilters,
     refetchNovels,
+    prefetchVisibleTags,
   };
 };
 

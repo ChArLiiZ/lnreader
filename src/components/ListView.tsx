@@ -66,36 +66,43 @@ const ListView = ({
           {item.name}
         </Text>
         {genreTags.length > 0 ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.genreRow}
+          <View
+            onStartShouldSetResponderCapture={() => true}
+            onMoveShouldSetResponderCapture={() => true}
           >
-            {genreTags.map(tag => (
-              <View
-                key={tag}
-                style={[
-                  styles.genreChip,
-                  {
-                    backgroundColor: theme.surface2,
-                  },
-                ]}
-              >
-                <Text
-                  numberOfLines={1}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              directionalLockEnabled
+              nestedScrollEnabled
+              contentContainerStyle={styles.genreRow}
+            >
+              {genreTags.map(tag => (
+                <View
+                  key={tag}
                   style={[
-                    styles.genreText,
+                    styles.genreChip,
                     {
-                      color: theme.onSurfaceVariant,
+                      backgroundColor: theme.surface2,
                     },
                   ]}
                 >
-                  {tag}
-                </Text>
-              </View>
-            ))}
-          </ScrollView>
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      styles.genreText,
+                      {
+                        color: theme.onSurfaceVariant,
+                      },
+                    ]}
+                  >
+                    {tag}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
         ) : null}
       </View>
       <View style={styles.badgeContainer}>

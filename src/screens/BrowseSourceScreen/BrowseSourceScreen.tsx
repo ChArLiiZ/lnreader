@@ -14,7 +14,7 @@ import { useBrowseSource, useSearchSource } from './useBrowseSource';
 import { NovelItem } from '@plugins/types';
 import { getPlugin } from '@plugins/pluginManager';
 import { getString } from '@strings/translations';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewToken } from 'react-native';
 import { NovelInfo } from '@database/types';
 import SourceScreenSkeletonLoading from '@screens/browse/loadingAnimation/SourceScreenSkeletonLoading';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,6 +37,7 @@ const BrowseSourceScreen = ({ route, navigation }: BrowseSourceScreenProps) => {
     setFilters,
     clearFilters,
     refetchNovels,
+    prefetchVisibleTags,
   } = useBrowseSource(pluginId, showLatestNovels);
 
   const {
@@ -96,6 +97,19 @@ const BrowseSourceScreen = ({ route, navigation }: BrowseSourceScreenProps) => {
 
   const { bottom, right } = useSafeAreaInsets();
   const filterSheetRef = useRef<BottomSheetModal | null>(null);
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (searchText) return;
+      const visiblePaths = viewableItems
+        .map(token => token.item as NovelItem | NovelInfo | undefined)
+        .filter(Boolean)
+        .map(item => item.path)
+        .filter(path => Boolean(path) && !path.startsWith('loading-'));
+      prefetchVisibleTags(visiblePaths);
+    },
+    [prefetchVisibleTags, searchText],
+  );
+
   return (
     <SafeAreaView>
       <SearchbarV2
@@ -169,6 +183,8 @@ const BrowseSourceScreen = ({ route, navigation }: BrowseSourceScreenProps) => {
             }
           }}
           onEndReachedThreshold={1.5}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
         />
       )}
       {!showLatestNovels && filterValues && !searchText ? (
