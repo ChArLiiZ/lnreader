@@ -1,6 +1,5 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
-  FlatList,
   StyleSheet,
   Text,
   View,
@@ -240,8 +239,6 @@ const TrackerButton = ({
   </View>
 );
 
-const genreKeyExtractor = (_item: string, index: number) => 'genre' + index;
-
 const NovelGenres = memo(
   ({
     theme,
@@ -252,9 +249,21 @@ const NovelGenres = memo(
     genres: string;
     onPressGenre?: (genre: string) => void;
   }) => {
-    const data = useMemo(() => genres.split(/,\s*/), [genres]);
+    const data = useMemo(() => {
+      const uniqueGenres = new Set<string>();
+
+      genres.split(',').forEach(rawGenre => {
+        const normalizedGenre = rawGenre.trim();
+        if (normalizedGenre) {
+          uniqueGenres.add(normalizedGenre);
+        }
+      });
+
+      return [...uniqueGenres];
+    }, [genres]);
+
     const renderGenre = useCallback(
-      ({ item }: { item: string }) => (
+      (item: string) => (
         <Chip
           label={item}
           theme={theme}
@@ -265,14 +274,13 @@ const NovelGenres = memo(
     );
 
     return (
-      <FlatList
-        contentContainerStyle={styles.genreContainer}
-        horizontal
-        data={data}
-        keyExtractor={genreKeyExtractor}
-        renderItem={renderGenre}
-        showsHorizontalScrollIndicator={false}
-      />
+      <View style={styles.genreContainer}>
+        {data.map(item => (
+          <View key={item} style={styles.genreChipWrapper}>
+            {renderGenre(item)}
+          </View>
+        ))}
+      </View>
     );
   },
 );
@@ -331,8 +339,13 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   genreContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingBottom: 4,
     paddingHorizontal: 16,
+  },
+  genreChipWrapper: {
+    marginBottom: 8,
   },
   linearGradient: {
     flex: 1,
