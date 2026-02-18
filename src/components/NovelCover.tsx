@@ -1,5 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import {
+  ScrollView,
   StyleSheet,
   View,
   Text,
@@ -131,6 +132,13 @@ function NovelCover<
     () => imageRequestInit?.headers || { 'User-Agent': getUserAgent() },
     [imageRequestInit?.headers],
   );
+  const genreTags = useMemo(() => {
+    if (!item.genres) return [];
+    return item.genres
+      .split(/\s*,\s*/)
+      .map(tag => tag.trim())
+      .filter(Boolean);
+  }, [item.genres]);
 
   if (item.completeRow) {
     if (!addSkeletonLoading) {
@@ -248,6 +256,9 @@ function NovelCover<
             width={coverWidth}
           />
         ) : null}
+        {displayMode === DisplayModes.Comfortable && genreTags.length > 0 ? (
+          <GenreTagsRow tags={genreTags} theme={theme} width={coverWidth} />
+        ) : null}
       </Pressable>
     </View>
   ) : (
@@ -283,6 +294,51 @@ function NovelCover<
 }
 
 export default memo(NovelCover);
+
+const GenreTagsRow = ({
+  tags,
+  theme,
+  width,
+}: {
+  tags: string[];
+  theme: ThemeColors;
+  width?: number;
+}) => (
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    keyboardShouldPersistTaps="handled"
+    style={[
+      styles.genreRowContainer,
+      width !== undefined ? { maxWidth: width } : undefined,
+    ]}
+    contentContainerStyle={styles.genreRowContent}
+  >
+    {tags.map(tag => (
+      <View
+        key={tag}
+        style={[
+          styles.genreTagChip,
+          {
+            backgroundColor: theme.surface2,
+          },
+        ]}
+      >
+        <Text
+          numberOfLines={1}
+          style={[
+            styles.genreTagText,
+            {
+              color: theme.onSurfaceVariant,
+            },
+          ]}
+        >
+          {tag}
+        </Text>
+      </View>
+    ))}
+  </ScrollView>
+);
 
 const ComfortableTitle = ({
   theme,
@@ -518,6 +574,24 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     height: 42,
     width: 42,
+  },
+  genreRowContainer: {
+    marginTop: 2,
+    paddingHorizontal: 4,
+  },
+  genreRowContent: {
+    alignItems: 'center',
+    columnGap: 6,
+    paddingBottom: 4,
+  },
+  genreTagChip: {
+    borderRadius: 12,
+    maxWidth: 110,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  genreTagText: {
+    fontSize: 11,
   },
   inLibraryBadge: {
     fontSize: 12,

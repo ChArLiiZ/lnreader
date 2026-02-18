@@ -54,6 +54,8 @@ export interface NovelItem {
   badge?: string;
   /** Short info line displayed on the cover (e.g. rating, word count) */
   info?: string;
+  /** Comma separated genre/tag list for list display. */
+  genres?: string;
 }
 
 export interface ChapterItem {

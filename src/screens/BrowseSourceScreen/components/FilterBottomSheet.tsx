@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -332,6 +333,9 @@ const FilterItem: React.FC<FilterItemProps> = ({
       filter,
       selectedFilters[filterKey],
     );
+    const maxSelections = filter.maxSelections ?? Number.POSITIVE_INFINITY;
+    const visibleSelectedValues =
+      maxSelections === 1 ? selectedValues.slice(0, 1) : selectedValues;
     const selectedSet = new Set(selectedValues.map(v => normalizeTag(v)));
     const query = autocompleteQuery.trim();
     const queryLower = normalizeTag(autocompleteQuery);
@@ -355,13 +359,19 @@ const FilterItem: React.FC<FilterItemProps> = ({
         setAutocompleteQuery('');
         return;
       }
-      setSelectedFilters(prev => ({
-        ...prev,
-        [filterKey]: {
-          type: FilterTypes.AutocompleteMulti,
-          value: [...selectedValues, trimmed],
-        },
-      }));
+      setSelectedFilters(prev => {
+        const nextValue =
+          maxSelections === 1
+            ? [trimmed]
+            : [...selectedValues, trimmed].slice(0, maxSelections);
+        return {
+          ...prev,
+          [filterKey]: {
+            type: FilterTypes.AutocompleteMulti,
+            value: nextValue,
+          },
+        };
+      });
       setAutocompleteQuery('');
     };
 
@@ -404,9 +414,9 @@ const FilterItem: React.FC<FilterItemProps> = ({
           />
         </View>
 
-        {selectedValues.length > 0 ? (
+        {visibleSelectedValues.length > 0 ? (
           <View style={styles.chipsContainer}>
-            {selectedValues.map(item => (
+            {visibleSelectedValues.map(item => (
               <Chip
                 key={item}
                 mode="flat"
@@ -421,7 +431,11 @@ const FilterItem: React.FC<FilterItemProps> = ({
         ) : null}
 
         {suggestions.length > 0 ? (
-          <View style={styles.suggestionsContainer}>
+          <ScrollView
+            style={styles.suggestionsContainer}
+            contentContainerStyle={styles.suggestionsContent}
+            keyboardShouldPersistTaps="handled"
+          >
             {suggestions.map(option => (
               <Pressable
                 key={option.value}
@@ -434,7 +448,7 @@ const FilterItem: React.FC<FilterItemProps> = ({
                 </Text>
               </Pressable>
             ))}
-          </View>
+          </ScrollView>
         ) : null}
       </View>
     );
@@ -465,6 +479,9 @@ const FilterBottomSheet: React.FC<BottomSheetProps> = ({
       bottomSheetRef={filterSheetRef}
       snapPoints={[400, 600]}
       bottomInset={bottom}
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      android_keyboardInputMode="adjustResize"
       handleComponent={null}
       children={
         <View style={styles.flex}>
@@ -591,8 +608,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   suggestionsContainer: {
+    maxHeight: 220,
     marginTop: 8,
     paddingHorizontal: 24,
+  },
+  suggestionsContent: {
+    paddingBottom: 4,
   },
   suggestionItem: {
     borderRadius: 8,

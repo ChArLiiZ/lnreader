@@ -24,6 +24,60 @@ export const useBrowseSource = (
   const [hasNextPage, setHasNextPage] = useState(true);
 
   const isScreenMounted = useRef(true);
+  const tagCacheRef = useRef<Record<string, string>>({});
+  const inFlightTagPathsRef = useRef<Set<string>>(new Set());
+
+  const enrichEsjTags = useCallback(
+    async (sourceNovels: NovelItem[]) => {
+      if (pluginId !== 'esjzone') return;
+      const plugin = getPlugin(pluginId);
+      if (!plugin?.parseNovel) return;
+
+      const targets = sourceNovels
+        .filter(novel => {
+          if (!novel.path) return false;
+          if (novel.genres) return false;
+          if (tagCacheRef.current[novel.path]) return false;
+          if (inFlightTagPathsRef.current.has(novel.path)) return false;
+          return true;
+        })
+        .slice(0, 12);
+
+      if (targets.length === 0) return;
+
+      const queue = [...targets];
+      const workerCount = Math.min(3, queue.length);
+      const worker = async () => {
+        while (queue.length > 0) {
+          const next = queue.shift();
+          if (!next) break;
+
+          inFlightTagPathsRef.current.add(next.path);
+          try {
+            const parsed = await plugin.parseNovel(next.path);
+            const genres = parsed?.genres?.trim();
+            if (genres) {
+              tagCacheRef.current[next.path] = genres;
+              if (isScreenMounted.current) {
+                setNovels(prev =>
+                  prev.map(item =>
+                    item.path === next.path ? { ...item, genres } : item,
+                  ),
+                );
+              }
+            }
+          } catch {
+            // Silently ignore tag-enrichment errors.
+          } finally {
+            inFlightTagPathsRef.current.delete(next.path);
+          }
+        }
+      };
+
+      await Promise.all(Array.from({ length: workerCount }, () => worker()));
+    },
+    [pluginId],
+  );
 
   const fetchNovels = useCallback(
     async (page: number, filters?: FilterToValues<Filters>) => {
@@ -39,12 +93,19 @@ export const useBrowseSource = (
               filters,
             })
             .then(res => {
+              const withCachedTags = res.map(item => {
+                const cached = tagCacheRef.current[item.path];
+                return cached ? { ...item, genres: cached } : item;
+              });
               setNovels(prevState =>
-                page === 1 ? res : [...prevState, ...res],
+                page === 1 ? withCachedTags : [...prevState, ...withCachedTags],
               );
               if (!res.length) {
                 setHasNextPage(false);
               }
+              enrichEsjTags(withCachedTags).catch(() => {
+                // Ignore background tag enrichment errors.
+              });
             })
             .catch((e: unknown) => {
               setError(classifyError(e, pluginId).message);
@@ -58,7 +119,7 @@ export const useBrowseSource = (
         }
       }
     },
-    [pluginId, showLatestNovels],
+    [enrichEsjTags, pluginId, showLatestNovels],
   );
 
   const fetchNextPage = () => {
@@ -82,20 +143,27 @@ export const useBrowseSource = (
     setError('');
     setIsLoading(true);
     setNovels([]);
+    setHasNextPage(true);
     setCurrentPage(1);
     fetchNovels(1, selectedFilters);
   };
 
-  const clearFilters = useCallback(
-    (filters: Filters) => setSelectedFilters(filters),
-    [],
-  );
+  const clearFilters = useCallback((filters: Filters) => {
+    setError('');
+    setIsLoading(true);
+    setNovels([]);
+    setHasNextPage(true);
+    setCurrentPage(1);
+    setSelectedFilters({ ...filters });
+  }, []);
 
   const setFilters = (filters?: FilterToValues<Filters>) => {
+    setError('');
     setIsLoading(true);
+    setNovels([]);
+    setHasNextPage(true);
     setCurrentPage(1);
-    fetchNovels(1, filters);
-    setSelectedFilters(filters);
+    setSelectedFilters(filters ? { ...filters } : filters);
   };
 
   return {

@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import React, { useMemo } from 'react';
+import { StyleSheet, View, Text, Pressable, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 
 import { coverPlaceholderColor } from '../theme/colors';
@@ -31,6 +31,13 @@ const ListView = ({
   onLongPress,
 }: ListViewProps) => {
   const fadedImage = { opacity: inLibraryBadge ? 0.5 : 1 };
+  const genreTags = useMemo(() => {
+    if (!item.genres) return [];
+    return item.genres
+      .split(/\s*,\s*/)
+      .map(tag => tag.trim())
+      .filter(Boolean);
+  }, [item.genres]);
   return (
     <Pressable
       android_ripple={{ color: theme.rippleColor }}
@@ -51,12 +58,46 @@ const ListView = ({
         cachePolicy="disk"
         style={[styles.extensionIcon, fadedImage]}
       />
-      <Text
-        style={[{ color: theme.onSurface }, styles.novelName]}
-        numberOfLines={1}
-      >
-        {item.name}
-      </Text>
+      <View style={styles.novelInfo}>
+        <Text
+          style={[{ color: theme.onSurface }, styles.novelName]}
+          numberOfLines={1}
+        >
+          {item.name}
+        </Text>
+        {genreTags.length > 0 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.genreRow}
+          >
+            {genreTags.map(tag => (
+              <View
+                key={tag}
+                style={[
+                  styles.genreChip,
+                  {
+                    backgroundColor: theme.surface2,
+                  },
+                ]}
+              >
+                <Text
+                  numberOfLines={1}
+                  style={[
+                    styles.genreText,
+                    {
+                      color: theme.onSurfaceVariant,
+                    },
+                  ]}
+                >
+                  {tag}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+        ) : null}
+      </View>
       <View style={styles.badgeContainer}>
         {downloadBadge}
         {unreadBadge}
@@ -88,10 +129,26 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   novelName: {
-    flex: 1,
-    flexWrap: 'wrap',
     fontSize: 15,
+    marginBottom: 2,
+  },
+  novelInfo: {
+    flex: 1,
     marginStart: 16,
     paddingEnd: 8,
+  },
+  genreRow: {
+    alignItems: 'center',
+    columnGap: 6,
+    paddingVertical: 1,
+  },
+  genreChip: {
+    borderRadius: 10,
+    maxWidth: 96,
+    paddingHorizontal: 7,
+    paddingVertical: 1,
+  },
+  genreText: {
+    fontSize: 10,
   },
 });
