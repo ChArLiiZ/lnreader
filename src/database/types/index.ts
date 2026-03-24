@@ -25,6 +25,7 @@ export interface DBNovelInfo extends NovelInfo {
   lastReadAt: string;
   lastUpdatedAt: string;
   latestChapterAt: number;
+  readProgress?: number | null;
 }
 
 export interface LibraryNovelInfo extends DBNovelInfo {

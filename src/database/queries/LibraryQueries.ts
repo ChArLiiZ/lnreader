@@ -8,10 +8,15 @@ export const getLibraryNovelsFromDb = (
   downloadedOnlyMode?: boolean,
   excludeLocalNovels?: boolean,
 ) => {
-  let query = 'SELECT * FROM Novel WHERE inLibrary = 1';
+  let query = `SELECT n.*,
+    (SELECT CAST((c.position + 1) AS REAL) / NULLIF(n.totalChapters, 0) * 100
+     FROM Chapter c
+     WHERE c.novelId = n.id AND c.readTime IS NOT NULL
+     ORDER BY c.position DESC LIMIT 1) as readProgress
+  FROM Novel n WHERE n.inLibrary = 1`;
 
   if (excludeLocalNovels) {
-    query += ' AND isLocal = 0';
+    query += ' AND n.isLocal = 0';
   }
 
   if (filter) {
@@ -19,18 +24,21 @@ export const getLibraryNovelsFromDb = (
   }
 
   if (downloadedOnlyMode) {
-    query += ` AND (chaptersDownloaded = 1 OR isLocal = 1)`;
+    query += ` AND (n.chaptersDownloaded > 0 OR n.isLocal = 1)`;
   }
 
   if (searchText) {
-    query += ' AND name LIKE ?';
+    query += ' AND n.name LIKE ?';
   }
 
   if (sortOrder) {
     query += ` ORDER BY ${sortOrder}`;
   }
 
-  return db.getAllAsync<NovelInfo>(query, searchText ? `%${searchText}%` : '');
+  return db.getAllAsync<NovelInfo>(
+    query,
+    searchText ? [`%${searchText}%`] : [],
+  );
 };
 
 export const getLibraryWithCategory = async (
@@ -45,7 +53,7 @@ export const getLibraryWithCategory = async (
   `;
   const params: (string | number)[] = [];
 
-  if (categoryId) {
+  if (categoryId != null) {
     query += ' AND nc.categoryId = ?';
     params.push(categoryId);
   }

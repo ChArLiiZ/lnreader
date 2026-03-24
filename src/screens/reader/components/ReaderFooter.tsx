@@ -12,7 +12,7 @@ import { ChapterScreenProps } from '@navigators/types';
 import { useChapterContext } from '../ChapterContext';
 import { SCREEN_HEIGHT } from '@gorhom/bottom-sheet';
 import { useNovelContext } from '@screens/novel/NovelContext';
-import { useTheme } from '@hooks/persisted';
+import { useChapterGeneralSettings, useTheme } from '@hooks/persisted';
 import { hasCommentSupport } from '@services/plugin/fetch';
 import CommentsBottomSheet from '@screens/novel/components/CommentsBottomSheet';
 
@@ -40,6 +40,7 @@ const ChapterFooter = ({
     radius: 50,
   };
   const { navigationBarHeight } = useNovelContext();
+  const { pageReader, setChapterGeneralSettings } = useChapterGeneralSettings();
   const supportsComments = hasCommentSupport(novel.pluginId);
   const [commentsVisible, setCommentsVisible] = useState(false);
 
@@ -94,11 +95,7 @@ const ChapterFooter = ({
   );
 
   return (
-    <Animated.View
-      entering={entering}
-      exiting={exiting}
-      style={[styles.footer, style]}
-    >
+    <Animated.View entering={entering} exiting={exiting} style={style}>
       <View style={styles.buttonsContainer}>
         <Pressable
           android_ripple={rippleConfig}
@@ -149,6 +146,21 @@ const ChapterFooter = ({
             icon="format-vertical-align-top"
             size={26}
             iconColor={theme.onSurface}
+          />
+        </Pressable>
+        <Pressable
+          android_ripple={rippleConfig}
+          style={styles.buttonStyles}
+          onPress={() => setChapterGeneralSettings({ pageReader: !pageReader })}
+        >
+          <IconButton
+            icon={
+              pageReader
+                ? 'book-open-page-variant'
+                : 'book-open-page-variant-outline'
+            }
+            size={26}
+            iconColor={pageReader ? theme.primary : theme.onSurface}
           />
         </Pressable>
         <Pressable

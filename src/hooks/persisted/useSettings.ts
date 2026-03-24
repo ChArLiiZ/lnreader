@@ -78,6 +78,7 @@ export interface LibrarySettings {
   incognitoMode?: boolean;
   downloadedOnlyMode?: boolean;
   showLatestChapterBadge?: boolean;
+  showReadingProgressBadge?: boolean;
   /**
    * Default category ID for adding novels to library.
    * -1 = Always ask user to choose
@@ -110,6 +111,7 @@ export interface ChapterGeneralSettings {
   convertToTraditional: boolean;
   tapToScroll: boolean;
   TTSEnable: boolean;
+  pageReaderNoAnimation: boolean;
 }
 
 export interface ReaderTheme {
@@ -214,6 +216,7 @@ export const initialChapterGeneralSettings: ChapterGeneralSettings = {
   convertToTraditional: true,
   tapToScroll: false,
   TTSEnable: true,
+  pageReaderNoAnimation: false,
 };
 
 export const initialChapterReaderSettings: ChapterReaderSettings = {

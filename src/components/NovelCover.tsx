@@ -99,6 +99,7 @@ function NovelCover<
     showDownloadBadges = true,
     showUnreadBadges = true,
     showLatestChapterBadge = false,
+    showReadingProgressBadge = false,
     novelsPerRow = 3,
   } = useLibrarySettings();
 
@@ -233,6 +234,17 @@ function NovelCover<
               libraryStatus && styles.opacityPoint5,
             ]}
           />
+          {showReadingProgressBadge &&
+          isFromDB(item) &&
+          item.readProgress != null &&
+          item.readProgress > 0 ? (
+            <View style={styles.readingProgressBadgeContainer}>
+              <ReadingProgressBadge
+                progress={item.readProgress}
+                theme={theme}
+              />
+            </View>
+          ) : null}
           {'info' in item && item.info ? (
             <CoverInfoOverlay info={item.info} />
           ) : null}
@@ -450,6 +462,27 @@ const LatestChapterBadge = ({
   </Text>
 );
 
+const ReadingProgressBadge = ({
+  progress,
+  theme,
+}: {
+  progress: number;
+  theme: ThemeColors;
+}) => (
+  <Text
+    numberOfLines={1}
+    style={[
+      styles.readingProgressBadge,
+      {
+        backgroundColor: theme.secondary,
+        color: theme.onSecondary,
+      },
+    ]}
+  >
+    {`${Math.round(progress)}%`}
+  </Text>
+);
+
 const CoverInfoOverlay = ({ info }: { info: string }) => (
   <View style={styles.coverInfoContainer}>
     <Text numberOfLines={1} style={styles.coverInfoText}>
@@ -610,6 +643,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 10,
     top: 10,
+    zIndex: 1,
+  },
+  readingProgressBadge: {
+    borderRadius: 4,
+    fontSize: 10,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  readingProgressBadgeContainer: {
+    bottom: 10,
+    left: 10,
+    position: 'absolute',
     zIndex: 1,
   },
   linearGradient: {

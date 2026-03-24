@@ -117,8 +117,6 @@ const ChapterCountSkeleton = ({ theme }: { theme: ThemeColors }) => {
     );
   }
 
-  const LG = Animated.createAnimatedComponent(LinearGradient);
-
   return (
     <View
       style={[
@@ -126,7 +124,7 @@ const ChapterCountSkeleton = ({ theme }: { theme: ThemeColors }) => {
         { backgroundColor: backgroundColor },
       ]}
     >
-      <LG
+      <AnimatedLinearGradient
         start={[0, 0]}
         end={[1, 0]}
         locations={[0, 0.3, 0.7, 1]}
@@ -474,6 +472,48 @@ const NovelInfoHeader = ({
                 onPress={handleOpenBottomSheet}
               />
             </Pressable>
+            {lastRead?.position != null &&
+            totalChapters != null &&
+            totalChapters > 0 ? (
+              <View style={styles.progressContainer}>
+                <View
+                  style={[
+                    styles.progressBar,
+                    { backgroundColor: theme.surfaceVariant },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.progressFill,
+                      {
+                        backgroundColor: theme.primary,
+                        width: `${Math.min(
+                          100,
+                          Math.round(
+                            ((lastRead.position + 1) / totalChapters) * 100,
+                          ),
+                        )}%` as `${number}%`,
+                      },
+                    ]}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.progressText,
+                    { color: theme.onSurfaceVariant },
+                  ]}
+                >
+                  {getString('novelScreen.progress', {
+                    progress: Math.min(
+                      100,
+                      Math.round(
+                        ((lastRead.position + 1) / totalChapters) * 100,
+                      ),
+                    ),
+                  })}
+                </Text>
+              </View>
+            ) : null}
           </View>
         )}
       </>
@@ -551,5 +591,22 @@ const styles = StyleSheet.create({
     position: 'absolute',
     transform: [{ translateX: '-100%' }],
     width: '60%',
+  },
+  progressContainer: {
+    gap: 4,
+    paddingBottom: 8,
+    paddingHorizontal: 16,
+  },
+  progressBar: {
+    borderRadius: 2,
+    height: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    borderRadius: 2,
+    height: '100%',
+  },
+  progressText: {
+    fontSize: 12,
   },
 });

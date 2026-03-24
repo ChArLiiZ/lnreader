@@ -357,6 +357,7 @@
         "noTitle": "僅封面網格",
         "numberOfItems": "小說數量",
         "latestChapterBadge": "最新章節徽章",
+        "readingProgressBadge": "閱讀進度徽章",
         "showNoOfItems": "顯示小說數量",
         "unread": "未讀",
         "unreadBadges": "未讀徽章"
@@ -515,7 +516,8 @@
       "useChapterDrawerSwipeNavigation": "滑動開啟側邊欄",
       "verticalSeekbar": "垂直進度條",
       "keepScreenOn": "保持螢幕常亮",
-      "volumeButtonsScroll": "音量鍵捲動"
+      "volumeButtonsScroll": "音量鍵捲動",
+      "pageReaderNoAnimation": "停用翻頁動畫"
     },
     "drawer": {
       "scrollToBottom": "捲動至底部",

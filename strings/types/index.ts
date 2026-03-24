@@ -101,8 +101,6 @@ export interface StringMap {
   'backupScreen.drive.restoreInterruped': 'string';
   'backupScreen.googleDrive': 'string';
   'backupScreen.googleDriveDesc': 'string';
-  'backupScreen.extractingBackup': 'string';
-  'backupScreen.backupVersionMismatch': 'string';
   'backupScreen.invalidBackupFolder': 'string';
   'backupScreen.localBackup': 'string';
   'backupScreen.noBackupFound': 'string';
@@ -139,6 +137,8 @@ export interface StringMap {
   'backupScreen.autoBackupAndroidOnly': 'string';
   'backupScreen.autoBackupPermissionRevoked': 'string';
   'backupScreen.autoBackupDriveSignInRequired': 'string';
+  'backupScreen.extractingBackup': 'string';
+  'backupScreen.backupVersionMismatch': 'string';
   'browse': 'string';
   'browseScreen.addedToLibrary': 'string';
   'browseScreen.available': 'string';
@@ -314,6 +314,7 @@ export interface StringMap {
   'libraryScreen.bottomSheet.display.noTitle': 'string';
   'libraryScreen.bottomSheet.display.numberOfItems': 'string';
   'libraryScreen.bottomSheet.display.latestChapterBadge': 'string';
+  'libraryScreen.bottomSheet.display.readingProgressBadge': 'string';
   'libraryScreen.bottomSheet.display.showNoOfItems': 'string';
   'libraryScreen.bottomSheet.display.unread': 'string';
   'libraryScreen.bottomSheet.display.unreadBadges': 'string';
@@ -436,6 +437,7 @@ export interface StringMap {
   'readerScreen.bottomSheet.verticalSeekbar': 'string';
   'readerScreen.bottomSheet.keepScreenOn': 'string';
   'readerScreen.bottomSheet.volumeButtonsScroll': 'string';
+  'readerScreen.bottomSheet.pageReaderNoAnimation': 'string';
   'readerScreen.drawer.scrollToBottom': 'string';
   'readerScreen.drawer.scrollToCurrentChapter': 'string';
   'readerScreen.drawer.scrollToTop': 'string';

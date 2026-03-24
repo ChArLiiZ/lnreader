@@ -20,6 +20,7 @@ const NavigationTab: React.FC = () => {
     autoScrollInterval = 10,
     autoScrollOffset = null,
     tapToScroll = false,
+    pageReaderNoAnimation = false,
     setChapterGeneralSettings,
   } = useChapterGeneralSettings();
 
@@ -101,6 +102,18 @@ const NavigationTab: React.FC = () => {
           onPress={() => setChapterGeneralSettings({ pageReader: !pageReader })}
           theme={theme}
         />
+        {pageReader && (
+          <SettingSwitch
+            label={getString('readerScreen.bottomSheet.pageReaderNoAnimation')}
+            value={pageReaderNoAnimation}
+            onPress={() =>
+              setChapterGeneralSettings({
+                pageReaderNoAnimation: !pageReaderNoAnimation,
+              })
+            }
+            theme={theme}
+          />
+        )}
       </View>
 
       <View style={styles.section}>
@@ -158,8 +171,10 @@ const NavigationTab: React.FC = () => {
                   style={styles.button}
                   title={getString('common.reset')}
                   onPress={() => {
-                    setChapterGeneralSettings({ autoScrollInterval: 10 });
-                    setChapterGeneralSettings({ autoScrollOffset: null });
+                    setChapterGeneralSettings({
+                      autoScrollInterval: 10,
+                      autoScrollOffset: null,
+                    });
                   }}
                 />
               </View>

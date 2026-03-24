@@ -460,6 +460,27 @@ window.pageReader = new (function () {
     initialPageReaderConfig.nextChapterScreenVisible,
   );
   this.chapterEnding = document.getElementsByClassName('transition-chapter')[0];
+  this._navTimeout = null;
+
+  this._clearNavTimeout = () => {
+    if (this._navTimeout) {
+      clearTimeout(this._navTimeout);
+      this._navTimeout = null;
+    }
+  };
+
+  this._recalculateIfNeeded = () => {
+    if (this.totalPages.val === 0) {
+      reader.refresh();
+      this.totalPages.val = parseInt(
+        (reader.chapterWidth + reader.readerSettings.val.padding * 2) /
+          reader.layoutWidth,
+        10,
+      );
+      this.page.val = 0;
+      reader.chapterElement.style.transform = 'translateX(0%)';
+    }
+  };
 
   this.showChapterEnding = (bool, instant, left) => {
     if (!this.chapterEnding) {
@@ -467,29 +488,28 @@ window.pageReader = new (function () {
         document.getElementsByClassName('transition-chapter')[0];
       if (!this.chapterEnding) return;
     }
+    const noAnim = instant || reader.generalSettings.val.pageReaderNoAnimation;
     this.chapterEnding.style.transition = 'unset';
     if (bool) {
       this.chapterEnding.style.transform = `translateX(${left ? -200 : 0}vw)`;
       requestAnimationFrame(() => {
-        if (!instant) this.chapterEnding.style.transition = '200ms';
+        if (!noAnim) this.chapterEnding.style.transition = '200ms';
         this.chapterEnding.style.transform = 'translateX(-100vw)';
       });
       this.chapterEndingVisible.val = true;
     } else {
-      if (!instant) this.chapterEnding.style.transition = '200ms';
+      this._clearNavTimeout();
+      if (!noAnim) this.chapterEnding.style.transition = '200ms';
       this.chapterEnding.style.transform = `translateX(${left ? -200 : 0}vw)`;
       this.chapterEndingVisible.val = false;
+      this._recalculateIfNeeded();
     }
   };
 
   this.movePage = destPage => {
     if (this.chapterEndingVisible.val) {
-      if (destPage < 0) {
-        this.showChapterEnding(false);
-        return;
-      }
-      if (destPage < this.totalPages.val) {
-        this.showChapterEnding(false, false, true);
+      if (destPage < 0 || destPage < this.totalPages.val) {
+        this.showChapterEnding(false, false, destPage < 0 ? false : true);
         return;
       }
       if (destPage >= this.totalPages.val) {
@@ -498,24 +518,29 @@ window.pageReader = new (function () {
     }
     destPage = parseInt(destPage, 10);
     if (destPage < 0) {
+      if (!reader.prevChapter) return;
       document.getElementsByClassName('transition-chapter')[0].innerText =
         reader.prevChapter.name;
       this.showChapterEnding(true, false, true);
-      setTimeout(() => {
+      this._navTimeout = setTimeout(() => {
         reader.post({ type: 'prev' });
       }, 200);
       return;
     }
     if (destPage >= this.totalPages.val) {
+      if (!reader.nextChapter) return;
       document.getElementsByClassName('transition-chapter')[0].innerText =
         reader.nextChapter.name;
       this.showChapterEnding(true);
-      setTimeout(() => {
+      this._navTimeout = setTimeout(() => {
         reader.post({ type: 'next' });
       }, 200);
       return;
     }
     this.page.val = destPage;
+    if (reader.generalSettings.val.pageReaderNoAnimation) {
+      reader.chapterElement.style.transition = 'unset';
+    }
     reader.chapterElement.style.transform =
       'translateX(-' + destPage * 100 + '%)';
 
@@ -694,21 +719,29 @@ window.addEventListener('load', () => {
     this.initialY = e.changedTouches[0].screenY;
   });
 
-  reader.chapterElement.addEventListener('touchmove', e => {
-    if (reader.generalSettings.val.pageReader) {
-      const diffX =
-        (e.changedTouches[0].screenX - this.initialX) / reader.layoutWidth;
-      reader.chapterElement.style.transition = 'unset';
-      reader.chapterElement.style.transform =
-        'translateX(-' + (pageReader.page.val - diffX) * 100 + '%)';
-    }
-  });
+  reader.chapterElement.addEventListener(
+    'touchmove',
+    e => {
+      if (reader.generalSettings.val.pageReader) {
+        e.preventDefault();
+        const diffX =
+          (e.changedTouches[0].screenX - this.initialX) / reader.layoutWidth;
+        reader.chapterElement.style.transition = 'unset';
+        if (!reader.generalSettings.val.pageReaderNoAnimation) {
+          reader.chapterElement.style.transform =
+            'translateX(-' + (pageReader.page.val - diffX) * 100 + '%)';
+        }
+      }
+    },
+    { passive: false },
+  );
 
   reader.chapterElement.addEventListener('touchend', e => {
     const diffX = e.changedTouches[0].screenX - this.initialX;
     const diffY = e.changedTouches[0].screenY - this.initialY;
     if (reader.generalSettings.val.pageReader) {
-      reader.chapterElement.style.transition = '200ms';
+      const noAnim = reader.generalSettings.val.pageReaderNoAnimation;
+      reader.chapterElement.style.transition = noAnim ? 'unset' : '200ms';
       const diffXPercentage = diffX / reader.layoutWidth;
       if (diffXPercentage < -0.3) {
         pageReader.movePage(pageReader.page.val + 1);

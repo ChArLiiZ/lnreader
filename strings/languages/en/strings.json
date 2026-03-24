@@ -359,6 +359,7 @@
         "noTitle": "Cover only grid",
         "numberOfItems": "Number of Items",
         "latestChapterBadge": "Latest chapter badge",
+        "readingProgressBadge": "Reading progress badge",
         "showNoOfItems": "Show number of items",
         "unread": "Unread",
         "unreadBadges": "Unread badges"
@@ -517,7 +518,8 @@
       "useChapterDrawerSwipeNavigation": "Swipe to open drawer",
       "verticalSeekbar": "Vertical seekbar",
       "keepScreenOn": "Keep screen on",
-      "volumeButtonsScroll": "Volume button scrolling"
+      "volumeButtonsScroll": "Volume button scrolling",
+      "pageReaderNoAnimation": "Disable page flip animation"
     },
     "drawer": {
       "scrollToBottom": "Scroll to bottom",

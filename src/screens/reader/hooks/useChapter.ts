@@ -66,6 +66,7 @@ export default function useChapter(
     autoScrollOffset,
     useVolumeButtons,
     volumeButtonsOffset,
+    pageReader,
   } = useChapterGeneralSettings();
   const { incognitoMode } = useLibrarySettings();
   const [error, setError] = useState<string>();
@@ -79,16 +80,28 @@ export default function useChapter(
       Math.round(Dimensions.get('window').height * 0.75),
     );
     emmiter.addListener('VolumeUp', () => {
-      webViewRef.current?.injectJavaScript(`(()=>{
-        window.scrollBy({top: -${offset}, behavior: 'smooth'})
-      })()`);
+      if (pageReader) {
+        webViewRef.current?.injectJavaScript(
+          `(()=>{ window.pageReader.movePage(window.pageReader.page.val - 1) })()`,
+        );
+      } else {
+        webViewRef.current?.injectJavaScript(`(()=>{
+          window.scrollBy({top: -${offset}, behavior: 'smooth'})
+        })()`);
+      }
     });
     emmiter.addListener('VolumeDown', () => {
-      webViewRef.current?.injectJavaScript(`(()=>{
-        window.scrollBy({top: ${offset}, behavior: 'smooth'})
-      })()`);
+      if (pageReader) {
+        webViewRef.current?.injectJavaScript(
+          `(()=>{ window.pageReader.movePage(window.pageReader.page.val + 1) })()`,
+        );
+      } else {
+        webViewRef.current?.injectJavaScript(`(()=>{
+          window.scrollBy({top: ${offset}, behavior: 'smooth'})
+        })()`);
+      }
     });
-  }, [webViewRef, volumeButtonsOffset]);
+  }, [webViewRef, volumeButtonsOffset, pageReader]);
 
   useEffect(() => {
     if (useVolumeButtons) {
@@ -349,11 +362,13 @@ export default function useChapter(
     };
   }, [incognitoMode, setLastRead, setLoading, chapter.id]);
 
+  const initialLoadDone = useRef(false);
   useEffect(() => {
-    if (!chapter || !chapterText) {
+    if (!initialLoadDone.current) {
+      initialLoadDone.current = true;
       getChapter();
     }
-  }, [chapter, chapterText, getChapter]);
+  }, [getChapter]);
 
   const refetch = useCallback(() => {
     setLoading(true);
