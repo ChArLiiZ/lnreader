@@ -56,7 +56,7 @@ const ListView = ({
     >
       <Image
         source={{ uri: item.cover }}
-        cachePolicy="disk"
+        cachePolicy="memory-disk"
         style={[styles.extensionIcon, fadedImage]}
       />
       <View style={styles.novelInfo}>

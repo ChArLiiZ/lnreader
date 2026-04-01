@@ -220,7 +220,7 @@ function NovelCover<
         <View style={[{ height: coverHeight }, styles.standardBorderRadius]}>
           <Image
             source={{ uri, headers }}
-            cachePolicy="disk"
+            cachePolicy="memory-disk"
             contentFit="cover"
             recyclingKey={uri}
             transition={200}

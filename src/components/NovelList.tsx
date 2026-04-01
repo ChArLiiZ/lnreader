@@ -1,7 +1,12 @@
 import { useLibrarySettings } from '@hooks/persisted';
 import { DisplayModes } from '@screens/library/constants/constants';
 import React, { useMemo } from 'react';
-import { StyleSheet, FlatListProps, ListRenderItem } from 'react-native';
+import {
+  StyleSheet,
+  FlatListProps,
+  ListRenderItem,
+  useWindowDimensions,
+} from 'react-native';
 import { FlashList, FlashListProps } from '@shopify/flash-list';
 import { NovelItem } from '@plugins/types';
 import { NovelInfo } from '../database/types';
@@ -27,6 +32,7 @@ const NovelList: React.FC<NovelListProps> = props => {
   const { displayMode = DisplayModes.Comfortable, novelsPerRow = 3 } =
     useLibrarySettings();
   const orientation = useDeviceOrientation();
+  const window = useWindowDimensions();
 
   const isListView = displayMode === DisplayModes.List;
 
@@ -66,8 +72,22 @@ const NovelList: React.FC<NovelListProps> = props => {
     extendedNovelList = [...props.data, ...extension];
   }
 
-  // Estimate item size based on display mode
-  const estimatedItemSize = isListView ? 56 : 200;
+  // Estimate item size based on display mode and cover dimensions
+  const estimatedItemSize = useMemo(() => {
+    if (isListView) {
+      return 56;
+    }
+    // coverHeight = (window.width / numColumns) * (4 / 3)
+    const coverHeight = (window.width / numColumns) * (4 / 3);
+    // padding from opac style (4.8 * 2) + margin (2 * 2)
+    const padding = 14;
+    if (displayMode === DisplayModes.Comfortable) {
+      // title (~50px) + genre tags row (~28px)
+      return coverHeight + padding + 78;
+    }
+    // Compact and CoverOnly: just cover + padding
+    return coverHeight + padding;
+  }, [isListView, window.width, numColumns, displayMode]);
 
   // Extract props not supported by FlashList before spreading
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
