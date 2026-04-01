@@ -685,7 +685,6 @@ const styles = StyleSheet.create({
   },
   standardNovelCover: {
     borderRadius: 6,
-    overflow: 'hidden',
   },
   title: {
     fontFamily: 'pt-sans-bold',
