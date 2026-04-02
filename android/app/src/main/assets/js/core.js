@@ -456,18 +456,6 @@ van.derive(() => {
 window.pageReader = new (function () {
   this.page = van.state(0);
   this.totalPages = van.state(0);
-  this.chapterEndingVisible = van.state(
-    initialPageReaderConfig.nextChapterScreenVisible,
-  );
-  this.chapterEnding = document.getElementsByClassName('transition-chapter')[0];
-  this._navTimeout = null;
-
-  this._clearNavTimeout = () => {
-    if (this._navTimeout) {
-      clearTimeout(this._navTimeout);
-      this._navTimeout = null;
-    }
-  };
 
   this._recalculateIfNeeded = () => {
     if (this.totalPages.val === 0) {
@@ -482,59 +470,16 @@ window.pageReader = new (function () {
     }
   };
 
-  this.showChapterEnding = (bool, instant, left) => {
-    if (!this.chapterEnding) {
-      this.chapterEnding =
-        document.getElementsByClassName('transition-chapter')[0];
-      if (!this.chapterEnding) return;
-    }
-    const noAnim = instant || reader.generalSettings.val.pageReaderNoAnimation;
-    this.chapterEnding.style.transition = 'unset';
-    if (bool) {
-      this.chapterEnding.style.transform = `translateX(${left ? -200 : 0}vw)`;
-      requestAnimationFrame(() => {
-        if (!noAnim) this.chapterEnding.style.transition = '200ms';
-        this.chapterEnding.style.transform = 'translateX(-100vw)';
-      });
-      this.chapterEndingVisible.val = true;
-    } else {
-      this._clearNavTimeout();
-      if (!noAnim) this.chapterEnding.style.transition = '200ms';
-      this.chapterEnding.style.transform = `translateX(${left ? -200 : 0}vw)`;
-      this.chapterEndingVisible.val = false;
-      this._recalculateIfNeeded();
-    }
-  };
-
   this.movePage = destPage => {
-    if (this.chapterEndingVisible.val) {
-      if (destPage < 0 || destPage < this.totalPages.val) {
-        this.showChapterEnding(false, false, destPage < 0 ? false : true);
-        return;
-      }
-      if (destPage >= this.totalPages.val) {
-        return reader.post({ type: 'next' });
-      }
-    }
     destPage = parseInt(destPage, 10);
     if (destPage < 0) {
       if (!reader.prevChapter) return;
-      document.getElementsByClassName('transition-chapter')[0].innerText =
-        reader.prevChapter.name;
-      this.showChapterEnding(true, false, true);
-      this._navTimeout = setTimeout(() => {
-        reader.post({ type: 'prev' });
-      }, 200);
+      reader.post({ type: 'prev' });
       return;
     }
     if (destPage >= this.totalPages.val) {
       if (!reader.nextChapter) return;
-      document.getElementsByClassName('transition-chapter')[0].innerText =
-        reader.nextChapter.name;
-      this.showChapterEnding(true);
-      this._navTimeout = setTimeout(() => {
-        reader.post({ type: 'next' });
-      }, 200);
+      reader.post({ type: 'next' });
       return;
     }
     this.page.val = destPage;
@@ -599,12 +544,6 @@ window.pageReader = new (function () {
   });
 })();
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (pageReader.chapterEndingVisible.val) {
-    pageReader.showChapterEnding(true, true);
-  }
-});
-
 function calculatePages() {
   reader.refresh();
 
@@ -614,8 +553,6 @@ function calculatePages() {
         reader.layoutWidth,
       10,
     );
-
-    if (initialPageReaderConfig.nextChapterScreenVisible) return;
 
     pageReader.movePage(
       Math.max(

@@ -19,14 +19,14 @@ import {
 import { BackupCategory, BackupNovel } from '@database/types';
 import { BackupEntryName } from './types';
 import ServiceManager from '@services/ServiceManager';
-import NativeFile from '@specs/NativeFile';
+import { FileService } from '@platform';
 import { showToast } from '@utils/showToast';
 import { getString } from '@strings/translations';
 import { NOVEL_STORAGE } from '@utils/Storages';
 import { sleep } from '@utils/sleep';
 
 export const CACHE_DIR_PATH =
-  NativeFile.getConstants().ExternalCachesDirectoryPath + '/BackupData';
+  FileService.getExternalCachesDirectoryPath() + '/BackupData';
 export const DOWNLOAD_STAGE_DIR_PATH = CACHE_DIR_PATH + '/DownloadedChapters';
 const NOVEL_STORAGE_BACKUP_ROOT = 'Novels';
 
@@ -44,29 +44,29 @@ export const toBackupFolderName = (name: string) => {
 };
 
 export const cleanupBackupTempData = () => {
-  if (NativeFile.exists(CACHE_DIR_PATH)) {
-    NativeFile.unlink(CACHE_DIR_PATH);
+  if (FileService.exists(CACHE_DIR_PATH)) {
+    FileService.unlink(CACHE_DIR_PATH);
   }
   const zipPath = CACHE_DIR_PATH + '.zip';
-  if (NativeFile.exists(zipPath)) {
-    NativeFile.unlink(zipPath);
+  if (FileService.exists(zipPath)) {
+    FileService.unlink(zipPath);
   }
 };
 
 const copyDirectoryRecursive = (sourcePath: string, destPath: string) => {
-  if (!NativeFile.exists(sourcePath)) {
+  if (!FileService.exists(sourcePath)) {
     return;
   }
 
-  NativeFile.mkdir(destPath);
-  const items = NativeFile.readDir(sourcePath);
+  FileService.mkdir(destPath);
+  const items = FileService.readDir(sourcePath);
 
   for (const item of items) {
     const targetPath = destPath + '/' + item.name;
     if (item.isDirectory) {
       copyDirectoryRecursive(item.path, targetPath);
     } else {
-      NativeFile.copyFile(item.path, targetPath);
+      FileService.copyFile(item.path, targetPath);
     }
   }
 };
@@ -75,16 +75,16 @@ export const prepareDownloadedChaptersBackupData = async (
   cacheDirPath: string,
 ) => {
   const downloadStageDirPath = cacheDirPath + '/DownloadedChapters';
-  if (NativeFile.exists(downloadStageDirPath)) {
-    NativeFile.unlink(downloadStageDirPath);
+  if (FileService.exists(downloadStageDirPath)) {
+    FileService.unlink(downloadStageDirPath);
   }
-  NativeFile.mkdir(downloadStageDirPath);
+  FileService.mkdir(downloadStageDirPath);
 
   const entries = await getDownloadedChapterStorageEntries();
   const copiedPaths = new Set<string>();
   for (const entry of entries) {
     const sourcePath = `${NOVEL_STORAGE}/${entry.pluginId}/${entry.novelId}/${entry.chapterId}`;
-    if (copiedPaths.has(sourcePath) || !NativeFile.exists(sourcePath)) {
+    if (copiedPaths.has(sourcePath) || !FileService.exists(sourcePath)) {
       continue;
     }
 
@@ -141,15 +141,15 @@ const restoreMMKVData = (data: Record<string, string | number | boolean>) => {
 
 export const prepareBackupData = async (cacheDirPath: string) => {
   const novelDirPath = cacheDirPath + '/' + BackupEntryName.NOVEL_AND_CHAPTERS;
-  if (NativeFile.exists(novelDirPath)) {
-    NativeFile.unlink(novelDirPath);
+  if (FileService.exists(novelDirPath)) {
+    FileService.unlink(novelDirPath);
   }
 
-  NativeFile.mkdir(novelDirPath); // this also creates cacheDirPath
+  FileService.mkdir(novelDirPath); // this also creates cacheDirPath
 
   // version
   try {
-    NativeFile.writeFile(
+    FileService.writeFile(
       cacheDirPath + '/' + BackupEntryName.VERSION,
       JSON.stringify({ version: version }),
     );
@@ -169,7 +169,7 @@ export const prepareBackupData = async (cacheDirPath: string) => {
   for (const novel of novels) {
     try {
       const chapters = await getNovelChapters(novel.id);
-      NativeFile.writeFile(
+      FileService.writeFile(
         novelDirPath + '/' + novel.id + '.json',
         JSON.stringify({
           chapters: chapters,
@@ -201,7 +201,7 @@ export const prepareBackupData = async (cacheDirPath: string) => {
   try {
     const categories = getCategoriesFromDb();
     const novelCategories = getAllNovelCategories();
-    NativeFile.writeFile(
+    FileService.writeFile(
       cacheDirPath + '/' + BackupEntryName.CATEGORY,
       JSON.stringify(
         categories.map(category => {
@@ -225,7 +225,7 @@ export const prepareBackupData = async (cacheDirPath: string) => {
 
   // settings
   try {
-    NativeFile.writeFile(
+    FileService.writeFile(
       cacheDirPath + '/' + BackupEntryName.SETTING,
       JSON.stringify(backupMMKVData()),
     );
@@ -245,8 +245,8 @@ export const restoreData = async (cacheDirPath: string) => {
   // version — warn if backup was created with a newer major version
   try {
     const versionFilePath = cacheDirPath + '/' + BackupEntryName.VERSION;
-    if (NativeFile.exists(versionFilePath)) {
-      const parsed = JSON.parse(NativeFile.readFile(versionFilePath)) as {
+    if (FileService.exists(versionFilePath)) {
+      const parsed = JSON.parse(FileService.readFile(versionFilePath)) as {
         version?: string;
       };
       if (parsed.version) {
@@ -271,15 +271,15 @@ export const restoreData = async (cacheDirPath: string) => {
   let novelCount = 0;
   let failedCount = 0;
 
-  if (!NativeFile.exists(novelDirPath)) {
+  if (!FileService.exists(novelDirPath)) {
     showToast(getString('backupScreen.novelDirectoryNotFound'));
   } else {
     try {
-      const items = NativeFile.readDir(novelDirPath);
+      const items = FileService.readDir(novelDirPath);
       for (const item of items) {
         if (!item.isDirectory) {
           try {
-            const fileContent = NativeFile.readFile(item.path);
+            const fileContent = FileService.readFile(item.path);
             const backupNovel = JSON.parse(fileContent) as BackupNovel;
 
             await _restoreNovelAndChapters(backupNovel);
@@ -324,11 +324,11 @@ export const restoreData = async (cacheDirPath: string) => {
   let categoryCount = 0;
   let failedCategoryCount = 0;
 
-  if (!NativeFile.exists(categoryFilePath)) {
+  if (!FileService.exists(categoryFilePath)) {
     showToast(getString('backupScreen.categoryFileNotFound'));
   } else {
     try {
-      const fileContent = NativeFile.readFile(categoryFilePath);
+      const fileContent = FileService.readFile(categoryFilePath);
       const categories: BackupCategory[] = JSON.parse(fileContent);
 
       // Restore root categories first, then subcategories.
@@ -380,11 +380,11 @@ export const restoreData = async (cacheDirPath: string) => {
   showToast(getString('backupScreen.restoringSettings'));
   const settingsFilePath = cacheDirPath + '/' + BackupEntryName.SETTING;
 
-  if (!NativeFile.exists(settingsFilePath)) {
+  if (!FileService.exists(settingsFilePath)) {
     showToast(getString('backupScreen.settingsFileNotFound'));
   } else {
     try {
-      const fileContent = NativeFile.readFile(settingsFilePath);
+      const fileContent = FileService.readFile(settingsFilePath);
       const settingsData = JSON.parse(fileContent);
       restoreMMKVData(settingsData);
       showToast(getString('backupScreen.settingsRestored'));

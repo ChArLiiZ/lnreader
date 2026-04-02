@@ -1,6 +1,6 @@
 /* eslint-disable no-bitwise */
 import { getUserAgent } from '@hooks/persisted/useUserAgent';
-import NativeFile from '@specs/NativeFile';
+import { FileService } from '@platform';
 import { parse as parseProto } from 'protobufjs';
 
 type FetchInit = {
@@ -57,7 +57,7 @@ export const downloadFile = async (
   init?: FetchInit,
 ): Promise<void> => {
   init = makeInit(init);
-  return NativeFile.downloadFile(
+  return FileService.downloadFile(
     url,
     destPath,
     init.method || 'get',

@@ -32,7 +32,9 @@
       "@native/*": ["src/native/*"],
       "@api/*": ["src/api/*"],
       "@type/*": ["src/type/*"],
-      "@specs/*": ["specs/*"]
+      "@specs/*": ["specs/*"],
+      "@platform": ["src/platform/index"],
+      "@platform/*": ["src/platform/*"]
     },
     "types": ["react-native"]
   }

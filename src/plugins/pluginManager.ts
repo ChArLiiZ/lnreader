@@ -9,7 +9,7 @@ import { encode, decode } from 'urlencode';
 import { getRepositoriesFromDb } from '@database/queries/RepositoryQueries';
 import { getUserAgent } from '@hooks/persisted/useUserAgent';
 import { newer } from '@utils/compareVersion';
-import NativeFile from '@specs/NativeFile';
+import { FileService } from '@platform';
 import { showToast } from '@utils/showToast';
 import { PLUGIN_STORAGE } from '@utils/Storages';
 
@@ -103,21 +103,21 @@ const installPlugin = async (
 
     // save plugin code;
     const pluginDir = `${PLUGIN_STORAGE}/${plugin.id}`;
-    NativeFile.mkdir(pluginDir);
+    FileService.mkdir(pluginDir);
     const pluginPath = pluginDir + '/index.js';
     const customJSPath = pluginDir + '/custom.js';
     const customCSSPath = pluginDir + '/custom.css';
     if (_plugin.customJS) {
       await downloadFile(_plugin.customJS, customJSPath);
-    } else if (NativeFile.exists(customJSPath)) {
-      NativeFile.unlink(customJSPath);
+    } else if (FileService.exists(customJSPath)) {
+      FileService.unlink(customJSPath);
     }
     if (_plugin.customCSS) {
       await downloadFile(_plugin.customCSS, customCSSPath);
-    } else if (NativeFile.exists(customCSSPath)) {
-      NativeFile.unlink(customCSSPath);
+    } else if (FileService.exists(customCSSPath)) {
+      FileService.unlink(customCSSPath);
     }
-    NativeFile.writeFile(pluginPath, rawCode);
+    FileService.writeFile(pluginPath, rawCode);
   }
   return currentPlugin;
 };
@@ -130,8 +130,8 @@ const uninstallPlugin = async (_plugin: PluginItem) => {
     }
   });
   const pluginFilePath = `${PLUGIN_STORAGE}/${_plugin.id}/index.js`;
-  if (NativeFile.exists(pluginFilePath)) {
-    NativeFile.unlink(pluginFilePath);
+  if (FileService.exists(pluginFilePath)) {
+    FileService.unlink(pluginFilePath);
   }
 };
 
@@ -166,7 +166,7 @@ const getPlugin = (pluginId: string) => {
   if (!plugins[pluginId]) {
     const filePath = `${PLUGIN_STORAGE}/${pluginId}/index.js`;
     try {
-      const code = NativeFile.readFile(filePath);
+      const code = FileService.readFile(filePath);
       const plugin = initPlugin(pluginId, code);
       plugins[pluginId] = plugin;
     } catch {

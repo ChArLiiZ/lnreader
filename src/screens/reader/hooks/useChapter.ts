@@ -51,6 +51,9 @@ export default function useChapter(
   } = useNovelContext();
   const [hidden, setHidden] = useState(true);
   const [chapter, setChapter] = useState(initialChapter);
+  const [chapterProgress, setChapterProgress] = useState(
+    initialChapter.progress,
+  );
   const [loading, setLoading] = useState(true);
   const [chapterText, setChapterText] = useState('');
   const [isAppActive, setIsAppActive] = useState(
@@ -138,7 +141,7 @@ export default function useChapter(
   );
 
   const getChapter = useCallback(
-    async (navChapter?: ChapterInfo) => {
+    async (navChapter?: ChapterInfo, progressOverride?: number) => {
       try {
         const chap = navChapter ?? chapter;
         const cachedText = chapterTextCache.get(chap.id);
@@ -215,6 +218,7 @@ export default function useChapter(
           chapterTextCache.set(chap.id, text);
         }
         setChapter(chap);
+        setChapterProgress(progressOverride ?? chap.progress);
         setChapterText(
           sanitizeChapterText(
             novel.pluginId,
@@ -327,17 +331,24 @@ export default function useChapter(
   const navigateChapter = useCallback(
     (position: 'NEXT' | 'PREV') => {
       let nextNavChapter;
+      let nextProgressOverride;
       if (position === 'NEXT') {
         nextNavChapter = nextChapter;
+        nextProgressOverride = 0;
       } else if (position === 'PREV') {
         nextNavChapter = prevChapter;
       } else {
         return;
       }
       if (nextNavChapter) {
-        // setLoading(true);
-
-        getChapter(nextNavChapter);
+        getChapter(nextNavChapter, nextProgressOverride);
+        if (position === 'NEXT') {
+          showToast(
+            getString('readerScreen.nextChapter', {
+              name: nextNavChapter.name,
+            }),
+          );
+        }
       } else {
         showToast(
           position === 'NEXT'
@@ -382,6 +393,7 @@ export default function useChapter(
       chapter,
       nextChapter,
       prevChapter,
+      chapterProgress,
       error,
       loading,
       chapterText,
@@ -397,6 +409,7 @@ export default function useChapter(
     [
       hidden,
       chapter,
+      chapterProgress,
       nextChapter,
       prevChapter,
       error,

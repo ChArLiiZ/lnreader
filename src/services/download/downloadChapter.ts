@@ -9,7 +9,7 @@ import { sleep } from '@utils/sleep';
 import { getNovelById } from '@database/queries/NovelQueries';
 import { db } from '@database/db';
 import { BackgroundTaskMetadata } from '@services/ServiceManager';
-import NativeFile from '@specs/NativeFile';
+import { FileService } from '@platform';
 
 const createChapterFolder = async (
   path: string,
@@ -21,9 +21,9 @@ const createChapterFolder = async (
 ): Promise<string> => {
   const { pluginId, novelId, chapterId } = data;
   const chapterFolder = `${path}/${pluginId}/${novelId}/${chapterId}`;
-  NativeFile.mkdir(chapterFolder);
+  FileService.mkdir(chapterFolder);
   const nomediaPath = chapterFolder + '/.nomedia';
-  NativeFile.writeFile(nomediaPath, ',');
+  FileService.writeFile(nomediaPath, ',');
   return chapterFolder;
 };
 
@@ -54,7 +54,7 @@ const downloadFiles = async (
       }
     }
   }
-  NativeFile.writeFile(folder + '/index.html', loadedCheerio.html());
+  FileService.writeFile(folder + '/index.html', loadedCheerio.html());
 };
 
 export const downloadChapter = async (

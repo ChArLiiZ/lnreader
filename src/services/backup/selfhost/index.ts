@@ -11,7 +11,7 @@ import {
 import { ZipBackupName } from '../types';
 import { ROOT_STORAGE } from '@utils/Storages';
 import { BackgroundTaskMetadata } from '@services/ServiceManager';
-import NativeFile from '@specs/NativeFile';
+import { FileService } from '@platform';
 import { showToast } from '@utils/showToast';
 
 export interface SelfHostData {
@@ -91,8 +91,8 @@ export const selfHostRestore = async (
       progressText: getString('backupScreen.downloadingData'),
     }));
 
-    if (NativeFile.exists(CACHE_DIR_PATH)) {
-      NativeFile.unlink(CACHE_DIR_PATH);
+    if (FileService.exists(CACHE_DIR_PATH)) {
+      FileService.unlink(CACHE_DIR_PATH);
     }
 
     await download(host, backupFolder, ZipBackupName.DATA, CACHE_DIR_PATH);

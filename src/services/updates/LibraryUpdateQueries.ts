@@ -5,7 +5,7 @@ import { NOVEL_STORAGE } from '@utils/Storages';
 import { downloadFile } from '@plugins/helpers/fetch';
 import ServiceManager from '@services/ServiceManager';
 import { db } from '@database/db';
-import NativeFile from '@specs/NativeFile';
+import { FileService } from '@platform';
 import dayjs from 'dayjs';
 
 const updateNovelMetadata = async (
@@ -26,8 +26,8 @@ const updateNovelMetadata = async (
   } = novel;
   let cover = novel.cover;
   const novelDir = NOVEL_STORAGE + '/' + pluginId + '/' + novelId;
-  if (!NativeFile.exists(novelDir)) {
-    NativeFile.mkdir(novelDir);
+  if (!FileService.exists(novelDir)) {
+    FileService.mkdir(novelDir);
   }
   if (cover) {
     const novelCoverPath = novelDir + '/cover.png';

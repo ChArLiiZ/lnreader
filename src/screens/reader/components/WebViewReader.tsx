@@ -51,6 +51,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
   const {
     novel,
     chapter,
+    chapterProgress,
     chapterText: html,
     navigateChapter,
     saveProgress,
@@ -88,7 +89,6 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
     readerSettingsRef,
   });
 
-  const nextChapterScreenVisible = useRef<boolean>(false);
   const batteryLevel = useMemo(() => getBatteryLevelSync(), []);
 
   // MMKV listener + battery level listener
@@ -199,29 +199,20 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             <body class="${
               chapterGeneralSettings.pageReader ? 'page-reader' : ''
             }">
-              <div class="transition-chapter" style="transform: ${
-                nextChapterScreenVisible.current
-                  ? 'translateX(-100%)'
-                  : 'translateX(0%)'
-              };
-              ${chapterGeneralSettings.pageReader ? '' : 'display: none'}"
-              ">${chapter.name}</div>
               <div id="LNReader-chapter">
                 ${html}  
               </div>
               <div id="reader-ui"></div>
               </body>
               <script>
-                var initialPageReaderConfig = ${JSON.stringify({
-                  nextChapterScreenVisible: nextChapterScreenVisible.current,
-                })};
- 
-
                 var initialReaderConfig = ${JSON.stringify({
                   readerSettings,
                   chapterGeneralSettings,
                   novel,
-                  chapter,
+                  chapter: {
+                    ...chapter,
+                    progress: chapterProgress,
+                  },
                   nextChapter,
                   prevChapter,
                   batteryLevel,
@@ -263,6 +254,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
       chapter.id,
       chapter.name,
       chapter.isDownloaded,
+      chapterProgress,
       readerSettings,
       chapterGeneralSettings,
       theme,
@@ -326,7 +318,6 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             onPress();
             break;
           case 'next':
-            nextChapterScreenVisible.current = true;
             if (event.autoStartTTS) {
               autoStartTTSRef.current = true;
             }

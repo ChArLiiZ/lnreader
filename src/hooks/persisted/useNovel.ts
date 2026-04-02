@@ -35,7 +35,7 @@ import dayjs from 'dayjs';
 import { parseChapterNumber } from '@utils/parseChapterNumber';
 import { NOVEL_STORAGE } from '@utils/Storages';
 import { useAppSettings } from './useSettings';
-import NativeFile from '@specs/NativeFile';
+import { FileService } from '@platform';
 import { useLibraryActions } from '@components/Context/LibraryContext';
 
 // #region constants
@@ -707,8 +707,8 @@ export const deleteCachedNovels = async () => {
     );
     MMKVStorage.delete(`${LAST_READ_PREFIX}_${novel.pluginId}_${novel.path}`);
     const novelDir = NOVEL_STORAGE + '/' + novel.pluginId + '/' + novel.id;
-    if (NativeFile.exists(novelDir)) {
-      NativeFile.unlink(novelDir);
+    if (FileService.exists(novelDir)) {
+      FileService.unlink(novelDir);
     }
   }
   _deleteCachedNovels();
