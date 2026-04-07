@@ -1,6 +1,7 @@
 import { fetchNovel, fetchPage } from '../plugin/fetch';
 import { ChapterItem, SourceNovel } from '@plugins/types';
 import { getPlugin, LOCAL_PLUGIN_ID } from '@plugins/pluginManager';
+import { defaultCover } from '@plugins/helpers/constants';
 import { NOVEL_STORAGE } from '@utils/Storages';
 import { downloadFile } from '@plugins/helpers/fetch';
 import ServiceManager from '@services/ServiceManager';
@@ -8,11 +9,25 @@ import { db } from '@database/db';
 import { FileService } from '@platform';
 import dayjs from 'dayjs';
 
+const isInvalidNovelName = (name?: string | null) => {
+  const normalizedName = name?.trim();
+  return !normalizedName || normalizedName.toLowerCase() === 'untitled';
+};
+
+const isPlaceholderCover = (cover?: string | null) => {
+  const normalizedCover = cover?.trim();
+  return !normalizedCover || normalizedCover === defaultCover;
+};
+
 const updateNovelMetadata = async (
   pluginId: string,
   novelId: number,
   novel: SourceNovel,
 ) => {
+  const storedNovel = await db.getFirstAsync<{ name: string; cover?: string }>(
+    'SELECT name, cover FROM Novel WHERE id = ?',
+    novelId,
+  );
   const {
     name,
     summary,
@@ -24,20 +39,27 @@ const updateNovelMetadata = async (
     rating,
     wordCount,
   } = novel;
-  let cover = novel.cover;
+  const nextName = isInvalidNovelName(name) ? storedNovel?.name || '' : name;
+  let cover = isPlaceholderCover(novel.cover)
+    ? storedNovel?.cover || null
+    : novel.cover;
   const novelDir = NOVEL_STORAGE + '/' + pluginId + '/' + novelId;
   if (!FileService.exists(novelDir)) {
     FileService.mkdir(novelDir);
   }
-  if (cover) {
+  if (cover && !isPlaceholderCover(cover)) {
     const novelCoverPath = novelDir + '/cover.png';
     const novelCoverUri = 'file://' + novelCoverPath;
-    await downloadFile(
-      cover,
-      novelCoverPath,
-      getPlugin(pluginId)?.imageRequestInit,
-    );
-    cover = novelCoverUri + '?' + Date.now();
+    try {
+      await downloadFile(
+        cover,
+        novelCoverPath,
+        getPlugin(pluginId)?.imageRequestInit,
+      );
+      cover = novelCoverUri + '?' + Date.now();
+    } catch {
+      cover = storedNovel?.cover || null;
+    }
   }
 
   await db.runAsync(
@@ -47,7 +69,7 @@ const updateNovelMetadata = async (
           WHERE id = ?
         `,
     [
-      name,
+      nextName,
       cover || null,
       summary || null,
       author || 'unknown',
