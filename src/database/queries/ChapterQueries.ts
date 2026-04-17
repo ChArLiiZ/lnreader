@@ -197,26 +197,35 @@ export const deleteChapters = async (
 
 export const deleteDownloads = async (chapters: DownloadedChapter[]) => {
   await Promise.all(
-    chapters?.map(chapter => {
-      deleteDownloadedFiles(chapter.pluginId, chapter.novelId, chapter.id);
-    }),
+    chapters?.map(chapter =>
+      deleteDownloadedFiles(chapter.pluginId, chapter.novelId, chapter.id),
+    ),
   );
   await db.execAsync('UPDATE Chapter SET isDownloaded = 0');
 };
 
 export const deleteReadChaptersFromDb = async () => {
   const chapters = await getReadDownloadedChapters();
+  if (!chapters?.length) {
+    return;
+  }
   await Promise.all(
-    chapters?.map(chapter => {
-      deleteDownloadedFiles(chapter.pluginId, chapter.novelId, chapter.novelId);
-    }),
+    chapters.map(chapter =>
+      deleteDownloadedFiles(chapter.pluginId, chapter.novelId, chapter.id),
+    ),
   );
-  const chapterIdsString = chapters?.map(chapter => chapter.id).toString();
-  db.execAsync(
+  const chapterIdsString = chapters.map(chapter => chapter.id).toString();
+  await db.execAsync(
     `UPDATE Chapter SET isDownloaded = 0 WHERE id IN (${chapterIdsString})`,
   );
   showToast(getString('novelScreen.readChaptersDeleted'));
 };
+
+export const resetChapterDownloadState = (chapterId: number) =>
+  db.runAsync(
+    'UPDATE Chapter SET isDownloaded = 0 WHERE id = ? AND isDownloaded = 1',
+    chapterId,
+  );
 
 export const updateChapterProgress = (chapterId: number, progress: number) =>
   db.runAsync(

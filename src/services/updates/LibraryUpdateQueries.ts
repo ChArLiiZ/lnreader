@@ -225,6 +225,7 @@ const updateNovel = async (
   );
 
   // For paged novels: re-fetch the last known page and fetch any new pages
+  const pageErrors: string[] = [];
   if (novel.totalPages && novel.totalPages > 1) {
     const plugin = getPlugin(pluginId);
     if (plugin?.parsePage) {
@@ -243,14 +244,8 @@ const updateNovel = async (
             downloadNewChapters,
             String(oldTotalPages),
           );
-        } catch (error) {
-          if (__DEV__) {
-            // eslint-disable-next-line no-console
-            console.warn(
-              `Failed to re-fetch page ${oldTotalPages} for ${novel.name}:`,
-              error,
-            );
-          }
+        } catch (error: any) {
+          pageErrors.push(`Page ${oldTotalPages}: ${error?.message || error}`);
         }
       }
 
@@ -265,17 +260,17 @@ const updateNovel = async (
             downloadNewChapters,
             String(page),
           );
-        } catch (error) {
-          if (__DEV__) {
-            // eslint-disable-next-line no-console
-            console.warn(
-              `Failed to fetch page ${page} for ${novel.name}:`,
-              error,
-            );
-          }
+        } catch (error: any) {
+          pageErrors.push(`Page ${page}: ${error?.message || error}`);
         }
       }
     }
+  }
+
+  if (pageErrors.length > 0) {
+    throw new Error(
+      `${novel.name}: failed to update ${pageErrors.length} page(s).\n${pageErrors[0]}`,
+    );
   }
 };
 
@@ -283,13 +278,14 @@ const updateNovelPage = async (
   pluginId: string,
   novelPath: string,
   novelId: number,
+  novelName: string,
   page: string,
   options: Pick<UpdateNovelOptions, 'downloadNewChapters'>,
 ) => {
   const { downloadNewChapters } = options;
   const sourcePage = await fetchPage(pluginId, novelPath, page);
-  updateNovelChapters(
-    pluginId,
+  await updateNovelChapters(
+    novelName,
     novelId,
     sourcePage.chapters || [],
     downloadNewChapters,

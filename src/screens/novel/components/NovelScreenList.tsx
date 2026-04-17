@@ -270,7 +270,7 @@ const NovelScreenList = ({
     async (page: string) => {
       if (novel.id !== 'NO_ID') {
         setUpdating(true);
-        updateNovelPage(pluginId, novel.path, novel.id, page, {
+        updateNovelPage(pluginId, novel.path, novel.id, novel.name, page, {
           downloadNewChapters,
         })
           .then(() => getNovel())

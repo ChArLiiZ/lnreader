@@ -13,10 +13,10 @@ export const fetchNovel = async (pluginId: string, novelPath: string) => {
 
 export const fetchChapter = async (pluginId: string, chapterPath: string) => {
   const plugin = getPlugin(pluginId);
-  let chapterText = `Unknown plugin: ${pluginId}`;
-  if (plugin) {
-    chapterText = await plugin.parseChapter(chapterPath);
+  if (!plugin) {
+    throw new Error(`Unknown plugin: ${pluginId}`);
   }
+  const chapterText = await plugin.parseChapter(chapterPath);
   return chapterText;
 };
 

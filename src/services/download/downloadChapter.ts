@@ -27,6 +27,27 @@ const createChapterFolder = async (
   return chapterFolder;
 };
 
+const downloadImageWithRetry = async (
+  absoluteURL: string,
+  fileurl: string,
+  imageRequestInit: Plugin['imageRequestInit'],
+  attempts = 3,
+): Promise<void> => {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      await downloadFile(absoluteURL, fileurl, imageRequestInit);
+      return;
+    } catch (e) {
+      lastError = e;
+      // Back off a bit before retrying — image hosts often rate-limit
+      // when a chapter has many images.
+      await sleep(300 * (attempt + 1));
+    }
+  }
+  throw lastError;
+};
+
 const downloadFiles = async (
   html: string,
   plugin: Plugin,
@@ -40,6 +61,7 @@ const downloadFiles = async (
   });
   const loadedCheerio = cheerio.load(html);
   const imgs = loadedCheerio('img').toArray();
+  const failures: string[] = [];
   for (let i = 0; i < imgs.length; i++) {
     const elem = loadedCheerio(imgs[i]);
     const url = elem.attr('src');
@@ -48,11 +70,25 @@ const downloadFiles = async (
       elem.attr('src', 'file://' + fileurl);
       try {
         const absoluteURL = new URL(url, plugin.site).href;
-        await downloadFile(absoluteURL, fileurl, plugin.imageRequestInit);
+        await downloadImageWithRetry(
+          absoluteURL,
+          fileurl,
+          plugin.imageRequestInit,
+        );
       } catch (e) {
         elem.attr('alt', String(e));
+        failures.push(url);
       }
     }
+  }
+  // If any images failed after retries, surface it so the chapter is not
+  // silently marked "downloaded" with broken images. Skip writing index.html
+  // so the reader's on-disk cache fallback (loadChapterText) does not serve
+  // a broken copy on the next read — the user can retry.
+  if (failures.length > 0) {
+    throw new Error(
+      `Failed to download ${failures.length}/${imgs.length} image(s) in chapter`,
+    );
   }
   FileService.writeFile(folder + '/index.html', loadedCheerio.html());
 };

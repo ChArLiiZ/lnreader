@@ -4,6 +4,7 @@ import {
   getNextChapter,
   getPrevChapter,
   insertChapters,
+  resetChapterDownloadState,
 } from '@database/queries/ChapterQueries';
 import { insertHistory } from '@database/queries/HistoryQueries';
 import { ChapterInfo, NovelInfo } from '@database/types';
@@ -36,6 +37,9 @@ import NativeVolumeButtonListener from '@specs/NativeVolumeButtonListener';
 import NativeFile from '@specs/NativeFile';
 import { useNovelContext } from '@screens/novel/NovelContext';
 
+// Module-scope singleton: only one reader screen should be active at a time.
+// If a second reader were ever mounted concurrently, removeAllListeners would
+// interfere across instances. Keep this in mind before reusing.
 const emmiter = new NativeEventEmitter(NativeVolumeButtonListener);
 
 export default function useChapter(
@@ -76,6 +80,9 @@ export default function useChapter(
   const { tracker } = useTracker();
   const { trackedNovel, updateAllTrackedNovels } = useTrackedNovel(novel.id);
   const { setImmersiveMode, showStatusAndNavBar } = useFullscreenMode();
+  // Guard to prevent stale saveProgress calls from overwriting new chapter's
+  // progress when the webview's onscrollend fires during chapter transition.
+  const saveProgressLocked = useRef(false);
 
   const connectVolumeButton = useCallback(() => {
     const offset = defaultTo(
@@ -232,6 +239,7 @@ export default function useChapter(
         setError(e.message);
       } finally {
         setLoading(false);
+        saveProgressLocked.current = false;
       }
     },
     [
@@ -298,7 +306,7 @@ export default function useChapter(
 
   const saveProgress = useCallback(
     (percentage: number) => {
-      if (!incognitoMode) {
+      if (!incognitoMode && !saveProgressLocked.current) {
         updateChapterProgress(chapter.id, percentage > 100 ? 100 : percentage);
 
         if (percentage >= 97) {
@@ -341,6 +349,9 @@ export default function useChapter(
         return;
       }
       if (nextNavChapter) {
+        // Lock progress saving so a stale onscrollend from the old webview
+        // doesn't overwrite the new chapter's progress.
+        saveProgressLocked.current = true;
         getChapter(nextNavChapter, nextProgressOverride);
         if (position === 'NEXT') {
           showToast(
@@ -384,8 +395,26 @@ export default function useChapter(
   const refetch = useCallback(() => {
     setLoading(true);
     setError('');
+    // Force a fresh fetch from the plugin by removing any cached copy:
+    // drop the in-memory text cache, delete the saved html file if present,
+    // and reset the isDownloaded flag so the UI doesn't show a stale state.
+    chapterTextCache.delete(chapter.id);
+    const chapterDir = `${NOVEL_STORAGE}/${novel.pluginId}/${chapter.novelId}/${chapter.id}`;
+    const filePath = `${chapterDir}/index.html`;
+    try {
+      if (NativeFile.exists(filePath)) {
+        NativeFile.unlink(filePath);
+      }
+    } catch {}
+    resetChapterDownloadState(chapter.id);
     getChapter();
-  }, [getChapter]);
+  }, [
+    getChapter,
+    chapterTextCache,
+    chapter.id,
+    chapter.novelId,
+    novel.pluginId,
+  ]);
 
   return useMemo(
     () => ({

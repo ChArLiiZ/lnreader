@@ -39,8 +39,16 @@ window.reader = new (function () {
     10,
   );
   this.chapterHeight = this.chapterElement.scrollHeight + this.paddingTop;
-  this.layoutHeight = window.screen.height;
-  this.layoutWidth = window.screen.width;
+  // Use the WebView viewport size (not the device screen) so that tap
+  // coordinates from click events (which are in viewport space) map onto
+  // the correct zones. Using window.screen.* includes the status/nav bar
+  // and breaks the tap-region ratios for opening the menu / page taps.
+  this.layoutHeight = window.innerHeight;
+  this.layoutWidth = window.innerWidth;
+  window.addEventListener('resize', () => {
+    this.layoutHeight = window.innerHeight;
+    this.layoutWidth = window.innerWidth;
+  });
 
   this.layoutEvent = undefined;
   this.chapterEndingVisible = van.state(false);
