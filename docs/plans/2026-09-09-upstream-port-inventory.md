@@ -224,16 +224,36 @@ different problem and remains unsolved. Raising it would reintroduce the
 conflicts. `withExclusiveTransactionAsync` is the likely proper fix, but it
 is a real change and wants testing on device.
 
-### Remaining Tier 2 (~26, all needing manual porting)
+### Session 2 additions
 
-Reader `02b6b984` `71da09ed` `eb310f78` `f1dd4b77` `bd716117` `0ed7d878`
-`93fe04c2` · Library `d02291c2` `c30441b9` `732628c4` `3d34658d` `99c31d56`
-`17c891e1`* `a421177f`* · Novel `a16ec876`* `e75f4fba` `15560b67` `22a1efd1`
-`09652f99` · DB `e4d7ba30` `57eca11a` · Settings `5d996f13` `4a4208e3`
-`345d084e` `098782d6` `6a7e90c1` `8f53550d` · Misc `31cb4b99` `0c854618`
-`44c8e54e` `c0877a9b` `23f9b183`
+Ported by hand: `15560b67` `09652f99` `02b6b984` `5d996f13` `31cb4b99`
+`0ed7d878` `17c891e1` `a421177f` `23f9b183` `e75f4fba`.
 
-\* the three merges where the fork's design wins.
+Needed no port: `e4d7ba30` (the fork already issues each PRAGMA separately).
+
+**`a16ec876` skipped in full.** It is a 34-file, 1680-line connected
+refactor: it adds `expo-image` to package.json (a native rebuild), deletes
+UpdateNovelCard for a chapter-group layout, and introduces NovelCoverImage
+and NovelCoverLayoutContext. There is no clean seam that takes the
+performance work without replacing the fork's cover design, so the fork's
+version stands. Revisit as its own piece of work.
+
+Two upstream bugs turned out to be worse in the fork than upstream:
+`useUpdates`' focus effect refetched once per mounted consumer (the app-wide
+context plus every card), and the category list's `id-index` keys remounted
+rows mid-drag.
+
+### Remaining Tier 2 (~16, all needing manual porting)
+
+Reader `71da09ed` `eb310f78` `f1dd4b77` `bd716117` `93fe04c2` ·
+Library `d02291c2` `c30441b9` `732628c4` `3d34658d` `99c31d56` ·
+Novel `22a1efd1` · DB `57eca11a` ·
+Settings `4a4208e3` `345d084e` `098782d6` `6a7e90c1` `8f53550d` ·
+Misc `0c854618` `44c8e54e` `c0877a9b`
+
+`0c854618` (MD3 slider) and `44c8e54e` (dynamic Material colours) each pull
+in new components or a native package, so they are the next ones that want a
+decision rather than a port.
 
 None apply as a patch: upstream reorganised the repository in `916374b5` and
 the surrounding code has drifted 190 commits, so each is a hand port.
