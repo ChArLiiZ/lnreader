@@ -31,6 +31,7 @@ import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/typ
 import { UseBooleanReturnType } from '@hooks';
 import { useAppSettings } from '@hooks/persisted';
 import { NovelStatus, PluginItem } from '@plugins/types';
+import { getPlugin } from '@plugins/pluginManager';
 import { translateNovelStatus } from '@utils/translateEnum';
 import { getMMKVObject } from '@utils/mmkv/mmkv';
 import { AVAILABLE_PLUGINS } from '@hooks/persisted/usePlugins';
@@ -260,7 +261,13 @@ const NovelInfoHeader = ({
 
   const pluginName = pluginInfo?.name || novel.pluginId;
 
-  const coverSource = useMemo(() => ({ uri: novel.cover }), [novel.cover]);
+  const coverSource = useMemo(() => {
+    const imageRequestInit = getPlugin(novel.pluginId)?.imageRequestInit;
+    return {
+      uri: novel.cover,
+      headers: imageRequestInit?.headers,
+    };
+  }, [novel.pluginId, novel.cover]);
 
   const handleTitlePress = useCallback(
     () =>

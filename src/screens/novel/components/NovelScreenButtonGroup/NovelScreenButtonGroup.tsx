@@ -11,6 +11,7 @@ import SetCategoryModal from '../SetCategoriesModal';
 import CommentsBottomSheet from '../CommentsBottomSheet';
 import { NovelScreenProps } from '@navigators/types';
 import { useTrackedNovel, useTracker } from '@hooks/persisted';
+import { useLibraryContext } from '@components/Context/LibraryContext';
 import { useLibrarySettings } from '@hooks/persisted/useSettings';
 import { ensureNovelHasCategory } from '@database/queries/NovelQueries';
 import { hasCommentSupport } from '@services/plugin/fetch';
@@ -77,6 +78,7 @@ const NovelScreenButtonGroup: React.FC<NovelScreenButtonGroupProps> = ({
   const { tracker } = useTracker();
   const { trackedNovel } = useTrackedNovel(novel.id);
   const { defaultCategoryId = 0 } = useLibrarySettings();
+  const { refetchLibrary } = useLibraryContext();
 
   const followButtonColor = inLibrary ? theme.primary : theme.outline;
   const trackerButtonColor = trackedNovel ? theme.primary : theme.outline;
@@ -192,6 +194,7 @@ const NovelScreenButtonGroup: React.FC<NovelScreenButtonGroupProps> = ({
         <SetCategoryModal
           novelIds={[novel.id]}
           closeModal={handleCloseSetCategoryModal}
+          onSuccess={refetchLibrary}
           visible={setCategoryModalVisible}
         />
       )}

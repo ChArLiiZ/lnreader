@@ -255,8 +255,17 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
       chapter.name,
       chapter.isDownloaded,
       chapterProgress,
-      readerSettings,
-      chapterGeneralSettings,
+      // Only the settings without a live path belong here. Everything else is
+      // pushed into the running webview by the MMKV listener above -- keeping
+      // the whole settings object as a dependency rebuilt `html`, which
+      // remounts the WebView and threw away the reader's scroll position on
+      // every settings change.
+      // customCSS/customJS are inlined into the document, and
+      // convertToTraditional decides whether the OpenCC script is loaded at
+      // all, so those three still have to rebuild it.
+      readerSettings.customCSS,
+      readerSettings.customJS,
+      chapterGeneralSettings.convertToTraditional,
       theme,
       novel,
       nextChapter,
