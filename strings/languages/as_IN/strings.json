@@ -480,7 +480,17 @@
       "useChapterDrawerSwipeNavigation": "Swipe to open drawer",
       "verticalSeekbar": "Vertical seekbar",
       "keepScreenOn": "Keep screen on",
-      "volumeButtonsScroll": "Volume button scrolling"
+      "volumeButtonsScroll": "Volume button scrolling",
+      "autoscrollDescription": "Scroll the page automatically at a steady pace",
+      "bionicReadingDescription": "Bold the start of each word to help your eyes track faster",
+      "fullscreenDescription": "Hide the status bar and navigation bar while reading",
+      "pageReaderDescription": "Split the chapter into pages instead of scrolling. Experimental — may break formatting in some novels",
+      "showBatteryAndTimeDescription": "Show battery level and clock over the reading screen",
+      "showProgressPercentageDescription": "Show the percentage read at the bottom of the screen",
+      "swipeGesturesDescription": "Swipe left or right to jump to the next or previous chapter",
+      "tapToScrollDescription": "Tap the top or bottom of the screen to scroll through the chapter",
+      "verticalSeekbarDescription": "Show a slider on the side to jump to any point in the chapter",
+      "volumeButtonsScrollDescription": "Use the volume buttons to scroll instead of adjusting volume"
     },
     "drawer": {
       "scrollToBottom": "তললৈ স্ক্ৰল কৰক",

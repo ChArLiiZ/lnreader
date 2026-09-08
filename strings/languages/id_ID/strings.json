@@ -480,7 +480,17 @@
       "useChapterDrawerSwipeNavigation": "Geser untuk membuka laci",
       "verticalSeekbar": "Seekbar vertikal",
       "keepScreenOn": "Biarkan layar tetap menyala",
-      "volumeButtonsScroll": "Gulir dengan tombol volume"
+      "volumeButtonsScroll": "Gulir dengan tombol volume",
+      "autoscrollDescription": "Gulir halaman secara otomatis dengan kecepatan tetap",
+      "bionicReadingDescription": "Tebalkan awal setiap kata agar mata Anda dapat mengikuti lebih cepat",
+      "fullscreenDescription": "Sembunyikan bilah status dan bilah navigasi saat membaca",
+      "pageReaderDescription": "Bagi bab menjadi beberapa halaman, bukan menggulir. Eksperimental — dapat merusak format pada beberapa novel",
+      "showBatteryAndTimeDescription": "Tampilkan level baterai dan jam di atas layar membaca",
+      "showProgressPercentageDescription": "Tampilkan persentase yang telah dibaca di bagian bawah layar",
+      "swipeGesturesDescription": "Geser ke kiri atau kanan untuk melompat ke bab berikutnya atau sebelumnya",
+      "tapToScrollDescription": "Ketuk bagian atas atau bawah layar untuk menggulir bab",
+      "verticalSeekbarDescription": "Tampilkan penggeser di sisi layar untuk melompat ke titik mana pun dalam bab",
+      "volumeButtonsScrollDescription": "Gunakan tombol volume untuk menggulir, bukan mengatur volume"
     },
     "drawer": {
       "scrollToBottom": "Gulir ke bawah",

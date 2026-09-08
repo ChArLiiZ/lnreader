@@ -438,6 +438,16 @@ export interface StringMap {
   'readerScreen.bottomSheet.keepScreenOn': 'string';
   'readerScreen.bottomSheet.volumeButtonsScroll': 'string';
   'readerScreen.bottomSheet.pageReaderNoAnimation': 'string';
+  'readerScreen.bottomSheet.autoscrollDescription': 'string';
+  'readerScreen.bottomSheet.bionicReadingDescription': 'string';
+  'readerScreen.bottomSheet.fullscreenDescription': 'string';
+  'readerScreen.bottomSheet.pageReaderDescription': 'string';
+  'readerScreen.bottomSheet.showBatteryAndTimeDescription': 'string';
+  'readerScreen.bottomSheet.showProgressPercentageDescription': 'string';
+  'readerScreen.bottomSheet.swipeGesturesDescription': 'string';
+  'readerScreen.bottomSheet.tapToScrollDescription': 'string';
+  'readerScreen.bottomSheet.verticalSeekbarDescription': 'string';
+  'readerScreen.bottomSheet.volumeButtonsScrollDescription': 'string';
   'readerScreen.drawer.scrollToBottom': 'string';
   'readerScreen.drawer.scrollToCurrentChapter': 'string';
   'readerScreen.drawer.scrollToTop': 'string';

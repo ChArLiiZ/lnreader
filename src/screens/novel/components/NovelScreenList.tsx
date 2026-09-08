@@ -513,7 +513,7 @@ const NovelScreenList = ({
           );
         }}
         keyExtractor={chapterKeyExtractor}
-        extraData={downloadingChapterIds}
+        extraData={[downloadingChapterIds, selectedIds]}
         contentContainerStyle={styles.contentContainer}
         refreshControl={refreshControlElement}
         onEndReached={getNextChapterBatch}
