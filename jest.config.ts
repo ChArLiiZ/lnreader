@@ -6,6 +6,9 @@ const config: Config = {
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.test.ts'],
   moduleNameMapper: {
+    // lodash-es ships ESM, which the ts-jest transform does not reach inside
+    // node_modules. The CommonJS build is API-identical.
+    '^lodash-es$': 'lodash',
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@database/(.*)$': '<rootDir>/src/database/$1',
     '^@services/(.*)$': '<rootDir>/src/services/$1',

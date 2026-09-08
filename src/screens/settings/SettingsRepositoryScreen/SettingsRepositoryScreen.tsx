@@ -11,17 +11,14 @@ import {
   updateRepository,
 } from '@database/queries/RepositoryQueries';
 import { Repository } from '@database/types';
-import { useBackHandler, useBoolean } from '@hooks/index';
+import { useBoolean } from '@hooks/index';
 import { usePlugins, useTheme } from '@hooks/persisted';
 import { getString } from '@strings/translations';
 
 import AddRepositoryModal from './components/AddRepositoryModal';
 import RepositoryCard from './components/RepositoryCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  RespositorySettingsScreenProps,
-  RootStackParamList,
-} from '@navigators/types';
+import { RespositorySettingsScreenProps } from '@navigators/types';
 import { showToast } from '@utils/showToast';
 
 const SettingsBrowseScreen = ({
@@ -75,14 +72,6 @@ const SettingsBrowseScreen = ({
     }
   }, [params, upsertRepository]);
 
-  useBackHandler(() => {
-    if (!navigation.canGoBack()) {
-      navigation.popTo<keyof RootStackParamList>('BottomNavigator');
-      return true;
-    }
-    return false;
-  });
-
   return (
     <SafeAreaView excludeTop>
       <Appbar
@@ -91,7 +80,6 @@ const SettingsBrowseScreen = ({
           if (navigation.canGoBack()) {
             navigation.goBack();
           }
-          navigation.popTo<keyof RootStackParamList>('BottomNavigator');
         }}
         theme={theme}
       />

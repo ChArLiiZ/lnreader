@@ -176,6 +176,8 @@ window.tts = new (function () {
     if (!text) return '';
     return text
       .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/^["'“”‘’]+|["'“”‘’]+$/g, '')
       .replace(/\s*([.,!?;:])\s*/g, '$1 ')
       .trim();
   };
@@ -330,6 +332,9 @@ window.tts = new (function () {
       if (!el) return;
       if (this.readable(el)) {
         elements.push(el);
+        // innerText already includes readable descendants, so descending any
+        // further would add overlapping text to the speech queue.
+        return;
       }
       for (let i = 0; i < el.children.length; i++) {
         traverse(el.children[i]);
@@ -737,13 +742,16 @@ window.addEventListener('load', () => {
             `${
               /\/p>/.test(_)
                 ? _.replace(
-                    /<br>\s*<br>(?:(?=\s*<\/?p[> ])|(?<=<\/?p\b[^>]*><br>\s*<br>))\s*/g,
+                    /<br>\s*<br>(?:(?=\s*<\/?p[> ])|(?<=<\/?p(?:>| [^>]+>)<br>\s*<br>))\s*/g,
                     '',
                   )
                 : _
             }`,
         ) //if p found, delete all double br near p
-        .replace(/<br>(?:(?=\s*<\/?p[> ])|(?<=<\/?p>\s*<br>))\s*/g, '');
+        .replace(
+          /<br>(?:(?=\s*<\/?p[> ])|(?<=<\/?p(?:>| [^>]+>)(?:<[^>]+>)*\s*<br>))\s*/g,
+          '',
+        );
     }
     reader.chapterElement.innerHTML = html;
 
