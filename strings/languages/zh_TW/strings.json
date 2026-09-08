@@ -547,13 +547,14 @@
     "openCSSFile": "匯入 CSS 檔案",
     "openJSFile": "匯入 JS 檔案",
     "preset": "預設",
-    "readingMode": "閱讀模式",
     "readerTheme": "主題",
+    "readingMode": "閱讀模式",
     "saveCustomTheme": "儲存主題",
     "textColor": "文字顏色",
     "textColorModal": "文字顏色",
     "title": "閱讀器",
-    "verticalSeekbarDesc": "使用垂直進度條"
+    "verticalSeekbarDesc": "使用垂直進度條",
+    "volumeButtonsOffset": "音量鍵捲動距離"
   },
   "sourceScreen": {
     "noResultsFound": "未找到相關結果"

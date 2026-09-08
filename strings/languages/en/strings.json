@@ -549,13 +549,14 @@
     "openCSSFile": "Import CSS file",
     "openJSFile": "Import JS file",
     "preset": "Preset",
-    "readingMode": "Reading Mode",
     "readerTheme": "Theme",
+    "readingMode": "Reading Mode",
     "saveCustomTheme": "Save theme",
     "textColor": "Text color",
     "textColorModal": "Text color",
     "title": "Reader",
-    "verticalSeekbarDesc": "Use vertical seekbar"
+    "verticalSeekbarDesc": "Use vertical seekbar",
+    "volumeButtonsOffset": "Volume buttons offset"
   },
   "sourceScreen": {
     "noResultsFound": "No results found"

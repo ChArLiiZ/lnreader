@@ -462,13 +462,14 @@ export interface StringMap {
   'readerSettings.openCSSFile': 'string';
   'readerSettings.openJSFile': 'string';
   'readerSettings.preset': 'string';
-  'readerSettings.readingMode': 'string';
   'readerSettings.readerTheme': 'string';
+  'readerSettings.readingMode': 'string';
   'readerSettings.saveCustomTheme': 'string';
   'readerSettings.textColor': 'string';
   'readerSettings.textColorModal': 'string';
   'readerSettings.title': 'string';
   'readerSettings.verticalSeekbarDesc': 'string';
+  'readerSettings.volumeButtonsOffset': 'string';
   'sourceScreen.noResultsFound': 'string';
   'statsScreen.downloadedChapters': 'string';
   'statsScreen.genreDistribution': 'string';

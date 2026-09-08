@@ -8,7 +8,8 @@
     "metro.config.js",
     "**/__tests__/**",
     "jest.config.ts",
-    "lnreader-plugins/**"
+    "lnreader-plugins/**",
+    "apps/**"
   ],
   "compilerOptions": {
     "baseUrl": ".",
@@ -33,7 +34,7 @@
       "@api/*": ["src/api/*"],
       "@type/*": ["src/type/*"],
       "@specs/*": ["specs/*"],
-      "@platform": ["src/platform/index"],
+      "@platform": ["src/platform/index.native"],
       "@platform/*": ["src/platform/*"]
     },
     "types": ["react-native"]

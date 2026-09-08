@@ -45,7 +45,9 @@ const StatsScreen = () => {
         getNovelGenresFromDb(),
         getNovelStatusFromDb(),
       ]);
-      setStats(Object.assign(...res));
+      // Seeding with a fresh object keeps this safe when a query resolves
+      // to null, which Object.assign would otherwise throw on.
+      setStats(Object.assign({}, ...res));
     } catch (err) {
       setError(err);
     } finally {
