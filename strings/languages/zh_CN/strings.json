@@ -300,7 +300,11 @@
     "updateLibraryDesc": "不推荐在低端设备上启用",
     "updateOngoing": "仅更新连载小说",
     "updateTime": "显示上次更新时间",
-    "useFAB": "在书库中使用浮动操作按钮"
+    "useFAB": "在书库中使用浮动操作按钮",
+    "chapterDownloadCooldown": "Chapter download cooldown",
+    "chapterDownloadCooldownDesc": "Wait between sequential chapter downloads (seconds). Helps avoid source rate limits during batch downloads.",
+    "chapterDownloadCooldownPlaceholder": "Cooldown in seconds (e.g. 1.5)",
+    "chapterDownloadCooldownWarning": "Very low cooldowns may trigger rate limiting or temporary IP bans from sources."
   },
   "globalSearch": {
     "allSources": "所有源",

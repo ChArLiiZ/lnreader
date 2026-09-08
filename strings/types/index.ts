@@ -294,6 +294,10 @@ export interface StringMap {
   'generalSettingsScreen.updateOngoing': 'string';
   'generalSettingsScreen.updateTime': 'string';
   'generalSettingsScreen.useFAB': 'string';
+  'generalSettingsScreen.chapterDownloadCooldown': 'string';
+  'generalSettingsScreen.chapterDownloadCooldownDesc': 'string';
+  'generalSettingsScreen.chapterDownloadCooldownPlaceholder': 'string';
+  'generalSettingsScreen.chapterDownloadCooldownWarning': 'string';
   'globalSearch.allSources': 'string';
   'globalSearch.hasResults': 'string';
   'globalSearch.searchIn': 'string';

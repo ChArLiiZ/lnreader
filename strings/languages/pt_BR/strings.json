@@ -300,7 +300,11 @@
     "updateLibraryDesc": "Não recomendado para dispositivos de baixo desempenho",
     "updateOngoing": "Atualizar somente novels em andamento",
     "updateTime": "Mostrar horário da última atualização",
-    "useFAB": "Usar Botões flutuantes na Biblioteca"
+    "useFAB": "Usar Botões flutuantes na Biblioteca",
+    "chapterDownloadCooldown": "Chapter download cooldown",
+    "chapterDownloadCooldownDesc": "Wait between sequential chapter downloads (seconds). Helps avoid source rate limits during batch downloads.",
+    "chapterDownloadCooldownPlaceholder": "Cooldown in seconds (e.g. 1.5)",
+    "chapterDownloadCooldownWarning": "Very low cooldowns may trigger rate limiting or temporary IP bans from sources."
   },
   "globalSearch": {
     "allSources": "todas as fontes",

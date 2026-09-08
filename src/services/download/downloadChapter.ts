@@ -3,6 +3,7 @@ import { NOVEL_STORAGE } from '@utils/Storages';
 import { Plugin } from '@plugins/types';
 import { downloadFile } from '@plugins/helpers/fetch';
 import { getPlugin } from '@plugins/pluginManager';
+import { getChapterDownloadCooldownMs } from '@hooks/persisted/useSettings';
 import { getString } from '@strings/translations';
 import { getChapter } from '@database/queries/ChapterQueries';
 import { sleep } from '@utils/sleep';
@@ -126,7 +127,7 @@ export const downloadChapter = async (
       chapter.id,
     ]);
 
-    await sleep(1000);
+    await sleep(getChapterDownloadCooldownMs());
   } else {
     throw new Error(getString('downloadScreen.chapterEmptyOrScrapeError'));
   }

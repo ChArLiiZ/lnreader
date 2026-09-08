@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
+import DownloadCooldownModal from './modals/DownloadCooldownModal';
 import DisplayModeModal from './modals/DisplayModeModal';
 import GridSizeModal from './modals/GridSizeModal';
 
@@ -58,6 +59,7 @@ const GenralSettings: React.FC<GenralSettingsProps> = ({ navigation }) => {
     refreshNovelMetadata,
     disableHapticFeedback,
     useLibraryFAB,
+    chapterDownloadCooldownMs,
     setAppSettings,
   } = useAppSettings();
 
@@ -100,6 +102,11 @@ const GenralSettings: React.FC<GenralSettingsProps> = ({ navigation }) => {
    * Chapter Sort Modal
    */
   const defaultChapterSortModal = useBoolean();
+
+  /**
+   * Download Cooldown Modal
+   */
+  const downloadCooldownModalRef = useBoolean();
   return (
     <SafeAreaView excludeTop>
       <Appbar
@@ -221,6 +228,14 @@ const GenralSettings: React.FC<GenralSettingsProps> = ({ navigation }) => {
             }
             theme={theme}
           />
+          <List.Item
+            title={getString('generalSettingsScreen.chapterDownloadCooldown')}
+            description={`${(
+              (chapterDownloadCooldownMs ?? 1000) / 1000
+            ).toString()}s`}
+            onPress={downloadCooldownModalRef.setTrue}
+            theme={theme}
+          />
           <List.Divider theme={theme} />
           <List.SubHeader theme={theme}>
             {getString('generalSettings')}
@@ -251,6 +266,11 @@ const GenralSettings: React.FC<GenralSettingsProps> = ({ navigation }) => {
           />
         </List.Section>
       </ScrollView>
+      <DownloadCooldownModal
+        visible={downloadCooldownModalRef.value}
+        hideModal={downloadCooldownModalRef.setFalse}
+        theme={theme}
+      />
       <DisplayModeModal
         displayMode={displayMode}
         displayModalVisible={displayModalRef.value}

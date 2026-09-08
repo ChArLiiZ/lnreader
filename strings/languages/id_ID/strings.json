@@ -300,7 +300,11 @@
     "updateLibraryDesc": "Tidak disarankan untuk perangkat lemah",
     "updateOngoing": "Hanya perbarui novel yang masih berjalan",
     "updateTime": "Tampilkan waktu pembaruan terakhir",
-    "useFAB": "Gunakan FAB di Pustaka"
+    "useFAB": "Gunakan FAB di Pustaka",
+    "chapterDownloadCooldown": "Jeda unduhan bab",
+    "chapterDownloadCooldownDesc": "Tunggu di antara unduhan bab berurutan (detik). Membantu menghindari batas laju sumber selama pengunduhan massal.",
+    "chapterDownloadCooldownPlaceholder": "Jeda dalam detik (mis. 1.5)",
+    "chapterDownloadCooldownWarning": "Jeda yang sangat singkat dapat memicu pembatasan laju atau pemblokiran IP sementara dari sumber."
   },
   "globalSearch": {
     "allSources": "semua sumber",

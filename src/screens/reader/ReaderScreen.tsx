@@ -44,6 +44,7 @@ const Chapter = ({ route, navigation }: ChapterScreenProps) => {
         onOpen={() => setOpen(true)}
         onClose={() => setOpen(false)}
         renderDrawerContent={() => <ChapterDrawer />}
+        drawerStyle={styles.drawer}
       >
         <ChapterContent
           route={route}
@@ -153,4 +154,6 @@ export default Chapter;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  // The drawer's own white backing showed as a seam beside the chapter list.
+  drawer: { backgroundColor: 'transparent' },
 });
