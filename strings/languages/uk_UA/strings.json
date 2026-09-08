@@ -2,7 +2,7 @@
   "aboutScreen": {
     "website": "Вебсайт",
     "discord": "Discord",
-    "github": "Github",
+    "github": "GitHub",
     "helpTranslate": "Долучитися до перекладу",
     "sources": "Джерела",
     "version": "Версія",
@@ -152,7 +152,7 @@
     },
     "noSource": "У вашій бібліотеці немає новел з цього джерела",
     "pinnedPlugin": "Pinned %{name}",
-    "pinnedPlugins": "Pinned plugins",
+    "pinnedPlugins": "Pinned",
     "removeFromLibrary": "Вилучено з бібліотеки",
     "searchbar": "Шукати джерела",
     "searchResults": "Search results",
@@ -349,7 +349,7 @@
     },
     "empty": "Ваша бібліотека порожня. Додайте новели з Огляду.",
     "extraMenu": {
-      "importEpub": "Імпортувати Epub",
+      "importEpub": "Імпортувати EPUB",
       "openRandom": "Відкрити випадковий запис",
       "updateCategory": "Оновити категорію",
       "updateLibrary": "Оновити бібліотеку"
@@ -487,7 +487,7 @@
       "scrollToCurrentChapter": "Прокрутити до поточного розділу",
       "scrollToTop": "Прокрутити догори"
     },
-    "emptyChapterMessage": "<p>Розділ порожній.</p><p>Повідомте про це на <a href='https://github.com/lnreader/lnreader-sources/issues/new/choose'>GitHub</a>, якщо він доступний у WebView.</p><p>Плагін: %{pluginId}</p><p>Новела: %{novelName}</p><p>Розділ: %{chapterName}</p>",
+    "emptyChapterMessage": "<h2>Не вдалося завантажити розділ</h2><p>Читабельний вміст не знайдено. Перевірте розділ у WebView; якщо він там завантажується, <a href='%{reportUrl}'>повідомте про проблему з плагіном</a>.</p><p>Плагін: %{pluginId}<br>Новела: %{novelName}<br>Розділ: %{chapterName}</p>",
     "finished": "Завершено",
     "nextChapter": "Наступний: %{name}",
     "noNextChapter": "Наступний розділ не знайдено",
