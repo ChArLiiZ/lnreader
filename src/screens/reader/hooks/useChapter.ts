@@ -150,7 +150,14 @@ export default function useChapter(
   const getChapter = useCallback(
     async (navChapter?: ChapterInfo, progressOverride?: number) => {
       try {
-        const chap = navChapter ?? chapter;
+        // Opening a chapter directly (from the library, history or a deep
+        // link) carries no navChapter, and the copy held in state can predate
+        // the last save, so the stored progress is read back first. Chapter
+        // transitions pass navChapter and their own progressOverride below.
+        const dbChapter = navChapter
+          ? undefined
+          : await getDbChapter(chapter.id);
+        const chap = dbChapter ?? navChapter ?? chapter;
         const cachedText = chapterTextCache.get(chap.id);
         const text = cachedText ?? loadChapterText(chap.id, chap.path);
         const [nextChapResult, prevChapResult, awaitedText] = await Promise.all(

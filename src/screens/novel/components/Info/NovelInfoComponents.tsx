@@ -12,6 +12,7 @@ import color from 'color';
 import { IconButton, Portal } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Chip } from '../../../../components';
+import { parseGenres } from '../../utils/genres';
 import { coverPlaceholderColor } from '../../../../theme/colors';
 import { ThemeColors } from '@theme/types';
 import { getString } from '@strings/translations';
@@ -246,21 +247,13 @@ const NovelGenres = memo(
     onPressGenre,
   }: {
     theme: ThemeColors;
-    genres: string;
+    genres?: string | null;
     onPressGenre?: (genre: string) => void;
   }) => {
-    const data = useMemo(() => {
-      const uniqueGenres = new Set<string>();
-
-      genres.split(',').forEach(rawGenre => {
-        const normalizedGenre = rawGenre.trim();
-        if (normalizedGenre) {
-          uniqueGenres.add(normalizedGenre);
-        }
-      });
-
-      return [...uniqueGenres];
-    }, [genres]);
+    const data = useMemo(
+      () => [...new Set<string>(parseGenres(genres))],
+      [genres],
+    );
 
     const renderGenre = useCallback(
       (item: string) => (
