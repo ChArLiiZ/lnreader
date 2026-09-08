@@ -193,3 +193,60 @@ navigation group (Nitro EPUB export, URL search and intent opening, dedicated
 custom code settings page). Background-task group deferred.
 
 Target: `origin/feat/port-upstream-2.1.3`.
+
+## Progress (2026-09-09, session 1)
+
+### Done
+
+| Area | Commits landed |
+| --- | --- |
+| Database | migration 010 + 13 tests |
+| Build health | 14 pre-existing tsc errors cleared; `pnpm type-check` is clean |
+| Tier 1 | `54fedc2f` `4b580c90` `5a0717d2` `e8c55502` `788f6ced` `bbb2645a` `7e20f7dc` `158786cc` `89cddf9e` `138fdff2` `9783c4d5` `b680a077` `76106317` `e0c89cdd` `51560195` `3e1e2110` `e9f6bdaa` + translation sync |
+| Tier 2 | `25c93afa` `eb12bdfd` `5cf7e15d` `65e86100` `7083c51d` `f0693204` `7ddd934c` `93bc5e5e` |
+
+Needed no port — the fork already had the fix: `084dccca` (`theme.outline`),
+`89cddf9e`'s ripple restructure.
+
+Deliberately not taken: `9b356ffd` (the fork's own env script stands),
+`6548e9a6` (per decision), `58db0352` / `97be48df` / `67e01bc2` / `9bde3df7`
+(bound to upstream-only modules).
+
+### Correction to the Tier 2 decisions
+
+`2cd5a97e` was recorded as "take upstream, and raise concurrency back". That
+premise was wrong and the change was **not** made. The commit is written
+against Drizzle, and every `withTransactionAsync` body in the fork already
+awaits its statements — the fork never had the bug upstream fixed. So
+`4dac8b87`'s concurrency of 1 is still load-bearing: it works around
+overlapping transactions on expo-sqlite's single connection, which is a
+different problem and remains unsolved. Raising it would reintroduce the
+conflicts. `withExclusiveTransactionAsync` is the likely proper fix, but it
+is a real change and wants testing on device.
+
+### Remaining Tier 2 (~26, all needing manual porting)
+
+Reader `02b6b984` `71da09ed` `eb310f78` `f1dd4b77` `bd716117` `0ed7d878`
+`93fe04c2` · Library `d02291c2` `c30441b9` `732628c4` `3d34658d` `99c31d56`
+`17c891e1`* `a421177f`* · Novel `a16ec876`* `e75f4fba` `15560b67` `22a1efd1`
+`09652f99` · DB `e4d7ba30` `57eca11a` · Settings `5d996f13` `4a4208e3`
+`345d084e` `098782d6` `6a7e90c1` `8f53550d` · Misc `31cb4b99` `0c854618`
+`44c8e54e` `c0877a9b` `23f9b183`
+
+\* the three merges where the fork's design wins.
+
+None apply as a patch: upstream reorganised the repository in `916374b5` and
+the surrounding code has drifted 190 commits, so each is a hand port.
+
+### Remaining Tier 3
+
+Scanlator filtering, time tracking and statistics, repository enable/disable
+(all three have their columns on disk already), Nitro EPUB export, URL search
+and intent opening, dedicated custom code settings page.
+
+### Wants a device check
+
+- WebviewScreen bottom inset (`138fdff2`) — verify the WebView is not clipped
+  by the navigation bar
+- skeleton colours across the eight themes
+- migration 010 against the real database
