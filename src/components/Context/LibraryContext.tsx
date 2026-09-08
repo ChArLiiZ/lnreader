@@ -5,7 +5,6 @@ import {
   ExtendedCategory,
 } from '@screens/library/hooks/useLibrary';
 import { useLibrarySettings } from '@hooks/persisted';
-import { LibrarySettings } from '@hooks/persisted/useSettings';
 import { NovelInfo } from '@database/types';
 
 // --- Data Context (frequently changing) ---
@@ -46,7 +45,7 @@ const LibraryActionsContext = createContext<LibraryActionsContextType>(
 // --- Settings Context ---
 
 type LibrarySettingsContextType = {
-  settings: LibrarySettings;
+  settings: ReturnType<typeof useLibrarySettings>;
 };
 
 const LibrarySettingsContext = createContext<LibrarySettingsContextType>(
@@ -158,7 +157,7 @@ export const useLibrarySettingsContext = (): LibrarySettingsContextType =>
  * This is kept for backward compatibility during migration.
  */
 export const useLibraryContext = (): UseLibraryReturnType & {
-  settings: LibrarySettings;
+  settings: ReturnType<typeof useLibrarySettings>;
 } => {
   const data = useLibraryData();
   const actions = useLibraryActions();

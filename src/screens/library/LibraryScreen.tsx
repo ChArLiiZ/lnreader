@@ -39,7 +39,11 @@ import {
 } from '@hooks/persisted';
 import { useSearch, useBackHandler, useBoolean } from '@hooks';
 import { getString } from '@strings/translations';
-import { LibrarySortOrder, sortNovelsByOrder } from './constants/constants';
+import {
+  getLibraryCategoryIndex,
+  LibrarySortOrder,
+  sortNovelsByOrder,
+} from './constants/constants';
 import { FAB, IconButton, Menu, Portal } from 'react-native-paper';
 import {
   markAllChaptersRead,
@@ -249,7 +253,13 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
     getSubCategoriesForParent,
   } = useLibraryActions();
   const {
-    settings: { showNumberOfNovels, downloadedOnlyMode, incognitoMode },
+    settings: {
+      showNumberOfNovels,
+      downloadedOnlyMode,
+      incognitoMode,
+      lastUsedCategoryId,
+      setLibrarySettings,
+    },
   } = useLibrarySettingsContext();
 
   const { importNovel } = useImport();
@@ -261,7 +271,22 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
 
   const bottomSheetRef = useRef<BottomSheetModal | null>(null);
 
-  const [index, setIndex] = useState(0);
+  // The tab is tracked by category id, not position: categories can be
+  // reordered or removed between sessions.
+  const [selectedCategoryId, setSelectedCategoryId] =
+    useState(lastUsedCategoryId);
+  const index = getLibraryCategoryIndex(categories, selectedCategoryId);
+  const setIndex = useCallback(
+    (newIndex: number) => {
+      const categoryId = categories[newIndex]?.id;
+      if (categoryId === undefined) {
+        return;
+      }
+      setSelectedCategoryId(categoryId);
+      setLibrarySettings({ lastUsedCategoryId: categoryId });
+    },
+    [categories, setLibrarySettings],
+  );
 
   const {
     value: setCategoryModalVisible,

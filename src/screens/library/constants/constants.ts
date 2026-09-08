@@ -1,3 +1,5 @@
+export { getLibraryCategoryIndex } from './categoryIndex';
+
 import { getString } from '@strings/translations';
 
 export enum LibraryFilter {

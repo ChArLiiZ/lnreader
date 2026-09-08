@@ -47,7 +47,7 @@ const UpdatesScreen = ({ navigation }: UpdateScreenProps) => {
   // focus effect inside it refetched once per mounted consumer.
   useFocusEffect(
     useCallback(() => {
-      void getUpdates();
+      getUpdates();
     }, [getUpdates]),
   );
   const { searchText, setSearchText, clearSearchbar } = useSearch();

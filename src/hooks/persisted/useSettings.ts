@@ -101,6 +101,8 @@ export interface LibrarySettings {
   downloadedOnlyMode?: boolean;
   showLatestChapterBadge?: boolean;
   showReadingProgressBadge?: boolean;
+  /** Last category viewed in the library. */
+  lastUsedCategoryId?: number;
   /**
    * Default category ID for adding novels to library.
    * -1 = Always ask user to choose
