@@ -455,7 +455,9 @@
       "onHiatus": "Ara verdi",
       "ongoing": "Devam ediyor",
       "publishingFinished": "Yayınlama Bitti",
-      "unknown": "Bilinmiyor"
+      "unknown": "Bilinmiyor",
+      "stub": "STUB",
+      "inactive": "Inactive"
     },
     "tracked": "İzlendi",
     "tracking": "İzleme",

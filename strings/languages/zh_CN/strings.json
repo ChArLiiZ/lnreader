@@ -455,7 +455,9 @@
       "onHiatus": "停更",
       "ongoing": "连载",
       "publishingFinished": "出版完成",
-      "unknown": "未知"
+      "unknown": "未知",
+      "stub": "STUB",
+      "inactive": "Inactive"
     },
     "tracked": "进度记录中",
     "tracking": "记录进度",

@@ -455,7 +455,9 @@
       "onHiatus": "На паузі",
       "ongoing": "Триває",
       "publishingFinished": "Публікацію завершено",
-      "unknown": "Невідомо"
+      "unknown": "Невідомо",
+      "stub": "STUB",
+      "inactive": "Inactive"
     },
     "tracked": "Відстежується",
     "tracking": "Відстеження",

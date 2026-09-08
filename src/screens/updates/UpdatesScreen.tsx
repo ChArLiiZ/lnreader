@@ -1,4 +1,12 @@
-import React, { memo, Suspense, useEffect, useMemo, useRef } from 'react';
+import React, {
+  memo,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import { RefreshControl, SectionList, StyleSheet, Text } from 'react-native';
 
@@ -33,6 +41,15 @@ const UpdatesScreen = ({ navigation }: UpdateScreenProps) => {
     showLastUpdateTime,
     error,
   } = useUpdateContext();
+
+  // This lives on the screen rather than in useUpdates: the hook is also
+  // called by the app-wide UpdateContext and by every UpdateNovelCard, so a
+  // focus effect inside it refetched once per mounted consumer.
+  useFocusEffect(
+    useCallback(() => {
+      void getUpdates();
+    }, [getUpdates]),
+  );
   const { searchText, setSearchText, clearSearchbar } = useSearch();
   const onChangeText = (text: string) => {
     setSearchText(text);

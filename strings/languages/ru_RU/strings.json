@@ -455,7 +455,9 @@
       "onHiatus": "Приостановлено",
       "ongoing": "Выпускается",
       "publishingFinished": "Публикация завершена",
-      "unknown": "Неизвестно"
+      "unknown": "Неизвестно",
+      "stub": "STUB",
+      "inactive": "Inactive"
     },
     "tracked": "Отслеживание",
     "tracking": "Отслеживание",

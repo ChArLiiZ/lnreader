@@ -455,7 +455,9 @@
       "onHiatus": "Tạm dừng",
       "ongoing": "Đang tiến hành",
       "publishingFinished": "Đã xuất bản xong",
-      "unknown": "Không rõ"
+      "unknown": "Không rõ",
+      "stub": "STUB",
+      "inactive": "Inactive"
     },
     "tracked": "Đã theo dõi",
     "tracking": "Theo dõi",

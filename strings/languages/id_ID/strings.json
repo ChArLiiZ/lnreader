@@ -455,7 +455,9 @@
       "onHiatus": "Hiatus",
       "ongoing": "Berjalan",
       "publishingFinished": "Selesai Terbit",
-      "unknown": "Tidak diketahui"
+      "unknown": "Tidak diketahui",
+      "stub": "STUB",
+      "inactive": "Tidak aktif"
     },
     "tracked": "Dilacak",
     "tracking": "Pelacakan",

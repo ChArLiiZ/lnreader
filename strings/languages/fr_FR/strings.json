@@ -455,7 +455,9 @@
       "onHiatus": "En pause",
       "ongoing": "En cours",
       "publishingFinished": "Publishing Finished",
-      "unknown": "Inconnu"
+      "unknown": "Inconnu",
+      "stub": "STUB",
+      "inactive": "Inactive"
     },
     "tracked": "Suivi",
     "tracking": "Suivi",

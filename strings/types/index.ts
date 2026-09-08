@@ -412,6 +412,8 @@ export interface StringMap {
   'novelScreen.status.ongoing': 'string';
   'novelScreen.status.publishingFinished': 'string';
   'novelScreen.status.unknown': 'string';
+  'novelScreen.status.stub': 'string';
+  'novelScreen.status.inactive': 'string';
   'novelScreen.tracked': 'string';
   'novelScreen.tracking': 'string';
   'novelScreen.unknownStatus': 'string';

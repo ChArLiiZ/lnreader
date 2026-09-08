@@ -78,15 +78,20 @@ interface NovelInfoHeaderProps {
   latestChapterReleaseTime?: string;
 }
 
-const getStatusIcon = (status?: string) => {
-  if (status === NovelStatus.Ongoing) {
-    return 'clock-outline';
-  }
-  if (status === NovelStatus.Completed) {
-    return 'check-all';
-  }
-  return 'help';
-};
+const STATUS_ICON_MAP = {
+  [NovelStatus.Ongoing]: 'clock-outline',
+  [NovelStatus.Completed]: 'check-all',
+  [NovelStatus.OnHiatus]: 'pause-circle-outline',
+  [NovelStatus.Cancelled]: 'cancel',
+  [NovelStatus.Licensed]: 'copyright',
+  [NovelStatus.PublishingFinished]: 'book-check-outline',
+  [NovelStatus.Unknown]: 'help-circle-outline',
+  [NovelStatus.STUB]: 'book-off-outline',
+  [NovelStatus.Inactive]: 'sleep',
+} as const;
+
+const getStatusIcon = (status?: string) =>
+  STATUS_ICON_MAP[status as keyof typeof STATUS_ICON_MAP] ?? 'help';
 
 const ChapterCountSkeleton = ({ theme }: { theme: ThemeColors }) => {
   const sv = useSharedValue(0);

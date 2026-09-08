@@ -487,7 +487,9 @@
       "onHiatus": "停更中",
       "ongoing": "連載中",
       "publishingFinished": "出版完畢",
-      "unknown": "未知"
+      "unknown": "未知",
+      "stub": "STUB",
+      "inactive": "Inactive"
     },
     "tracked": "追蹤中",
     "tracking": "追蹤進度",
