@@ -167,3 +167,29 @@ there, only the feature code is missing.
 2. Tier 1 in batches by theme, with a type-check + test gate per batch.
 3. Tier 2 one group at a time, confirming each collision.
 4. Tier 3 by explicit priority, reimplemented against expo-sqlite.
+
+## Decisions (2026-09-09)
+
+Tier 1: substantive runtime fixes and translation syncs only. CI, release
+automation and docs commits are skipped — they serve upstream's team workflow,
+not this fork.
+
+Tier 2: 41 commits taken as recommended. The seven contested ones:
+
+| Commit | Decision |
+| --- | --- |
+| `6548e9a6` paged reader layout | **Skip.** The fork's own `874c46f7` + `6f00b7f8` own this code. |
+| `25c93afa` restore progress from db | **Merge.** Not actually a conflict: upstream fixes the `!navChapter` path (opening a chapter fresh), the fork's `progressOverride` + `saveProgressLocked` covers the `navChapter` path (chapter transition). Complementary. |
+| `17c891e1` bottom sheet standardization | **Merge, fork design wins.** Keep AutocompleteMulti and max selections. |
+| `a421177f` category badge + drag reorder | **Merge, fork design wins.** Keep the subcategory UI. |
+| `a16ec876` cover/list/chapter-group perf | **Fork version is the base.** Adopt upstream's perf work only where it does not disturb the fork's badge, info overlay and genre chips. |
+| `eb12bdfd` genre rendering crash | **Merge.** |
+| `2cd5a97e` await inside transactions | **Take upstream, and raise concurrency back.** The fork's `4dac8b87` dropped update concurrency to 1 to dodge SQLite transaction conflicts; the missing `await` was the actual cause. |
+| `523aa90c` covers in library backups | **Keep the fork's backup implementation.** |
+
+Tier 3: the three columns already present on disk (scanlator filtering, time
+tracking and statistics, repository enable/disable), plus the reader / EPUB /
+navigation group (Nitro EPUB export, URL search and intent opening, dedicated
+custom code settings page). Background-task group deferred.
+
+Target: `origin/feat/port-upstream-2.1.3`.
