@@ -243,13 +243,27 @@ Two upstream bugs turned out to be worse in the fork than upstream:
 context plus every card), and the category list's `id-index` keys remounted
 rows mid-drag.
 
-### Remaining Tier 2 (~16, all needing manual porting)
+### Session 3 additions
+
+Ported by hand: `99c31d56` `3d34658d` `6a7e90c1` `345d084e` `57eca11a`
+`d02291c2`.
+
+`57eca11a` was worth more here than upstream: `NovelScreenList` builds its
+placeholder novel with `inLibrary: false`, so opening anything from history
+or updates flashed "add to library" for novels already in it.
+
+Jest note: a test for a pure helper could not load because its module
+imported the string table, which pulls expo-localization and the native
+module chain behind it. Transpiling Expo's ESM through babel-jest gets as far
+as `requireNativeModule`, so the full `jest-expo` preset would be needed.
+Pure helpers get their own module instead.
+
+### Remaining Tier 2 (10, all needing manual porting)
 
 Reader `71da09ed` `eb310f78` `f1dd4b77` `bd716117` `93fe04c2` ·
-Library `d02291c2` `c30441b9` `732628c4` `3d34658d` `99c31d56` ·
-Novel `22a1efd1` · DB `57eca11a` ·
-Settings `4a4208e3` `345d084e` `098782d6` `6a7e90c1` `8f53550d` ·
-Misc `0c854618` `44c8e54e` `c0877a9b`
+Library `c30441b9` `732628c4` · Novel `22a1efd1` ·
+Settings `4a4208e3` `098782d6` `8f53550d` · Misc `0c854618` `44c8e54e`
+`c0877a9b`
 
 `0c854618` (MD3 slider) and `44c8e54e` (dynamic Material colours) each pull
 in new components or a native package, so they are the next ones that want a
