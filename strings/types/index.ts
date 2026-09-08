@@ -239,6 +239,8 @@ export interface StringMap {
   'common.remaining': 'string';
   'common.taskQueue': 'string';
   'common.warning': 'string';
+  'common.imported': 'string';
+  'common.saved': 'string';
   'webview.refresh': 'string';
   'webview.share': 'string';
   'webview.openInBrowser': 'string';
@@ -369,6 +371,7 @@ export interface StringMap {
   'novelScreen.exportEpubModal.startChapter': 'string';
   'novelScreen.exportEpubModal.startGreaterThanEnd': 'string';
   'novelScreen.exportEpubModal.title': 'string';
+  'novelScreen.exportEpubModal.includeChapterNumber': 'string';
   'novelScreen.epub.exportFailed': 'string';
   'novelScreen.epub.exportSuccess': 'string';
   'novelScreen.epub.noDownloadedChapters': 'string';

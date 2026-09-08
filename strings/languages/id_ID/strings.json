@@ -235,7 +235,9 @@
     "sort": "Urutkan",
     "submit": "Kirim",
     "loading": "Memuat ...",
-    "warning": "Peringatan"
+    "warning": "Peringatan",
+    "imported": "Diimpor",
+    "saved": "Tersimpan"
   },
   "webview": {
     "refresh": "Muat ulang",
@@ -400,7 +402,8 @@
       "selectFolder": "Pilih folder tujuan untuk file EPUB",
       "startChapter": "Bab Awal",
       "startGreaterThanEnd": "Bab awal harus меньше atau sama dengan bab akhir",
-      "title": "Ekspor Novel sebagai EPUB"
+      "title": "Ekspor Novel sebagai EPUB",
+      "includeChapterNumber": "Sertakan nomor bab dalam judul bab"
     },
     "epub": {
       "exportFailed": "Gagal mengekspor EPUB: %{error}",

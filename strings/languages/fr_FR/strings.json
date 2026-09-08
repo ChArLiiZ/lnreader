@@ -235,7 +235,9 @@
     "sort": "Trier",
     "submit": "Soumettre",
     "loading": "Chargement ...",
-    "warning": "Warning"
+    "warning": "Warning",
+    "imported": "Imported",
+    "saved": "Saved"
   },
   "webview": {
     "refresh": "Actualiser",
@@ -400,7 +402,8 @@
       "selectFolder": "Sélectionnez le dossier de destination pour le fichier EPUB",
       "startChapter": "Start Chapter",
       "startGreaterThanEnd": "Start chapter must be less than or equal to end chapter",
-      "title": "Exporter le roman au format EPUB"
+      "title": "Exporter le roman au format EPUB",
+      "includeChapterNumber": "Include chapter number in chapter titles"
     },
     "epub": {
       "exportFailed": "Impossible d'exporter l'EPUB: %{error}",

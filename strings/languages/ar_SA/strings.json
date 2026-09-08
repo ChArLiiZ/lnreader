@@ -235,7 +235,9 @@
     "sort": "فرز",
     "submit": "إرسال",
     "loading": "جارٍ التحميل...",
-    "warning": "تحذير"
+    "warning": "تحذير",
+    "imported": "Imported",
+    "saved": "Saved"
   },
   "webview": {
     "refresh": "تحديث",
@@ -400,7 +402,8 @@
       "selectFolder": "Select destination folder for EPUB file",
       "startChapter": "Start Chapter",
       "startGreaterThanEnd": "Start chapter must be less than or equal to end chapter",
-      "title": "Export Novel as EPUB"
+      "title": "Export Novel as EPUB",
+      "includeChapterNumber": "Include chapter number in chapter titles"
     },
     "epub": {
       "exportFailed": "فشل تصدير EPUB: %{error}",

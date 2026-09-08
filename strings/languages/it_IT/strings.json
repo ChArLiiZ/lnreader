@@ -235,7 +235,9 @@
     "sort": "Ordina",
     "submit": "Invia",
     "loading": "Loading ...",
-    "warning": "Warning"
+    "warning": "Warning",
+    "imported": "Imported",
+    "saved": "Saved"
   },
   "webview": {
     "refresh": "Refresh",
@@ -400,7 +402,8 @@
       "selectFolder": "Select destination folder for EPUB file",
       "startChapter": "Start Chapter",
       "startGreaterThanEnd": "Start chapter must be less than or equal to end chapter",
-      "title": "Export Novel as EPUB"
+      "title": "Export Novel as EPUB",
+      "includeChapterNumber": "Include chapter number in chapter titles"
     },
     "epub": {
       "exportFailed": "Failed to export EPUB: %{error}",

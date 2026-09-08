@@ -12,7 +12,12 @@ import { showToast } from '@utils/showToast';
 
 interface ExportEpubModalProps {
   isVisible: boolean;
-  onSubmit?: (uri: string, startChapter?: number, endChapter?: number) => void;
+  onSubmit?: (
+    uri: string,
+    startChapter?: number,
+    endChapter?: number,
+    includeChapterNumber?: boolean,
+  ) => void;
   hideModal: () => void;
 }
 
@@ -27,6 +32,7 @@ const ExportEpubModal: React.FC<ExportEpubModalProps> = ({
     epubUseAppTheme = false,
     epubUseCustomCSS = false,
     epubUseCustomJS = false,
+    epubIncludeChapterNumber = false,
     setChapterReaderSettings,
   } = useChapterReaderSettings();
 
@@ -34,6 +40,7 @@ const ExportEpubModal: React.FC<ExportEpubModalProps> = ({
   const useAppTheme = useBoolean(epubUseAppTheme);
   const useCustomCSS = useBoolean(epubUseCustomCSS);
   const useCustomJS = useBoolean(epubUseCustomJS);
+  const includeChapterNumber = useBoolean(epubIncludeChapterNumber);
   const exportAll = useBoolean(true);
   const [startChapter, setStartChapter] = useState('');
   const [endChapter, setEndChapter] = useState('');
@@ -72,12 +79,13 @@ const ExportEpubModal: React.FC<ExportEpubModalProps> = ({
       epubUseAppTheme: useAppTheme.value,
       epubUseCustomCSS: useCustomCSS.value,
       epubUseCustomJS: useCustomJS.value,
+      epubIncludeChapterNumber: includeChapterNumber.value,
     });
 
     const start = exportAll.value ? undefined : parseInt(startChapter, 10);
     const end = exportAll.value ? undefined : parseInt(endChapter, 10);
 
-    onSubmitProp?.(uri, start, end);
+    onSubmitProp?.(uri, start, end, includeChapterNumber.value);
     hideModal();
   };
 
@@ -165,6 +173,12 @@ const ExportEpubModal: React.FC<ExportEpubModalProps> = ({
           description={getString('novelScreen.exportEpubModal.customJSWarning')}
           value={useCustomJS.value}
           onPress={useCustomJS.toggle}
+          theme={theme}
+        />
+        <SwitchItem
+          label={getString('novelScreen.exportEpubModal.includeChapterNumber')}
+          value={includeChapterNumber.value}
+          onPress={includeChapterNumber.toggle}
           theme={theme}
         />
       </View>

@@ -14,7 +14,6 @@ import * as DocumentPicker from 'expo-document-picker';
 import NativeFile from '@specs/NativeFile';
 import { useTheme, useChapterReaderSettings } from '@hooks/persisted';
 import { getString } from '@strings/translations';
-import { ThemeColors } from '@theme/types';
 import { Button, ConfirmationDialog } from '@components/index';
 import { showToast } from '@utils/showToast';
 import { useBoolean } from '@hooks';
@@ -23,7 +22,6 @@ type CodeTab = 'css' | 'js';
 
 const AdvancedTab: React.FC = () => {
   const theme = useTheme();
-  const styles = createStyles(theme);
   const { customCSS, customJS, setChapterReaderSettings } =
     useChapterReaderSettings();
 
@@ -77,7 +75,7 @@ if (title) {
     } else {
       setChapterReaderSettings({ customJS: jsValue });
     }
-    showToast('Saved');
+    showToast(getString('common.saved'));
   };
 
   const handleReset = () => {
@@ -125,7 +123,7 @@ if (title) {
           setJsValue(content.trim());
           setChapterReaderSettings({ customJS: content.trim() });
         }
-        showToast('Imported');
+        showToast(getString('common.imported'));
       }
     } catch (error: any) {
       showToast(error.message);
@@ -146,7 +144,10 @@ if (title) {
         {/* Tab Selector */}
         <View style={styles.tabContainer}>
           <Pressable
-            style={[styles.tab, activeCodeTab === 'css' && styles.activeTab]}
+            accessibilityLabel="CSS"
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeCodeTab === 'css' }}
+            style={styles.tab}
             onPress={() => setActiveCodeTab('css')}
             android_ripple={{ color: theme.rippleColor }}
           >
@@ -172,10 +173,21 @@ if (title) {
             >
               CSS
             </Text>
+            {activeCodeTab === 'css' ? (
+              <View
+                style={[
+                  styles.tabIndicator,
+                  { backgroundColor: theme.primary },
+                ]}
+              />
+            ) : null}
           </Pressable>
 
           <Pressable
-            style={[styles.tab, activeCodeTab === 'js' && styles.activeTab]}
+            accessibilityLabel="JavaScript"
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeCodeTab === 'js' }}
+            style={styles.tab}
             onPress={() => setActiveCodeTab('js')}
             android_ripple={{ color: theme.rippleColor }}
           >
@@ -298,89 +310,92 @@ if (title) {
 
 export default AdvancedTab;
 
-const createStyles = (theme: ThemeColors) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    scrollContainer: {
-      flex: 1,
-    },
-    contentContainer: {
-      paddingBottom: 24,
-    },
-    tabContainer: {
-      flexDirection: 'row',
-      borderBottomWidth: 1,
-      borderBottomColor: 'rgba(0, 0, 0, 0.12)',
-    },
-    activeTab: {
-      borderBottomColor: theme.primary,
-      borderBottomWidth: 2,
-    },
-    tab: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 12,
-      minHeight: 48,
-    },
-    tabIcon: {
-      marginEnd: 8,
-    },
-    tabLabel: {
-      fontSize: 14,
-      letterSpacing: 0.5,
-      fontWeight: '400',
-    },
-    activeTabLabel: {
-      fontWeight: '500',
-    },
-    editorContainer: {
-      marginHorizontal: 16,
-      marginTop: 16,
-      minHeight: 300,
-    },
-    codeEditor: {
-      minHeight: 300,
-      maxHeight: 400,
-    },
-    codeEditorContent: {
-      fontFamily: 'monospace',
-      fontSize: 13,
-      lineHeight: 20,
-      paddingTop: 12,
-      paddingBottom: 12,
-    },
-    hint: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      padding: 12,
-      borderRadius: 8,
-      marginHorizontal: 16,
-      marginTop: 16,
-      gap: 8,
-    },
-    hintIcon: {
-      marginTop: 2,
-    },
-    hintText: {
-      flex: 1,
-      fontSize: 12,
-      lineHeight: 18,
-    },
-    actionButtons: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginHorizontal: 16,
-      marginTop: 16,
-      gap: 8,
-    },
-    button: {
-      flex: 1,
-    },
-    bottomSpacing: {
-      height: 24,
-    },
-  });
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 24,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.12)',
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    minHeight: 48,
+  },
+  tabIcon: {
+    marginEnd: 8,
+  },
+  tabLabel: {
+    fontSize: 14,
+    letterSpacing: 0.5,
+    fontWeight: '400',
+  },
+  activeTabLabel: {
+    fontWeight: '500',
+  },
+  tabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    width: '60%',
+    height: 3,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+  },
+  editorContainer: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    minHeight: 300,
+  },
+  codeEditor: {
+    minHeight: 300,
+    maxHeight: 400,
+  },
+  codeEditorContent: {
+    fontFamily: 'monospace',
+    fontSize: 13,
+    lineHeight: 20,
+    paddingTop: 12,
+    paddingBottom: 12,
+  },
+  hint: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    borderRadius: 8,
+    marginHorizontal: 16,
+    marginTop: 16,
+    gap: 8,
+  },
+  hintIcon: {
+    marginTop: 2,
+  },
+  hintText: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: 16,
+    marginTop: 16,
+    gap: 8,
+  },
+  button: {
+    flex: 1,
+  },
+  bottomSpacing: {
+    height: 24,
+  },
+});

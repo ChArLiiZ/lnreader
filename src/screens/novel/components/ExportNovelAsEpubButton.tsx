@@ -114,6 +114,7 @@ const ExportNovelAsEpubButton: React.FC<ExportNovelAsEpubButtonProps> = ({
     destinationUri: string,
     startChapter?: number,
     endChapter?: number,
+    includeChapterNumber?: boolean,
   ) => {
     if (!novel) {
       showToast(getString('novelScreen.epub.noNovelSelected'));
@@ -189,9 +190,16 @@ const ExportNovelAsEpubButton: React.FC<ExportNovelAsEpubButtonProps> = ({
             }
           }
 
+          const numberedTitle = getString('novelScreen.chapterChapnum', {
+            num: chapter.chapterNumber ?? i,
+          });
+          const sourceTitle = chapter.name?.trim();
+
           await epub.addChapter({
             title:
-              chapter.name?.trim() || `Chapter ${chapter.chapterNumber || i}`,
+              includeChapterNumber && sourceTitle
+                ? `${numberedTitle} — ${sourceTitle}`
+                : sourceTitle || numberedTitle,
             fileName: `Chapter${i}`,
             htmlBody: `<chapter data-novel-id='${novel.pluginId}' data-chapter-id='${chapter.id}'>${chapterContent}</chapter>`,
           });

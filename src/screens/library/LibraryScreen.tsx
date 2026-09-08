@@ -17,12 +17,15 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import {
   NavigationState,
   SceneRendererProps,
-  TabBar,
   TabView,
 } from 'react-native-tab-view';
-import Color from 'color';
 
-import { SearchbarV2, Button, SafeAreaView } from '@components/index';
+import {
+  SearchbarV2,
+  Button,
+  SafeAreaView,
+  TopTabBar,
+} from '@components/index';
 import { LibraryView } from './components/LibraryListView';
 import LibraryBottomSheet from './components/LibraryBottomSheet/LibraryBottomSheet';
 import { Banner } from './components/Banner';
@@ -405,7 +408,7 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
       return categories.length ? (
         <View style={styles.tabBarRow}>
           <View style={styles.tabBarFlex}>
-            <TabBar
+            <TopTabBar
               {...props}
               scrollEnabled
               indicatorStyle={styles.tabBarIndicator}
@@ -816,9 +819,7 @@ function createStyles(theme: ThemeColors) {
       flexDirection: 'row',
       alignItems: 'center',
       borderBottomWidth: 1,
-      borderBottomColor: Color(theme.isDark ? '#FFFFFF' : '#000000')
-        .alpha(0.12)
-        .string(),
+      borderBottomColor: theme.outlineVariant,
     },
     tabBarFlex: {
       flex: 1,

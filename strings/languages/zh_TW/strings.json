@@ -263,7 +263,9 @@
     "noConnection": "沒有網際網路連線",
     "noRunningTasks": "目前沒有執行中的任務",
     "remaining": "剩餘",
-    "taskQueue": "任務佇列"
+    "taskQueue": "任務佇列",
+    "imported": "Imported",
+    "saved": "Saved"
   },
   "webview": {
     "refresh": "重新整理",
@@ -432,7 +434,8 @@
       "selectFolder": "選擇 EPUB 檔案的目的資料夾",
       "startChapter": "起始章節",
       "startGreaterThanEnd": "起始章節必須小於或等於結束章節",
-      "title": "匯出小說為 EPUB"
+      "title": "匯出小說為 EPUB",
+      "includeChapterNumber": "Include chapter number in chapter titles"
     },
     "epub": {
       "exportFailed": "匯出 EPUB 失敗：%{error}",

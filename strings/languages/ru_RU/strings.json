@@ -235,7 +235,9 @@
     "sort": "Сортировка",
     "submit": "Продолжить",
     "loading": "Загрузка...",
-    "warning": "Внимание"
+    "warning": "Внимание",
+    "imported": "Imported",
+    "saved": "Saved"
   },
   "webview": {
     "refresh": "Обновить",
@@ -400,7 +402,8 @@
       "selectFolder": "Выберите папку для файла EPUB",
       "startChapter": "Начать главу",
       "startGreaterThanEnd": "Start chapter must be less than or equal to end chapter",
-      "title": "Экспорт новеллы как EPUB"
+      "title": "Экспорт новеллы как EPUB",
+      "includeChapterNumber": "Include chapter number in chapter titles"
     },
     "epub": {
       "exportFailed": "Не удалось экспортировать EPUB: %{error}",

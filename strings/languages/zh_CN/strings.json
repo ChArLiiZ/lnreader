@@ -235,7 +235,9 @@
     "sort": "排序",
     "submit": "确定",
     "loading": "正在加载...",
-    "warning": "警告"
+    "warning": "警告",
+    "imported": "Imported",
+    "saved": "Saved"
   },
   "webview": {
     "refresh": "刷新",
@@ -400,7 +402,8 @@
       "selectFolder": "选择EPUB文件的目标文件夹",
       "startChapter": "起始章节",
       "startGreaterThanEnd": "起始章节必须小于或等于结束章节",
-      "title": "将小说导出为EPUB"
+      "title": "将小说导出为EPUB",
+      "includeChapterNumber": "Include chapter number in chapter titles"
     },
     "epub": {
       "exportFailed": "导出EPUB失败：%{error}",

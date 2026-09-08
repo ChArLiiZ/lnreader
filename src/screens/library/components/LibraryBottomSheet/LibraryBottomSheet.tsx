@@ -7,7 +7,8 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { TabBar, TabDescriptor, TabView } from 'react-native-tab-view';
+import { TopTabBar } from '@components';
+import { TabDescriptor, TabView } from 'react-native-tab-view';
 import color from 'color';
 
 import { useLibrarySettings, useTheme } from '@hooks/persisted';
@@ -258,7 +259,7 @@ const LibraryBottomSheet: React.FC<LibraryBottomSheetProps> = ({
 
   const renderTabBar = useCallback(
     (props: any) => (
-      <TabBar
+      <TopTabBar
         {...props}
         indicatorStyle={{ backgroundColor: theme.primary }}
         style={[

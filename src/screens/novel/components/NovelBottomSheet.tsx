@@ -1,8 +1,9 @@
 import React, { useCallback, useState } from 'react';
+import { TopTabBar } from '@components';
 import { StyleSheet, View, Text, useWindowDimensions } from 'react-native';
 import color from 'color';
 
-import { TabView, SceneMap, TabBar, TabViewProps } from 'react-native-tab-view';
+import { TabView, SceneMap, TabViewProps } from 'react-native-tab-view';
 import { BottomSheetView } from '@gorhom/bottom-sheet';
 import BottomSheet from '@components/BottomSheet/BottomSheet';
 import { getString } from '@strings/translations';
@@ -184,7 +185,7 @@ const ChaptersSettingsSheet = ({
   ]);
 
   const renderTabBar: TabViewProps<any>['renderTabBar'] = props => (
-    <TabBar
+    <TopTabBar
       {...props}
       indicatorStyle={{ backgroundColor: theme.primary }}
       style={[

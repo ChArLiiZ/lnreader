@@ -1,14 +1,13 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, { useEffect, useMemo } from 'react';
 import { useWindowDimensions } from 'react-native';
-import { TabView, TabBar } from 'react-native-tab-view';
-import Color from 'color';
+import { TabView } from 'react-native-tab-view';
 
 import { useSearch } from '@hooks';
 import { usePlugins, useTheme } from '@hooks/persisted';
 import { getString } from '@strings/translations';
 
-import { EmptyView, SafeAreaView, SearchbarV2 } from '@components';
+import { EmptyView, SafeAreaView, SearchbarV2, TopTabBar } from '@components';
 import { BrowseScreenProps } from '@navigators/types';
 import { AvailableTab } from './components/AvailableTab';
 import { InstalledTab } from './components/InstalledTab';
@@ -95,16 +94,14 @@ const BrowseScreen = ({ navigation }: BrowseScreenProps) => {
         }}
         onIndexChange={setIndex}
         renderTabBar={props => (
-          <TabBar
+          <TopTabBar
             {...props}
             indicatorStyle={{ backgroundColor: theme.primary, height: 3 }}
             style={{
               backgroundColor: theme.surface,
               elevation: 0,
               borderBottomWidth: 1,
-              borderBottomColor: Color(theme.isDark ? '#FFFFFF' : '#000000')
-                .alpha(0.12)
-                .string(),
+              borderBottomColor: theme.outlineVariant,
             }}
             inactiveColor={theme.secondary}
             activeColor={theme.primary}
