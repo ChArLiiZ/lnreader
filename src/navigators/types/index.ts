@@ -101,6 +101,7 @@ export type ReaderStackParamList = {
         pluginId: string;
         cover?: string;
         isLocal?: boolean;
+        inLibrary?: boolean;
       }
     | NovelInfo;
   Chapter: {

@@ -534,7 +534,7 @@ export const getDetailedUpdatesFromDb = async (
     `
 SELECT
   Chapter.*,
-  pluginId, Novel.id as novelId, Novel.name as novelName, Novel.path as novelPath, cover as novelCover
+  pluginId, Novel.id as novelId, Novel.name as novelName, Novel.path as novelPath, cover as novelCover, Novel.inLibrary
 FROM
   Chapter
 JOIN

@@ -7,7 +7,7 @@ import { db } from '@database/db';
 export const getHistoryFromDb = () =>
   db.getAllAsync<History>(`
     SELECT 
-      Chapter.*, Novel.pluginId, Novel.name as novelName, Novel.path as novelPath, Novel.cover as novelCover, Novel.id as novelId
+      Chapter.*, Novel.pluginId, Novel.name as novelName, Novel.path as novelPath, Novel.cover as novelCover, Novel.id as novelId, Novel.inLibrary
     FROM Chapter 
     JOIN Novel
     ON Chapter.novelId = Novel.id AND Chapter.readTime IS NOT NULL

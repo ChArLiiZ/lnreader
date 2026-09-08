@@ -48,6 +48,9 @@ type NovelScreenListProps = {
     path: string;
     pluginId: string;
     cover?: string;
+    // Carried through navigation so the screen does not flash "add to
+    // library" for a novel that is already in it, before the fetch lands.
+    inLibrary?: boolean;
   };
 };
 

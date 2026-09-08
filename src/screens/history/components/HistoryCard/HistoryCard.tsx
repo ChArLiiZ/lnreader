@@ -55,6 +55,7 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
                 path: history.novelPath,
                 cover: history.novelCover,
                 pluginId: history.pluginId,
+                inLibrary: history.inLibrary ?? undefined,
               },
             })
           }

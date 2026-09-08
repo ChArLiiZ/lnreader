@@ -119,6 +119,7 @@ const UpdateNovelCard: React.FC<UpdateCardProps> = ({
           path: chapterList[0].novelPath,
           cover: chapterList[0].novelCover,
           name: chapterList[0].novelName,
+          inLibrary: chapterList[0].inLibrary ?? undefined,
         },
       });
     }
