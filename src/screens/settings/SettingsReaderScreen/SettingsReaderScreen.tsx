@@ -294,7 +294,6 @@ const SettingsReaderScreen = () => {
       <BottomSheet
         bottomSheetRef={bottomSheetRef}
         snapPoints={[BOTTOM_SHEET_HEIGHT]}
-        enablePanDownToClose={true}
       >
         <View
           style={[

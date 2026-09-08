@@ -207,11 +207,7 @@ const ChaptersSettingsSheet = ({
     [],
   );
   return (
-    <BottomSheet
-      snapPoints={[240]}
-      bottomSheetRef={bottomSheetRef}
-      backgroundStyle={styles.transparent}
-    >
+    <BottomSheet snapPoints={[240]} bottomSheetRef={bottomSheetRef}>
       <BottomSheetView
         style={[
           styles.contentContainer,

@@ -29,7 +29,6 @@ import ReaderValueChange from './ReaderValueChange';
 import ReaderFontPicker from './ReaderFontPicker';
 import TTSTab from './TTSTab';
 import { overlay } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { StringMap } from '@strings/types';
 
@@ -138,11 +137,9 @@ const ReaderBottomSheetV2: React.FC<ReaderBottomSheetV2Props> = ({
   bottomSheetRef,
 }) => {
   const theme = useTheme();
-  const { bottom, left, right } = useSafeAreaInsets();
   const layout = useWindowDimensions();
 
   const tabHeaderColor = overlay(2, theme.surface);
-  const backgroundColor = tabHeaderColor;
 
   const renderScene = useMemo(
     () =>
@@ -175,16 +172,7 @@ const ReaderBottomSheetV2: React.FC<ReaderBottomSheetV2Props> = ({
   }, []);
 
   return (
-    <BottomSheet
-      bottomSheetRef={bottomSheetRef}
-      snapPoints={[360, 600]}
-      backgroundStyle={{ backgroundColor }}
-      bottomInset={bottom}
-      containerStyle={[
-        styles.container,
-        { marginLeft: left, marginRight: right },
-      ]}
-    >
+    <BottomSheet bottomSheetRef={bottomSheetRef} snapPoints={[360, 600]}>
       <BottomSheetView style={styles.flex}>
         <TabView
           commonOptions={{

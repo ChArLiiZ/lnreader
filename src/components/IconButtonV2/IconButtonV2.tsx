@@ -1,5 +1,11 @@
 import React from 'react';
-import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
+import {
+  GestureResponderEvent,
+  Pressable,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
 import Color from 'color';
 
@@ -13,6 +19,8 @@ type Props = {
   disabled?: boolean;
   padding?: number;
   onPress?: () => void;
+  /** Fires before the press is released, so a drag can start immediately. */
+  onPressIn?: (event: GestureResponderEvent) => void;
   theme: ThemeColors;
   style?: ViewStyle;
 };
@@ -23,6 +31,7 @@ const IconButton: React.FC<Props> = ({
   size = 24,
   padding = 8,
   onPress,
+  onPressIn,
   disabled,
   theme,
   style,
@@ -31,9 +40,10 @@ const IconButton: React.FC<Props> = ({
     <Pressable
       style={[styles.pressable, { padding }]}
       onPress={onPress}
+      onPressIn={onPressIn}
       disabled={disabled}
       android_ripple={
-        onPress
+        onPress || onPressIn
           ? { color: Color(theme.primary).alpha(0.12).string() }
           : undefined
       }

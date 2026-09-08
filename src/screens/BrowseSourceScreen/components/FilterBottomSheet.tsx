@@ -25,7 +25,6 @@ import { Chip, TextInput, overlay } from 'react-native-paper';
 import { getValueFor } from './filterUtils';
 import { getString } from '@strings/translations';
 import { ThemeColors } from '@theme/types';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Switch from '@components/Switch/Switch';
 
 const insertOrRemoveIntoArray = (array: string[], val: string): string[] =>
@@ -470,7 +469,6 @@ const FilterBottomSheet: React.FC<BottomSheetProps> = ({
   setFilters,
 }) => {
   const theme = useTheme();
-  const { bottom } = useSafeAreaInsets();
   const [selectedFilters, setSelectedFilters] =
     useState<SelectedFilters>(filters);
 
@@ -478,11 +476,9 @@ const FilterBottomSheet: React.FC<BottomSheetProps> = ({
     <BottomSheet
       bottomSheetRef={filterSheetRef}
       snapPoints={[400, 600]}
-      bottomInset={bottom}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
-      handleComponent={null}
       children={
         <View style={styles.flex}>
           <View
