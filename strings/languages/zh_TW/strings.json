@@ -424,7 +424,8 @@
       "filters": {
         "bookmarked": "已加入書籤",
         "downloaded": "已下載",
-        "unread": "未讀"
+        "unread": "未讀",
+        "scanlators": "Ignore scanlators"
       },
       "order": {
         "byChapterName": "依章節名稱",

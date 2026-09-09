@@ -8,6 +8,19 @@ import {
 import { ChapterItem } from '@plugins/types';
 
 import { getString } from '@strings/translations';
+
+/**
+ * The plugin boundary already flattens lists, but chapters also reach here
+ * from backups and older callers.
+ */
+const normalizeScanlator = (
+  scanlator: string | string[] | null | undefined,
+): string | null => {
+  if (Array.isArray(scanlator)) {
+    return scanlator.filter(Boolean).join(', ') || null;
+  }
+  return scanlator?.trim() || null;
+};
 import { NOVEL_STORAGE } from '@utils/Storages';
 import { db } from '@database/db';
 import NativeFile from '@specs/NativeFile';
@@ -56,7 +69,9 @@ export const insertChapters = async (
     // Phase 1: Batch INSERT OR IGNORE — skip already-existing rows
     for (let i = 0; i < chapters.length; i += BATCH_SIZE) {
       const batch = chapters.slice(i, i + BATCH_SIZE);
-      const placeholders = batch.map(() => '(?, ?, ?, ?, ?, ?, ?)').join(', ');
+      const placeholders = batch
+        .map(() => '(?, ?, ?, ?, ?, ?, ?, ?)')
+        .join(', ');
       const params: (string | number | null)[] = [];
 
       for (let j = 0; j < batch.length; j++) {
@@ -70,11 +85,12 @@ export const insertChapters = async (
           chapter.chapterNumber || null,
           chapter.page || '1',
           index,
+          normalizeScanlator(chapter.scanlator),
         );
       }
 
       await db.runAsync(
-        `INSERT OR IGNORE INTO Chapter (path, name, releaseTime, novelId, chapterNumber, page, position)
+        `INSERT OR IGNORE INTO Chapter (path, name, releaseTime, novelId, chapterNumber, page, position, scanlator)
          VALUES ${placeholders}`,
         params,
       );
@@ -87,17 +103,19 @@ export const insertChapters = async (
       const chapterPage = chapter.page || '1';
       const releaseTime = chapter.releaseTime || '';
       const chapterNumber = chapter.chapterNumber || null;
+      const scanlator = normalizeScanlator(chapter.scanlator);
 
       await db.runAsync(
         `UPDATE Chapter SET
-           page = ?, position = ?, name = ?, releaseTime = ?, chapterNumber = ?
+           page = ?, position = ?, name = ?, releaseTime = ?, chapterNumber = ?, scanlator = ?
          WHERE path = ? AND novelId = ?
-           AND (page != ? OR position != ? OR name != ? OR releaseTime != ? OR chapterNumber != ? OR (chapterNumber IS NULL) != (? IS NULL))`,
+           AND (page != ? OR position != ? OR name != ? OR releaseTime != ? OR chapterNumber != ? OR (chapterNumber IS NULL) != (? IS NULL) OR scanlator IS NOT ?)`,
         chapterPage,
         index,
         chapterName,
         releaseTime,
         chapterNumber,
+        scanlator,
         chapter.path,
         novelId,
         chapterPage,
@@ -106,6 +124,7 @@ export const insertChapters = async (
         releaseTime,
         chapterNumber,
         chapterNumber,
+        scanlator,
       );
     }
   });
@@ -310,16 +329,29 @@ export const getChapter = (chapterId: number) =>
     chapterId,
   );
 
+/**
+ * Scanlator names come from plugin output, so they are bound as parameters
+ * rather than inlined the way `filter` and `sort` are. Chapters with no
+ * scanlator are never excluded — there is nothing to exclude them by.
+ */
+const scanlatorExclusionClause = (excludedScanlators?: string[]) =>
+  excludedScanlators?.length
+    ? ` AND (scanlator IS NULL OR scanlator = '' OR scanlator NOT IN (${excludedScanlators
+        .map(() => '?')
+        .join(', ')}))`
+    : '';
+
 const getPageChaptersQuery = (
   sort = 'ORDER BY position ASC',
   filter = '',
   limit?: number,
   offset?: number,
+  excludedScanlators?: string[],
 ) =>
   `
     SELECT * FROM Chapter 
     WHERE novelId = ? AND page = ? 
-    ${filter} ${sort} 
+    ${filter}${scanlatorExclusionClause(excludedScanlators)} ${sort} 
     ${limit ? `LIMIT ${limit}` : ''} 
     ${offset ? `OFFSET ${offset}` : ''}`;
 
@@ -330,11 +362,13 @@ export const getPageChapters = (
   page?: string,
   offset?: number,
   limit?: number,
+  excludedScanlators?: string[],
 ) => {
   return db.getAllAsync<ChapterInfo>(
-    getPageChaptersQuery(sort, filter, limit, offset),
+    getPageChaptersQuery(sort, filter, limit, offset, excludedScanlators),
     novelId,
     page || '1',
+    ...(excludedScanlators ?? []),
   );
 };
 
@@ -353,12 +387,25 @@ export const getPageChaptersBatched = (
   filter?: string,
   page?: string,
   batch: number = 0,
+  excludedScanlators?: string[],
 ) => {
   return db.getAllAsync<ChapterInfo>(
-    getPageChaptersQuery(sort, filter, 300, 300 * batch),
+    getPageChaptersQuery(sort, filter, 300, 300 * batch, excludedScanlators),
     novelId,
     page || '1',
+    ...(excludedScanlators ?? []),
   );
+};
+
+/** The distinct scanlators present for a novel, for the filter list. */
+export const getNovelScanlators = async (
+  novelId: number,
+): Promise<string[]> => {
+  const rows = await db.getAllAsync<{ scanlator: string }>(
+    "SELECT DISTINCT scanlator FROM Chapter WHERE novelId = ? AND scanlator IS NOT NULL AND scanlator != '' ORDER BY scanlator",
+    novelId,
+  );
+  return rows.map(row => row.scanlator);
 };
 
 export const getLatestChapterReleaseTime = async (

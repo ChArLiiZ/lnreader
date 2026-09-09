@@ -59,6 +59,8 @@ export interface NovelItem {
 }
 
 export interface ChapterItem {
+  /** Plugins may report one group or several; several are stored joined. */
+  scanlator?: string | string[];
   name: string;
   path: string;
   chapterNumber?: number;

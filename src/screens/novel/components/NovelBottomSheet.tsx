@@ -23,6 +23,9 @@ interface ChaptersSettingsSheetProps {
   theme: ThemeColors;
   showChapterTitles: boolean;
   setShowChapterTitles: (v: boolean) => void;
+  scanlators: string[];
+  excludedScanlators: string[];
+  setExcludedScanlators: (scanlators: string[]) => void;
 }
 
 const ChaptersSettingsSheet = ({
@@ -33,6 +36,9 @@ const ChaptersSettingsSheet = ({
   theme,
   showChapterTitles,
   setShowChapterTitles,
+  scanlators,
+  excludedScanlators,
+  setExcludedScanlators,
 }: ChaptersSettingsSheetProps) => {
   const { left, right } = useSafeAreaInsets();
   const sortChapters = useCallback(
@@ -104,9 +110,39 @@ const ChaptersSettingsSheet = ({
             );
           }}
         />
+        {scanlators.length > 0 ? (
+          <>
+            <Text style={[styles.sectionHeader, { color: theme.onSurface }]}>
+              {getString('novelScreen.bottomSheet.filters.scanlators')}
+            </Text>
+            {scanlators.map(scanlator => (
+              <Checkbox
+                key={scanlator}
+                theme={theme}
+                label={scanlator}
+                // Checked means shown, so the stored list is the inverse.
+                status={!excludedScanlators.includes(scanlator)}
+                onPress={() =>
+                  setExcludedScanlators(
+                    excludedScanlators.includes(scanlator)
+                      ? excludedScanlators.filter(name => name !== scanlator)
+                      : [...excludedScanlators, scanlator],
+                  )
+                }
+              />
+            ))}
+          </>
+        ) : null}
       </View>
     ),
-    [filter, filterChapters, theme],
+    [
+      excludedScanlators,
+      filter,
+      filterChapters,
+      scanlators,
+      setExcludedScanlators,
+      theme,
+    ],
   );
 
   const SecondRoute = useCallback(
@@ -238,6 +274,13 @@ const ChaptersSettingsSheet = ({
 export default ChaptersSettingsSheet;
 
 const styles = StyleSheet.create({
+  sectionHeader: {
+    fontSize: 14,
+    fontWeight: '600',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 4,
+  },
   contentContainer: {
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,

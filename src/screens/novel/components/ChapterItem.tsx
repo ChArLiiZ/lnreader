@@ -167,17 +167,33 @@ const ChapterItem: React.FC<ChapterItemProps> = ({
                   {formatDate(releaseTime, dateFormat, relativeTimestamps)}
                 </Text>
               ) : null}
+              {chapter.scanlator && !isUpdateCard ? (
+                <Text
+                  style={[
+                    { color: releaseColor },
+                    styles.text,
+                    styles.metaTopMargin,
+                    releaseTime ? styles.metaStartMargin : undefined,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {releaseTime ? '•  ' : null}
+                  {chapter.scanlator}
+                </Text>
+              ) : null}
               {!isUpdateCard && progress && progress > 0 && chapter.unread ? (
                 <Text
                   style={[
                     styles.text,
                     styles.metaTopMargin,
                     { color: theme.outline },
-                    chapter.releaseTime ? styles.metaStartMargin : undefined,
+                    chapter.releaseTime || chapter.scanlator
+                      ? styles.metaStartMargin
+                      : undefined,
                   ]}
                   numberOfLines={1}
                 >
-                  {chapter.releaseTime ? '•  ' : null}
+                  {chapter.releaseTime || chapter.scanlator ? '•  ' : null}
                   {getString('novelScreen.progress', { progress })}
                 </Text>
               ) : null}

@@ -3,6 +3,7 @@ import ChapterItem from './ChapterItem';
 import NovelInfoHeader from './Info/NovelInfoHeader';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { pickCustomNovelCover } from '@database/queries/NovelQueries';
+import { getNovelScanlators } from '@database/queries/ChapterQueries';
 import { ChapterInfo, NovelInfo } from '@database/types';
 import { useBoolean } from '@hooks/index';
 import { useAppSettings, useDownload, useTheme } from '@hooks/persisted';
@@ -78,6 +79,7 @@ const NovelScreenList = ({
     setNovel,
     sortAndFilterChapters,
     setShowChapterTitles,
+    setExcludedScanlators,
     novel: fetchedNovel,
     batchInformation,
     pageIndex,
@@ -95,6 +97,25 @@ const NovelScreenList = ({
     id: 'NO_ID',
   };
   const novel = fetchedNovel ?? routeNovel;
+
+  // Scanlators are read from the stored chapters, so the filter list only ever
+  // offers groups this novel actually has.
+  const [scanlators, setScanlators] = useState<string[]>([]);
+  useEffect(() => {
+    if (novel.id === 'NO_ID') {
+      setScanlators([]);
+      return;
+    }
+    let cancelled = false;
+    getNovelScanlators(novel.id).then(result => {
+      if (!cancelled) {
+        setScanlators(result);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [novel.id, chapters]);
   const [updating, setUpdating] = useState(false);
   const {
     useFabForContinueReading,
@@ -536,6 +557,9 @@ const NovelScreenList = ({
             bottomSheetRef={novelBottomSheetRef}
             sortAndFilterChapters={sortAndFilterChapters}
             setShowChapterTitles={setShowChapterTitles}
+            scanlators={scanlators}
+            excludedScanlators={novelSettings.excludedScanlators ?? []}
+            setExcludedScanlators={setExcludedScanlators}
             sort={sort}
             theme={theme}
             filter={filter}

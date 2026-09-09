@@ -35,6 +35,7 @@ export interface LibraryNovelInfo extends DBNovelInfo {
 }
 
 export interface ChapterInfo {
+  scanlator?: string | null;
   id: number;
   novelId: number;
   path: string;

@@ -106,13 +106,17 @@ const updateNovelChapters = async (
         releaseTime,
         page: customPage,
         chapterNumber,
+        scanlator,
       } = chapters[position];
       const chapterPage = page || customPage || '1';
+      const chapterScanlator = Array.isArray(scanlator)
+        ? scanlator.filter(Boolean).join(', ') || null
+        : scanlator?.trim() || null;
 
       const result = await db.runAsync(
         `
-          INSERT INTO Chapter (path, name, releaseTime, novelId, updatedTime, chapterNumber, page, position)
-          SELECT ?, ?, ?, ?, datetime('now','localtime'), ?, ?, ?
+          INSERT INTO Chapter (path, name, releaseTime, novelId, updatedTime, chapterNumber, page, position, scanlator)
+          SELECT ?, ?, ?, ?, datetime('now','localtime'), ?, ?, ?, ?
           WHERE NOT EXISTS (SELECT id FROM Chapter WHERE path = ? AND novelId = ?);
         `,
         path,
@@ -122,6 +126,7 @@ const updateNovelChapters = async (
         chapterNumber || null,
         chapterPage,
         position,
+        chapterScanlator,
         path,
         novelId,
       );

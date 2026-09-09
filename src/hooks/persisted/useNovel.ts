@@ -56,6 +56,8 @@ export interface NovelSettings {
   sort?: string;
   filter?: string;
   showChapterTitles?: boolean;
+  /** Scanlators whose chapters are hidden for this novel. */
+  excludedScanlators?: string[];
 }
 
 // #endregion
@@ -194,13 +196,22 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
     async (sort?: string, filter?: string) => {
       if (novel) {
         setNovelSettings({
-          showChapterTitles: novelSettings?.showChapterTitles,
+          ...novelSettings,
           sort,
           filter,
         });
       }
     },
-    [novel, novelSettings?.showChapterTitles, setNovelSettings],
+    [novel, novelSettings, setNovelSettings],
+  );
+
+  const setExcludedScanlators = useCallback(
+    (excludedScanlators: string[]) => {
+      if (novel) {
+        setNovelSettings({ ...novelSettings, excludedScanlators });
+      }
+    },
+    [novel, novelSettings, setNovelSettings],
   );
 
   const setShowChapterTitles = useCallback(
@@ -256,12 +267,15 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
         novelSettings.filter,
         page,
       ] as const;
+      const excludedScanlators = novelSettings.excludedScanlators;
 
       let chapterCount = await getChapterCount(novel.id, page);
 
       if (chapterCount) {
         try {
-          newChapters = (await getPageChaptersBatched(...config)) || [];
+          newChapters =
+            (await getPageChaptersBatched(...config, 0, excludedScanlators)) ||
+            [];
         } catch (error) {
           console.error('teaser', error);
         }
@@ -277,7 +291,12 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
           };
         });
         await insertChapters(novel.id, sourceChapters);
-        newChapters = await _getPageChapters(...config);
+        newChapters = await _getPageChapters(
+          ...config,
+          undefined,
+          undefined,
+          excludedScanlators,
+        );
         chapterCount = await getChapterCount(novel.id, page);
       }
 
@@ -302,6 +321,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
     novel,
     novelPath,
     novelSettings.filter,
+    novelSettings.excludedScanlators,
     pageIndex,
     pages,
     pluginId,
@@ -323,6 +343,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
             novelSettings.filter,
             page,
             nextBatch,
+            novelSettings.excludedScanlators,
           )) || [];
       } catch (error) {
         console.error('teaser', error);
@@ -335,6 +356,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
     extendChapters,
     novel,
     novelSettings.filter,
+    novelSettings.excludedScanlators,
     pageIndex,
     pages,
     settingsSort,
@@ -651,6 +673,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
       markPreviousChaptersUnread,
       markChaptersUnread,
       setShowChapterTitles,
+      setExcludedScanlators,
       refreshChapters,
       updateChapter,
       updateChapterProgress,
@@ -684,6 +707,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
       markPreviousChaptersUnread,
       markChaptersUnread,
       setShowChapterTitles,
+      setExcludedScanlators,
       refreshChapters,
       updateChapter,
       updateChapterProgress,

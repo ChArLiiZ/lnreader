@@ -392,7 +392,8 @@
       "filters": {
         "bookmarked": "Signet",
         "downloaded": "Téléchargé",
-        "unread": "Non lu"
+        "unread": "Non lu",
+        "scanlators": "Ignore scanlators"
       },
       "order": {
         "byChapterName": "Par nom de chapitre",

@@ -1,6 +1,21 @@
 import { getPlugin } from '@plugins/pluginManager';
 import { isUrlAbsolute } from '@plugins/helpers/isAbsoluteUrl';
-import { CommentItem } from '@plugins/types';
+import { ChapterItem, CommentItem } from '@plugins/types';
+
+/**
+ * Plugins may report a chapter's scanlator as a list. It is stored as one
+ * string, so flatten it at the boundary rather than in every consumer.
+ */
+function formatChapters<T extends ChapterItem[] | undefined>(chapters: T): T {
+  if (!chapters) {
+    return undefined as T;
+  }
+  return chapters.map(chapter =>
+    Array.isArray(chapter.scanlator)
+      ? { ...chapter, scanlator: chapter.scanlator.filter(Boolean).join(', ') }
+      : chapter,
+  ) as T;
+}
 
 export const fetchNovel = async (pluginId: string, novelPath: string) => {
   const plugin = getPlugin(pluginId);
@@ -8,6 +23,9 @@ export const fetchNovel = async (pluginId: string, novelPath: string) => {
     throw new Error(`Unknown plugin: ${pluginId}`);
   }
   const res = await plugin.parseNovel(novelPath);
+  if (res?.chapters) {
+    res.chapters = formatChapters(res.chapters);
+  }
   return res;
 };
 
@@ -26,7 +44,7 @@ export const fetchChapters = async (pluginId: string, novelPath: string) => {
     throw new Error(`Unknown plugin: ${pluginId}`);
   }
   const res = await plugin.parseNovel(novelPath);
-  return res?.chapters;
+  return formatChapters(res?.chapters);
 };
 
 export const fetchPage = async (
@@ -44,6 +62,9 @@ export const fetchPage = async (
     throw new Error(`Could not fetch chapters for page ${page}`);
   }
   const res = await plugin.parsePage(novelPath, page);
+  if (res?.chapters) {
+    res.chapters = formatChapters(res.chapters);
+  }
   return res;
 };
 
