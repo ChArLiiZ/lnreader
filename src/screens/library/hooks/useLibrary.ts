@@ -33,6 +33,8 @@ export type UseLibraryReturnType = {
   novelInLibrary: (pluginId: string, novelPath: string) => boolean;
   switchNovelToLibrary: (novelPath: string, pluginId: string) => Promise<void>;
   refetchLibrary: () => void;
+  /** Refetch on next focus rather than immediately. */
+  markLibraryDirty: () => void;
   setLibrarySearchText: (text: string) => void;
   /** Subcategory filter */
   selectedSubCategoryIds: Set<number>;
@@ -282,6 +284,9 @@ export const useLibrary = (): UseLibraryReturnType => {
     refetchLibrary: () => {
       isDirtyRef.current = true;
       getLibrary();
+    },
+    markLibraryDirty: () => {
+      isDirtyRef.current = true;
     },
     setLibrarySearchText: (text: string) => {
       isDirtyRef.current = true;

@@ -31,6 +31,7 @@ type LibraryActionsContextType = {
   novelInLibrary: (pluginId: string, novelPath: string) => boolean;
   switchNovelToLibrary: (novelPath: string, pluginId: string) => Promise<void>;
   refetchLibrary: () => void;
+  markLibraryDirty: () => void;
   setLibrarySearchText: (text: string) => void;
   toggleSubCategoryFilter: (subCategoryId: number) => void;
   toggleShowAllSubCategories: () => void;
@@ -72,6 +73,7 @@ export function LibraryContextProvider({
     novelInLibrary,
     switchNovelToLibrary,
     refetchLibrary,
+    markLibraryDirty,
     setLibrarySearchText,
     toggleSubCategoryFilter,
     toggleShowAllSubCategories,
@@ -107,6 +109,7 @@ export function LibraryContextProvider({
       novelInLibrary,
       switchNovelToLibrary,
       refetchLibrary,
+      markLibraryDirty,
       setLibrarySearchText,
       toggleSubCategoryFilter,
       toggleShowAllSubCategories,
@@ -120,6 +123,7 @@ export function LibraryContextProvider({
       novelInLibrary,
       switchNovelToLibrary,
       refetchLibrary,
+      markLibraryDirty,
       setLibrarySearchText,
       toggleSubCategoryFilter,
       toggleShowAllSubCategories,

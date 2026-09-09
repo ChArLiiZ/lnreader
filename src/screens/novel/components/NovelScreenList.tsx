@@ -4,6 +4,7 @@ import NovelInfoHeader from './Info/NovelInfoHeader';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { pickCustomNovelCover } from '@database/queries/NovelQueries';
 import { getNovelScanlators } from '@database/queries/ChapterQueries';
+import { useLibraryContext } from '@components/Context/LibraryContext';
 import { ChapterInfo, NovelInfo } from '@database/types';
 import { useBoolean } from '@hooks/index';
 import { useAppSettings, useDownload, useTheme } from '@hooks/persisted';
@@ -97,6 +98,7 @@ const NovelScreenList = ({
     id: 'NO_ID',
   };
   const novel = fetchedNovel ?? routeNovel;
+  const { markLibraryDirty } = useLibraryContext();
 
   // Scanlators are read from the stored chapters, so the filter list only ever
   // offers groups this novel actually has.
@@ -261,17 +263,22 @@ const NovelScreenList = ({
   const handleDeleteChapter = useCallback(
     (chapter: ChapterInfo) => {
       deleteChapter(chapter);
+      // The library's downloaded counts come from the Novel row, which the
+      // chapter triggers keep correct — but the list in memory does not
+      // refetch unless it is marked stale.
+      markLibraryDirty();
     },
-    [deleteChapter],
+    [deleteChapter, markLibraryDirty],
   );
 
   const handleDownloadChapter = useCallback(
     (chapter: ChapterInfo) => {
       if (novel && novel.id !== 'NO_ID') {
         downloadChapter(novel, chapter);
+        markLibraryDirty();
       }
     },
-    [novel, downloadChapter],
+    [novel, downloadChapter, markLibraryDirty],
   );
 
   const onRefresh = useCallback(async () => {
