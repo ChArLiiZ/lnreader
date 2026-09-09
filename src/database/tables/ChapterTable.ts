@@ -14,6 +14,8 @@ export const createChapterTableQuery = `
         page TEXT DEFAULT "1",
         position INTEGER DEFAULT 0,
         progress INTEGER,
+        scanlator TEXT,
+        timeSpent INTEGER DEFAULT 0,
         UNIQUE(path, novelId),
         FOREIGN KEY (novelId) REFERENCES Novel(id) ON DELETE CASCADE
     )
@@ -23,6 +25,12 @@ export const createChapterIndexQuery = `
     CREATE INDEX
     IF NOT EXISTS
     chapterNovelIdIndex ON Chapter(novelId, position,page, id)
+`;
+
+export const createChapterScanlatorIndexQuery = `
+    CREATE INDEX
+    IF NOT EXISTS
+    idx_chapter_scanlator ON Chapter(novelId, scanlator)
 `;
 
 export const dropChapterIndexQuery = `

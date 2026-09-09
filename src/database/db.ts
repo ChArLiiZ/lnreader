@@ -16,6 +16,7 @@ import { createNovelCategoryTableQuery } from './tables/NovelCategoryTable';
 import {
   createChapterTableQuery,
   createChapterIndexQuery,
+  createChapterScanlatorIndexQuery,
   dropChapterIndexQuery,
 } from './tables/ChapterTable';
 
@@ -47,6 +48,7 @@ const createInitialSchema = () => {
     db.runSync(createChapterTableQuery);
     db.runSync(createCategoryTriggerQuery);
     db.runSync(createChapterIndexQuery);
+    db.runSync(createChapterScanlatorIndexQuery);
     db.runSync(createRepositoryTableQuery);
     db.runSync(createNovelTriggerQueryInsert);
     db.runSync(createNovelTriggerQueryUpdate);
@@ -111,6 +113,7 @@ export const recreateDatabaseIndexes = () => {
       db.runSync(dropChapterIndexQuery);
       db.runSync(createNovelIndexQuery);
       db.runSync(createChapterIndexQuery);
+      db.runSync(createChapterScanlatorIndexQuery);
     });
   } catch (error: unknown) {
     showToast(getErrorMessage(error));

@@ -8,6 +8,7 @@ import { migration007 } from './007_fix_category_unique_constraint_v2';
 import { migration008 } from './008_add_novel_category_indexes';
 import { migration009 } from './009_add_novel_rating_wordcount';
 import { migration010 } from './010_restore_fork_schema_from_drizzle';
+import { migration011 } from './011_add_scanlator_timespent_repo_enabled';
 
 /**
  * Registry of all database migrations
@@ -28,4 +29,5 @@ export const migrations: Migration[] = [
   migration008,
   migration009,
   migration010,
+  migration011,
 ];
