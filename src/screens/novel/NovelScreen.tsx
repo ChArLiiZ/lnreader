@@ -49,6 +49,7 @@ const Novel = ({ route, navigation }: NovelScreenProps) => {
     markPreviousChaptersUnread,
     refreshChapters,
     deleteChapters,
+    getAllFilteredChapters,
   } = useNovelContext();
 
   const theme = useTheme();
@@ -243,7 +244,9 @@ const Novel = ({ route, navigation }: NovelScreenProps) => {
   );
   const hideEditInfoModal = useCallback(() => showEditInfoModal(false), []);
   const clearSelection = useCallback(() => setSelected([]), []);
-  const selectAll = useCallback(() => setSelected(chapters), [chapters]);
+  const selectAll = useCallback(async () => {
+    setSelected(await getAllFilteredChapters());
+  }, [getAllFilteredChapters]);
 
   const snackbarTheme = useMemo(
     () => ({ colors: { primary: theme.primary } }),

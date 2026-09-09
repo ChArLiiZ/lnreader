@@ -1,4 +1,5 @@
 import * as DocumentPicker from 'expo-document-picker';
+import { BUILT_IN_CATEGORY_IDS } from '@database/constants';
 
 import { fetchNovel } from '@services/plugin/fetch';
 import { insertChapters } from './ChapterQueries';
@@ -197,8 +198,9 @@ export const restoreLibrary = async (novel: NovelInfo) => {
 
   if (novelId && novelId > 0) {
     await db.runAsync(
-      'INSERT OR REPLACE INTO NovelCategory (novelId, categoryId) VALUES (?, (SELECT DISTINCT id FROM Category WHERE sort = 1))',
+      'INSERT OR REPLACE INTO NovelCategory (novelId, categoryId) VALUES (?, ?)',
       novelId,
+      BUILT_IN_CATEGORY_IDS.default,
     );
     await db.runAsync('UPDATE Novel SET inLibrary = 1 WHERE id = ?', novelId);
 
@@ -281,6 +283,13 @@ export const updateNovelCategories = async (
   novelIds: number[],
   categoryIds: number[],
 ): Promise<void> => {
+  // Assigning a category is how a novel gets added from the browse screen, so
+  // it has to land in the library too — otherwise it acquires categories while
+  // staying outside it.
+  await db.runAsync(
+    `UPDATE Novel SET inLibrary = 1 WHERE id IN (${novelIds.join(',')})`,
+  );
+
   await db.runAsync(
     `DELETE FROM NovelCategory WHERE novelId IN (${novelIds.join(
       ',',

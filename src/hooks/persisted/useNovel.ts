@@ -205,6 +205,33 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
     [novel, novelSettings, setNovelSettings],
   );
 
+  // "Select all" must mean every chapter matching the current page and
+  // filters, not just the batches loaded so far.
+  const getAllFilteredChapters = useCallback(async () => {
+    const page = pages[pageIndex];
+    if (!novel || !page) {
+      return [];
+    }
+    return (
+      (await _getPageChapters(
+        novel.id,
+        settingsSort,
+        novelSettings.filter,
+        page,
+        undefined,
+        undefined,
+        novelSettings.excludedScanlators,
+      )) ?? []
+    );
+  }, [
+    novel,
+    novelSettings.excludedScanlators,
+    novelSettings.filter,
+    pageIndex,
+    pages,
+    settingsSort,
+  ]);
+
   const setExcludedScanlators = useCallback(
     (excludedScanlators: string[]) => {
       if (novel) {
@@ -269,7 +296,15 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
       ] as const;
       const excludedScanlators = novelSettings.excludedScanlators;
 
-      let chapterCount = await getChapterCount(novel.id, page);
+      // Counted with the same filter the list uses: an unfiltered count made
+      // the displayed total wrong and had the batch loader chasing batches
+      // that do not exist.
+      let chapterCount = await getChapterCount(
+        novel.id,
+        page,
+        novelSettings.filter,
+        excludedScanlators,
+      );
 
       if (chapterCount) {
         try {
@@ -297,7 +332,12 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
           undefined,
           excludedScanlators,
         );
-        chapterCount = await getChapterCount(novel.id, page);
+        chapterCount = await getChapterCount(
+          novel.id,
+          page,
+          novelSettings.filter,
+          excludedScanlators,
+        );
       }
 
       setBatchInformation({
@@ -674,6 +714,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
       markChaptersUnread,
       setShowChapterTitles,
       setExcludedScanlators,
+      getAllFilteredChapters,
       refreshChapters,
       updateChapter,
       updateChapterProgress,
@@ -708,6 +749,7 @@ export const useNovel = (novelOrPath: string | NovelInfo, pluginId: string) => {
       markChaptersUnread,
       setShowChapterTitles,
       setExcludedScanlators,
+      getAllFilteredChapters,
       refreshChapters,
       updateChapter,
       updateChapterProgress,

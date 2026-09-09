@@ -106,7 +106,8 @@ const CategoriesScreen = () => {
     const updatedOrderCategories = [...systemCategories, ...data].map(
       (category, index) => ({
         ...category,
-        sort: index,
+        // 1-based, matching the built-in categories and the sort trigger.
+        sort: index + 1,
       }),
     );
 

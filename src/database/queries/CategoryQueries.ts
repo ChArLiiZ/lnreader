@@ -158,9 +158,12 @@ export const updateCategoryOrderInDb = (categories: Category[]): void => {
   if (categories.length && categories[0].id === 2) {
     return;
   }
-  for (const c of categories) {
-    db.runSync(updateCategoryOrderQuery, c.sort, c.id);
-  }
+  // The row's position is authoritative, not whatever `sort` it arrived with.
+  // Sort is 1-based: the built-in default category is sort 1, and a 0-based
+  // write left nothing at 1 for lookups that expect it.
+  categories.forEach((category, index) => {
+    db.runSync(updateCategoryOrderQuery, index + 1, category.id);
+  });
 };
 
 export const getAllNovelCategories = () =>

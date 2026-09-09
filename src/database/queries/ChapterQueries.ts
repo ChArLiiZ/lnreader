@@ -372,12 +372,20 @@ export const getPageChapters = (
   );
 };
 
-export const getChapterCount = async (novelId: number, page: string = '1') =>
+export const getChapterCount = async (
+  novelId: number,
+  page: string = '1',
+  filter?: string,
+  excludedScanlators?: string[],
+) =>
   (
     await db.getFirstAsync<{ 'COUNT(*)': number }>(
-      'SELECT COUNT(*) FROM Chapter WHERE novelId = ? AND page = ?',
+      `SELECT COUNT(*) FROM Chapter WHERE novelId = ? AND page = ? ${
+        filter ?? ''
+      }${scanlatorExclusionClause(excludedScanlators)}`,
       novelId,
       page,
+      ...(excludedScanlators ?? []),
     )
   )?.['COUNT(*)'] ?? 0;
 
