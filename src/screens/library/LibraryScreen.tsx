@@ -108,7 +108,6 @@ interface LibraryTabSceneProps {
   selectedSubCategoryIds: Set<number>;
   showAllSubCategories: boolean;
   searchText: string;
-  isLoading: boolean;
   navigation: LibraryScreenProps['navigation'];
   pickAndImport: () => void;
 }
@@ -121,11 +120,9 @@ const LibraryTabScene = React.memo(
     selectedSubCategoryIds,
     showAllSubCategories,
     searchText,
-    isLoading,
     navigation,
     pickAndImport,
   }: LibraryTabSceneProps) => {
-    const theme = useTheme();
     const {
       sortOrder: globalSortOrder = LibrarySortOrder.DateAdded_DESC,
       categorySortOrders = {},
@@ -194,10 +191,6 @@ const LibraryTabScene = React.memo(
       categorySortOrders,
       globalSortOrder,
     ]);
-
-    if (isLoading) {
-      return <SourceScreenSkeletonLoading theme={theme} />;
-    }
 
     return (
       <>
@@ -542,14 +535,12 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
         selectedSubCategoryIds={selectedSubCategoryIds}
         showAllSubCategories={showAllSubCategories}
         searchText={searchText}
-        isLoading={isLoading}
         navigation={navigation}
         pickAndImport={pickAndImport}
       />
     ),
     [
       allCategories,
-      isLoading,
       library,
       navigation,
       pickAndImport,
@@ -753,17 +744,21 @@ const LibraryScreen = ({ navigation }: LibraryScreenProps) => {
       ) : null}
 
       <SelectionContext.Provider value={selectionContextValue}>
-        <TabView
-          commonOptions={{
-            label: renderLabel,
-          }}
-          lazy
-          navigationState={navigationState}
-          renderTabBar={renderTabBar}
-          renderScene={renderScene}
-          onIndexChange={setIndex}
-          initialLayout={{ width: layout.width }}
-        />
+        {isLoading ? (
+          <SourceScreenSkeletonLoading theme={theme} />
+        ) : (
+          <TabView
+            commonOptions={{
+              label: renderLabel,
+            }}
+            lazy
+            navigationState={navigationState}
+            renderTabBar={renderTabBar}
+            renderScene={renderScene}
+            onIndexChange={setIndex}
+            initialLayout={{ width: layout.width }}
+          />
+        )}
       </SelectionContext.Provider>
 
       {useLibraryFAB &&
