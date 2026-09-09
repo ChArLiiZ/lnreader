@@ -19,6 +19,11 @@ import { Appbar, List, SafeAreaView, SegmentedControl } from '@components';
 import { AppearanceSettingsScreenProps } from '@navigators/types';
 import { getString } from '@strings/translations';
 import { darkThemes, lightThemes } from '@theme/md3';
+import {
+  getSystemDynamicTheme,
+  isDynamicThemeAvailable,
+  toDynamicThemeColors,
+} from '@theme/dynamic';
 import { ThemeColors } from '@theme/types';
 
 type ThemeMode = 'light' | 'dark' | 'system';
@@ -60,6 +65,23 @@ const AppearanceSettings = ({ navigation }: AppearanceSettingsScreenProps) => {
    * Date Format Modal
    */
   const [dateFormatModal, setDateFormatModal] = useState(false);
+
+  // Android 12+ derives a palette from the wallpaper. Offered at the head of
+  // each row so it sits beside the built-in themes of the same brightness.
+  const availableLightThemes = useMemo(
+    () =>
+      isDynamicThemeAvailable
+        ? [toDynamicThemeColors(getSystemDynamicTheme(), false), ...lightThemes]
+        : lightThemes,
+    [],
+  );
+  const availableDarkThemes = useMemo(
+    () =>
+      isDynamicThemeAvailable
+        ? [toDynamicThemeColors(getSystemDynamicTheme(), true), ...darkThemes]
+        : darkThemes,
+    [],
+  );
   const showLanguageModal = () => setLanguageModal(true);
   const hideLanguageModal = () => setLanguageModal(false);
   const [appLocale = ''] = useMMKVString('APP_LOCALE');
@@ -183,7 +205,7 @@ const AppearanceSettings = ({ navigation }: AppearanceSettingsScreenProps) => {
             horizontal={true}
             showsHorizontalScrollIndicator={false}
           >
-            {lightThemes.map(item => (
+            {availableLightThemes.map(item => (
               <ThemePicker
                 horizontal
                 key={item.id}
@@ -203,7 +225,7 @@ const AppearanceSettings = ({ navigation }: AppearanceSettingsScreenProps) => {
             horizontal={true}
             showsHorizontalScrollIndicator={false}
           >
-            {darkThemes.map(item => (
+            {availableDarkThemes.map(item => (
               <ThemePicker
                 horizontal
                 key={item.id}

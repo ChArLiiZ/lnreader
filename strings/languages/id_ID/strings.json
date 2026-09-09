@@ -72,7 +72,8 @@
     "dateFormatDefault": "Bawaan (%{date})",
     "dateFormat": "Format tanggal",
     "relativeTimestamps": "Stempel waktu relatif",
-    "relativeTimestampsDescription": "\"Hari ini\" sebagai pengganti \"%{date}\""
+    "relativeTimestampsDescription": "\"Hari ini\" sebagai pengganti \"%{date}\"",
+    "dynamicColors": "Dinamis"
   },
   "backupScreen": {
     "backupName": "Nama cadangan",

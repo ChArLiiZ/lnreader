@@ -68,6 +68,7 @@ export interface StringMap {
   'appearanceScreen.dateFormat': 'string';
   'appearanceScreen.relativeTimestamps': 'string';
   'appearanceScreen.relativeTimestampsDescription': 'string';
+  'appearanceScreen.dynamicColors': 'string';
   'backupScreen.backupName': 'string';
   'backupScreen.backupCreated': 'string';
   'backupScreen.backupRestored': 'string';

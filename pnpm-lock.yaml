@@ -20,6 +20,9 @@ importers:
       '@noble/ciphers':
         specifier: ^2.1.1
         version: 2.1.1
+      '@pchmn/expo-material3-theme':
+        specifier: ^1.4.0
+        version: 1.4.0(expo@54.0.25(@babel/core@7.28.5)(react-native-webview@13.15.0(react-native@0.81.5(@babel/core@7.28.5)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@react-native/metro-config@0.81.5(@babel/core@7.28.5))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@react-native/metro-config@0.81.5(@babel/core@7.28.5))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@react-native/metro-config@0.81.5(@babel/core@7.28.5))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       '@react-native-community/netinfo':
         specifier: ^12.0.1
         version: 12.0.1(react-native@0.81.5(@babel/core@7.28.5)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@react-native/metro-config@0.81.5(@babel/core@7.28.5))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -1355,6 +1358,9 @@ packages:
       react: '*'
       react-native: '*'
 
+  '@material/material-color-utilities@0.3.0':
+    resolution: {integrity: sha512-ztmtTd6xwnuh2/xu+Vb01btgV8SQWYCaK56CkRK8gEkWe5TuDyBcYJ0wgkMRn+2VcE9KUmhvkz+N9GHrqw/C0g==}
+
   '@napi-rs/wasm-runtime@0.2.12':
     resolution: {integrity: sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ==}
 
@@ -1376,6 +1382,13 @@ packages:
   '@nodelib/fs.walk@1.2.8':
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
+
+  '@pchmn/expo-material3-theme@1.4.0':
+    resolution: {integrity: sha512-XNt0gpZX5argOQ7JiFnNdiXHpHjmpwJoMQrlnd1kpb8ly/IWZN2hh011incmfZXV2Xs+p6Uo1BGDKv8hW4MQTQ==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+      react-native: '*'
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -7202,6 +7215,8 @@ snapshots:
       react-native: 0.81.5(@babel/core@7.28.5)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@react-native/metro-config@0.81.5(@babel/core@7.28.5))(@types/react@19.1.17)(react@19.1.0)
       use-sync-external-store: 1.6.0(react@19.1.0)
 
+  '@material/material-color-utilities@0.3.0': {}
+
   '@napi-rs/wasm-runtime@0.2.12':
     dependencies:
       '@emnapi/core': 1.8.1
@@ -7226,6 +7241,14 @@ snapshots:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
+
+  '@pchmn/expo-material3-theme@1.4.0(expo@54.0.25(@babel/core@7.28.5)(react-native-webview@13.15.0(react-native@0.81.5(@babel/core@7.28.5)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@react-native/metro-config@0.81.5(@babel/core@7.28.5))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@react-native/metro-config@0.81.5(@babel/core@7.28.5))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@react-native/metro-config@0.81.5(@babel/core@7.28.5))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      '@material/material-color-utilities': 0.3.0
+      color: 4.2.3
+      expo: 54.0.25(@babel/core@7.28.5)(react-native-webview@13.15.0(react-native@0.81.5(@babel/core@7.28.5)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@react-native/metro-config@0.81.5(@babel/core@7.28.5))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@react-native/metro-config@0.81.5(@babel/core@7.28.5))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      react: 19.1.0
+      react-native: 0.81.5(@babel/core@7.28.5)(@react-native-community/cli@20.0.2(typescript@5.9.3))(@react-native/metro-config@0.81.5(@babel/core@7.28.5))(@types/react@19.1.17)(react@19.1.0)
 
   '@pkgjs/parseargs@0.11.0':
     optional: true

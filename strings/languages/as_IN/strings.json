@@ -72,7 +72,8 @@
     "dateFormatDefault": "Default (%{date})",
     "dateFormat": "Date format",
     "relativeTimestamps": "Relative timestamps",
-    "relativeTimestampsDescription": "\"Today\" instead of \"%{date}\""
+    "relativeTimestampsDescription": "\"Today\" instead of \"%{date}\"",
+    "dynamicColors": "Dynamic"
   },
   "backupScreen": {
     "backupName": "Backup name",

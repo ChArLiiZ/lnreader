@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Appearance, ColorSchemeName } from 'react-native';
+import { Appearance, AppState, ColorSchemeName } from 'react-native';
+import type { Material3Theme } from '@pchmn/expo-material3-theme';
+import {
+  DYNAMIC_THEME_ID,
+  getSystemDynamicTheme,
+  isDynamicThemeAvailable,
+  toDynamicThemeColors,
+} from '@theme/dynamic';
 import {
   useMMKVBoolean,
   useMMKVNumber,
@@ -77,13 +84,16 @@ const getBaseTheme = (
   themeMode: string,
   themeId: number | undefined,
   systemColorScheme: ColorSchemeName,
+  dynamicTheme: Material3Theme,
 ): ThemeColors => {
-  if (themeMode === 'system') {
-    const shouldUseDarkTheme = systemColorScheme === 'dark';
-    return findThemeById(themeId, shouldUseDarkTheme);
-  }
+  const isDark =
+    themeMode === 'system'
+      ? systemColorScheme === 'dark'
+      : themeMode === 'dark';
 
-  const isDark = themeMode === 'dark';
+  if (themeId === DYNAMIC_THEME_ID && isDynamicThemeAvailable) {
+    return toDynamicThemeColors(dynamicTheme, isDark);
+  }
 
   return findThemeById(themeId, isDark);
 };
@@ -98,22 +108,49 @@ export const useTheme = (): ThemeColors => {
     Appearance.getColorScheme(),
   );
 
+  const [dynamicTheme, setDynamicTheme] = useState(getSystemDynamicTheme);
+
   useEffect(() => {
-    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
-      setSystemColorScheme(colorScheme);
+    const appearanceSubscription = Appearance.addChangeListener(
+      ({ colorScheme }) => {
+        setSystemColorScheme(colorScheme);
+      },
+    );
+
+    // Wallpaper colours can change while the app is backgrounded, and there is
+    // no event for it, so re-read them on the way back in.
+    const appStateSubscription = AppState.addEventListener('change', state => {
+      if (state === 'active' && isDynamicThemeAvailable) {
+        setDynamicTheme(getSystemDynamicTheme());
+      }
     });
 
-    return () => subscription.remove();
+    return () => {
+      appearanceSubscription.remove();
+      appStateSubscription.remove();
+    };
   }, []);
 
   const theme = useMemo(() => {
-    const baseTheme = getBaseTheme(themeMode, themeId, systemColorScheme);
+    const baseTheme = getBaseTheme(
+      themeMode,
+      themeId,
+      systemColorScheme,
+      dynamicTheme,
+    );
     const withAmoled = applyAmoledBlack(baseTheme, isAmoledBlack);
     const withAccent = applyCustomAccent(withAmoled, customAccent);
     const finalTheme = addComputedColors(withAccent);
 
     return finalTheme;
-  }, [themeId, themeMode, systemColorScheme, isAmoledBlack, customAccent]);
+  }, [
+    themeId,
+    themeMode,
+    systemColorScheme,
+    dynamicTheme,
+    isAmoledBlack,
+    customAccent,
+  ]);
 
   return theme;
 };
