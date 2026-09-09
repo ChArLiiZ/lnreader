@@ -16,7 +16,11 @@ import {
   getAllNovelCategories,
   getCategoriesFromDb,
 } from '@database/queries/CategoryQueries';
-import { BackupCategory, BackupNovel } from '@database/types';
+import {
+  BackupCategory,
+  BackupNovel,
+  RestoredNovelMapping,
+} from '@database/types';
 import { BackupEntryName } from './types';
 import ServiceManager from '@services/ServiceManager';
 import { FileService } from '@platform';
@@ -67,6 +71,47 @@ const copyDirectoryRecursive = (sourcePath: string, destPath: string) => {
       copyDirectoryRecursive(item.path, targetPath);
     } else {
       FileService.copyFile(item.path, targetPath);
+    }
+  }
+};
+
+/**
+ * Downloaded chapters live in folders named for the novel and chapter ids, and
+ * a backup archive carries the ids from the device it was made on. Once the
+ * restore has remapped those ids, the unzipped folders sit at paths nothing
+ * points at any more, so the app reports the chapters as not downloaded.
+ *
+ * Run this after the download archive is unzipped, with the mappings
+ * `restoreData` returned.
+ */
+export const relocateRestoredDownloads = (
+  novelMappings: RestoredNovelMapping[],
+) => {
+  for (const mapping of novelMappings) {
+    const sourceNovelDir = `${NOVEL_STORAGE}/${mapping.pluginId}/${mapping.backupNovelId}`;
+    const targetNovelDir = `${NOVEL_STORAGE}/${mapping.pluginId}/${mapping.restoredNovelId}`;
+
+    for (const chapter of mapping.chapters) {
+      const sourcePath = `${sourceNovelDir}/${chapter.backupChapterId}`;
+      if (!FileService.exists(sourcePath)) {
+        continue;
+      }
+      const targetPath = `${targetNovelDir}/${chapter.restoredChapterId}`;
+      if (targetPath === sourcePath) {
+        continue;
+      }
+      if (FileService.exists(targetPath)) {
+        FileService.unlink(targetPath);
+      }
+      copyDirectoryRecursive(sourcePath, targetPath);
+    }
+
+    // Whatever is left under the old id is the backup's copy, now duplicated.
+    if (
+      mapping.backupNovelId !== mapping.restoredNovelId &&
+      FileService.exists(sourceNovelDir)
+    ) {
+      FileService.unlink(sourceNovelDir);
     }
   }
 };
@@ -239,7 +284,10 @@ export const prepareBackupData = async (cacheDirPath: string) => {
   }
 };
 
-export const restoreData = async (cacheDirPath: string) => {
+export const restoreData = async (
+  cacheDirPath: string,
+): Promise<RestoredNovelMapping[]> => {
+  const novelMappings: RestoredNovelMapping[] = [];
   const novelDirPath = cacheDirPath + '/' + BackupEntryName.NOVEL_AND_CHAPTERS;
 
   // version — warn if backup was created with a newer major version
@@ -282,7 +330,7 @@ export const restoreData = async (cacheDirPath: string) => {
             const fileContent = FileService.readFile(item.path);
             const backupNovel = JSON.parse(fileContent) as BackupNovel;
 
-            await _restoreNovelAndChapters(backupNovel);
+            novelMappings.push(await _restoreNovelAndChapters(backupNovel));
             novelCount++;
           } catch (error: unknown) {
             failedCount++;
@@ -337,9 +385,17 @@ export const restoreData = async (cacheDirPath: string) => {
       const roots = categories.filter(c => c.parentId == null);
       const subs = categories.filter(c => c.parentId != null);
 
+      const novelIdMap = new Map(
+        novelMappings.map(mapping => [
+          mapping.backupNovelId,
+          mapping.restoredNovelId,
+        ]),
+      );
+      const categoryIdMap = new Map<number, number>();
+
       for (const category of [...roots, ...subs]) {
         try {
-          _restoreCategory(category);
+          _restoreCategory(category, novelIdMap, categoryIdMap);
           categoryCount++;
         } catch (error: unknown) {
           failedCategoryCount++;
@@ -397,4 +453,6 @@ export const restoreData = async (cacheDirPath: string) => {
       );
     }
   }
+
+  return novelMappings;
 };

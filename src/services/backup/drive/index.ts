@@ -7,6 +7,7 @@ import {
   prepareBackupData,
   prepareDownloadedChaptersBackupData,
   restoreData,
+  relocateRestoredDownloads,
 } from '../utils';
 import { download, updateMetadata, uploadMedia } from '@api/drive/request';
 import { ZipBackupName } from '../types';
@@ -130,7 +131,7 @@ export const driveRestore = async (
       progressText: getString('backupScreen.restoringData'),
     }));
 
-    await restoreData(CACHE_DIR_PATH);
+    const novelMappings = await restoreData(CACHE_DIR_PATH);
 
     setMeta(meta => ({
       ...meta,
@@ -139,6 +140,8 @@ export const driveRestore = async (
     }));
 
     await download(zipDownloadFile, ROOT_STORAGE);
+
+    relocateRestoredDownloads(novelMappings);
 
     setMeta(meta => ({
       ...meta,

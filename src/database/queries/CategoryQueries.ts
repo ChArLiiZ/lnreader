@@ -169,23 +169,66 @@ export const updateCategoryOrderInDb = (categories: Category[]): void => {
 export const getAllNovelCategories = () =>
   db.getAllSync<NovelCategory>('SELECT * FROM NovelCategory');
 
-export const _restoreCategory = (category: BackupCategory) => {
-  db.runSync(
-    'DELETE FROM Category WHERE id = ? OR sort = ?',
-    category.id,
-    category.sort,
+/**
+ * Restores one category without deleting anything already there.
+ *
+ * A category is matched by its name under the same parent — the fork's unique
+ * index — rather than by the id it had in the backup. Deleting by id or sort
+ * destroyed whichever unrelated category happened to occupy that row, and with
+ * it every novel's membership of that category.
+ *
+ * Backup ids are remapped through the two maps: `novelIdMap` from the novel
+ * restore, `categoryIdMap` filled in as categories are restored, so a
+ * subcategory can find its parent.
+ */
+export const _restoreCategory = (
+  category: BackupCategory,
+  novelIdMap: Map<number, number>,
+  categoryIdMap: Map<number, number>,
+): void => {
+  const parentId =
+    category.parentId == null
+      ? null
+      : categoryIdMap.get(category.parentId) ?? null;
+
+  const existing = db.getFirstSync<{ id: number }>(
+    parentId === null
+      ? 'SELECT id FROM Category WHERE name = ? AND parentId IS NULL'
+      : 'SELECT id FROM Category WHERE name = ? AND parentId = ?',
+    ...(parentId === null ? [category.name] : [category.name, parentId]),
   );
-  db.runSync(
-    'INSERT OR IGNORE INTO Category (id, name, sort, parentId) VALUES (?, ?, ?, ?)',
-    category.id,
-    category.name,
-    category.sort,
-    category.parentId ?? null,
-  );
-  for (const novelId of category.novelIds) {
+
+  let categoryId = existing?.id;
+
+  if (categoryId === undefined) {
+    db.runSync(
+      'INSERT INTO Category (name, sort, parentId) VALUES (?, ?, ?)',
+      category.name,
+      category.sort,
+      parentId,
+    );
+    categoryId = db.getFirstSync<{ id: number }>(
+      parentId === null
+        ? 'SELECT id FROM Category WHERE name = ? AND parentId IS NULL'
+        : 'SELECT id FROM Category WHERE name = ? AND parentId = ?',
+      ...(parentId === null ? [category.name] : [category.name, parentId]),
+    )?.id;
+  }
+
+  if (categoryId === undefined) {
+    throw new Error(`Could not restore category ${category.name}`);
+  }
+
+  categoryIdMap.set(category.id, categoryId);
+
+  for (const backupNovelId of category.novelIds) {
+    const novelId = novelIdMap.get(backupNovelId);
+    if (novelId === undefined) {
+      continue;
+    }
     db.runSync(
       'INSERT OR IGNORE INTO NovelCategory (categoryId, novelId) VALUES (?, ?)',
-      category.id,
+      categoryId,
       novelId,
     );
   }

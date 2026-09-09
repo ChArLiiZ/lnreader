@@ -121,6 +121,22 @@ export interface BackupCategory extends Category {
   novelIds: number[];
 }
 
+/**
+ * Restoring matches novels by their source identity, so the ids in a backup
+ * rarely survive. Everything that referenced them — category membership, the
+ * novelId/chapterId folders downloaded chapters live in — is remapped through
+ * this.
+ */
+export interface RestoredNovelMapping {
+  pluginId: string;
+  backupNovelId: number;
+  restoredNovelId: number;
+  chapters: {
+    backupChapterId: number;
+    restoredChapterId: number;
+  }[];
+}
+
 export interface Repository {
   id: number;
   url: string;

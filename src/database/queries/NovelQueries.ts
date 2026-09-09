@@ -6,7 +6,7 @@ import { insertChapters } from './ChapterQueries';
 
 import { showToast } from '@utils/showToast';
 import { getString } from '@strings/translations';
-import { BackupNovel, NovelInfo } from '../types';
+import { BackupNovel, NovelInfo, RestoredNovelMapping } from '../types';
 import { SourceNovel } from '@plugins/types';
 import { NOVEL_STORAGE } from '@utils/Storages';
 import { downloadFile } from '@plugins/helpers/fetch';
@@ -318,31 +318,94 @@ export const updateNovelCategories = async (
   }
 };
 
-const restoreObjectQuery = (table: string, obj: any) => {
-  return `
-  INSERT INTO ${table}
-  (${Object.keys(obj).join(',')})
-  VALUES (${Object.keys(obj)
-    .map(() => '?')
-    .join(',')})
-  `;
-};
+/**
+ * Restores one novel and its chapters without touching anything else.
+ *
+ * The novel is matched on (path, pluginId) — its identity at the source —
+ * rather than on the id it happened to have on the device the backup came
+ * from. Restoring by id deleted whichever unrelated novel currently occupied
+ * that row, and took its chapters and category membership with it.
+ */
+export const _restoreNovelAndChapters = async (
+  backupNovel: BackupNovel,
+): Promise<RestoredNovelMapping> => {
+  const { chapters, id: backupNovelId, ...novel } = backupNovel;
+  const columns = Object.keys(novel);
+  const values = Object.values(novel) as (string | number | null)[];
 
-export const _restoreNovelAndChapters = async (backupNovel: BackupNovel) => {
-  const { chapters, ...novel } = backupNovel;
+  let restoredNovelId = 0;
+  const chapterMappings: RestoredNovelMapping['chapters'] = [];
+
   await db.withTransactionAsync(async () => {
-    await db.runAsync('DELETE FROM Novel WHERE id = ?', novel.id);
     await db.runAsync(
-      restoreObjectQuery('Novel', novel),
-      ...(Object.values(novel) as (string | number)[]),
+      `INSERT INTO Novel (${columns.join(', ')})
+       VALUES (${columns.map(() => '?').join(', ')})
+       ON CONFLICT(path, pluginId) DO UPDATE SET
+       ${columns
+         .filter(column => column !== 'path' && column !== 'pluginId')
+         .map(column => `${column} = excluded.${column}`)
+         .join(', ')}`,
+      ...values,
     );
-    if (chapters.length > 0) {
-      for (const chapter of chapters) {
-        await db.runAsync(
-          restoreObjectQuery('Chapter', chapter),
-          ...(Object.values(chapter) as (string | number)[]),
-        );
+
+    const restored = await db.getFirstAsync<{ id: number }>(
+      'SELECT id FROM Novel WHERE path = ? AND pluginId = ?',
+      novel.path,
+      novel.pluginId,
+    );
+    if (!restored) {
+      throw new Error(`Could not restore novel ${novel.name}`);
+    }
+    restoredNovelId = restored.id;
+
+    // The cover lives under a folder named for the novel id, so a remapped id
+    // needs the stored path corrected to match.
+    if (novel.cover?.startsWith(`file://${NOVEL_STORAGE}/`)) {
+      const cacheSuffix = novel.cover.match(/[?#].*$/)?.[0] ?? '';
+      await db.runAsync(
+        'UPDATE Novel SET cover = ? WHERE id = ?',
+        `file://${NOVEL_STORAGE}/${novel.pluginId}/${restoredNovelId}/cover.png${cacheSuffix}`,
+        restoredNovelId,
+      );
+    }
+
+    // Only this novel's chapters are replaced.
+    await db.runAsync('DELETE FROM Chapter WHERE novelId = ?', restoredNovelId);
+
+    for (const chapter of chapters) {
+      // id and novelId are dropped: the chapter is re-parented onto the
+      // restored novel and gets a fresh id.
+      const backupChapterId = chapter.id;
+      const rest = Object.fromEntries(
+        Object.entries(chapter).filter(
+          ([column]) => column !== 'id' && column !== 'novelId',
+        ),
+      );
+      const chapterColumns = Object.keys(rest);
+      await db.runAsync(
+        `INSERT INTO Chapter (novelId, ${chapterColumns.join(', ')})
+         VALUES (?, ${chapterColumns.map(() => '?').join(', ')})`,
+        restoredNovelId,
+        ...(Object.values(rest) as (string | number | null)[]),
+      );
+      const inserted = await db.getFirstAsync<{ id: number }>(
+        'SELECT id FROM Chapter WHERE novelId = ? AND path = ?',
+        restoredNovelId,
+        chapter.path,
+      );
+      if (inserted) {
+        chapterMappings.push({
+          backupChapterId,
+          restoredChapterId: inserted.id,
+        });
       }
     }
   });
+
+  return {
+    pluginId: novel.pluginId,
+    backupNovelId,
+    restoredNovelId,
+    chapters: chapterMappings,
+  };
 };

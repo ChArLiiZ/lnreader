@@ -12,6 +12,7 @@ import {
   prepareBackupData,
   prepareDownloadedChaptersBackupData,
   restoreData,
+  relocateRestoredDownloads,
 } from '../utils';
 import NativeZipArchive from '@specs/NativeZipArchive';
 import { ROOT_STORAGE } from '@utils/Storages';
@@ -183,7 +184,7 @@ export const restoreBackup = async (
 
     await sleep(200);
 
-    await restoreData(CACHE_DIR_PATH);
+    const novelMappings = await restoreData(CACHE_DIR_PATH);
 
     setMeta?.(meta => ({
       ...meta,
@@ -197,6 +198,8 @@ export const restoreBackup = async (
       CACHE_DIR_PATH + '/' + ZipBackupName.DOWNLOAD,
       ROOT_STORAGE,
     );
+
+    relocateRestoredDownloads(novelMappings);
 
     setMeta?.(meta => ({
       ...meta,

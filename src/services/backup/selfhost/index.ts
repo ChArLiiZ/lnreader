@@ -7,6 +7,7 @@ import {
   prepareBackupData,
   prepareDownloadedChaptersBackupData,
   restoreData,
+  relocateRestoredDownloads,
 } from '../utils';
 import { ZipBackupName } from '../types';
 import { ROOT_STORAGE } from '@utils/Storages';
@@ -105,7 +106,7 @@ export const selfHostRestore = async (
 
     await sleep(200);
 
-    await restoreData(CACHE_DIR_PATH);
+    const novelMappings = await restoreData(CACHE_DIR_PATH);
 
     setMeta(meta => ({
       ...meta,
@@ -116,6 +117,8 @@ export const selfHostRestore = async (
     await sleep(200);
 
     await download(host, backupFolder, ZipBackupName.DOWNLOAD, ROOT_STORAGE);
+
+    relocateRestoredDownloads(novelMappings);
 
     setMeta(meta => ({
       ...meta,
