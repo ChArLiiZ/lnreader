@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { getString } from '@strings/translations';
@@ -12,7 +12,7 @@ interface ConfirmationDialogProps {
   message?: string;
   visible: boolean;
   theme: ThemeColors;
-  onSubmit: () => void;
+  onSubmit: () => void | Promise<void>;
   onDismiss: () => void;
 }
 
@@ -24,16 +24,26 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   theme,
   onSubmit,
 }) => {
-  const handleOnSubmit = () => {
-    onSubmit();
-    onDismiss();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // An async onSubmit used to be fired and forgotten: the dialog closed at
+  // once while the work carried on, with nothing to show it was still running
+  // and nothing stopping a second press.
+  const handleOnSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await onSubmit();
+      onDismiss();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Portal>
       <Dialog
         visible={visible}
-        onDismiss={onDismiss}
+        onDismiss={isSubmitting ? undefined : onDismiss}
         style={[styles.container, { backgroundColor: theme.overlay3 }]}
       >
         <Dialog.Title style={{ color: theme.onSurface }}>{title}</Dialog.Title>
@@ -45,8 +55,16 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
           </Dialog.Content>
         ) : null}
         <View style={styles.buttonCtn}>
-          <Button onPress={handleOnSubmit} title={getString('common.ok')} />
-          <Button onPress={onDismiss} title={getString('common.cancel')} />
+          <Button
+            onPress={handleOnSubmit}
+            disabled={isSubmitting}
+            title={getString('common.ok')}
+          />
+          <Button
+            onPress={onDismiss}
+            disabled={isSubmitting}
+            title={getString('common.cancel')}
+          />
         </View>
       </Dialog>
     </Portal>
