@@ -72,20 +72,24 @@ const ChapterDrawer = () => {
     setPageIndex(pageIndex);
   }, [chapter, pages, setPageIndex]);
 
-  const calculateScrollToIndex = useCallback(() => {
+  // Where the current chapter actually is, kept apart from where the list
+  // should scroll to. Deriving one from the other made the visibility check
+  // below wrong for the first two chapters, whose scroll target is clamped
+  // to 0 and so no longer maps back to their own index.
+  const currentChapterIndex = useMemo(() => {
     if (chapters.length < 1) {
-      return;
+      return undefined;
     }
-
-    const indexOfCurrentChapter =
-      chapters.findIndex(el => {
-        return el.id === chapter.id;
-      }) || 0;
-
-    return indexOfCurrentChapter >= 2 ? indexOfCurrentChapter - 2 : 0;
+    const index = chapters.findIndex(el => el.id === chapter.id);
+    return index >= 0 ? index : 0;
   }, [chapters, chapter.id]);
 
-  const scrollToIndex = useRef<number | undefined>(calculateScrollToIndex());
+  const currentScrollIndex =
+    currentChapterIndex === undefined
+      ? undefined
+      : Math.max(0, currentChapterIndex - 2);
+
+  const scrollToIndex = useRef<number | undefined>(currentScrollIndex);
 
   const [footerBtnProps, setButtonProperties] =
     useState<ButtonsProperties>(defaultButtonLayout);
@@ -97,32 +101,38 @@ const ChapterDrawer = () => {
       );
       const newBtnLayout = Object.create(defaultButtonLayout);
 
-      if (viewableItems.length === 0) return;
-      const visible = viewableItems
-        .map(v => v.index)
-        .includes((scrollToIndex.current ?? 0) + 2);
+      if (viewableItems.length === 0 || currentChapterIndex === undefined) {
+        return;
+      }
+      const currentChapterVisible = viewableItems
+        .map(item => item.index)
+        .includes(currentChapterIndex);
 
-      if (!visible && scrollToIndex.current !== undefined) {
+      if (!currentChapterVisible && currentScrollIndex !== undefined) {
+        const firstVisibleIndex = viewableItems[0].index ?? 0;
+        const currentChapterButton = {
+          text: curChapter,
+          index: currentScrollIndex,
+        };
         if (
           listAscending
-            ? (viewableItems[0].index ?? 0) < scrollToIndex.current + 2
-            : (viewableItems[0].index ?? 0) > scrollToIndex.current + 2
+            ? firstVisibleIndex < currentChapterIndex
+            : firstVisibleIndex > currentChapterIndex
         ) {
-          newBtnLayout.down = {
-            text: curChapter,
-            index: scrollToIndex.current,
-          };
+          newBtnLayout.down = currentChapterButton;
         } else {
-          newBtnLayout.up = {
-            text: curChapter,
-            index: scrollToIndex.current,
-          };
+          newBtnLayout.up = currentChapterButton;
         }
       }
 
       setButtonProperties(newBtnLayout);
     },
-    [defaultButtonLayout, listAscending],
+    [
+      currentChapterIndex,
+      currentScrollIndex,
+      defaultButtonLayout,
+      listAscending,
+    ],
   );
   const scroll = useCallback((index?: number) => {
     if (index !== undefined) {
@@ -138,17 +148,16 @@ const ChapterDrawer = () => {
   }, []);
 
   useEffect(() => {
-    const next = calculateScrollToIndex();
-    if (next !== undefined) {
+    if (currentScrollIndex !== undefined) {
       if (
         scrollToIndex.current === undefined ||
-        next !== scrollToIndex.current
+        currentScrollIndex !== scrollToIndex.current
       ) {
-        scroll(next);
+        scroll(currentScrollIndex);
       }
-      scrollToIndex.current = next;
+      scrollToIndex.current = currentScrollIndex;
     }
-  }, [chapters, chapter.id, calculateScrollToIndex, scroll]);
+  }, [currentScrollIndex, scroll]);
 
   return (
     <View style={styles.drawer}>
