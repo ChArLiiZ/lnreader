@@ -258,16 +258,40 @@ module chain behind it. Transpiling Expo's ESM through babel-jest gets as far
 as `requireNativeModule`, so the full `jest-expo` preset would be needed.
 Pure helpers get their own module instead.
 
-### Remaining Tier 2 (10, all needing manual porting)
+### Session 4 — Tier 2 finished
 
-Reader `71da09ed` `eb310f78` `f1dd4b77` `bd716117` `93fe04c2` ·
-Library `c30441b9` `732628c4` · Novel `22a1efd1` ·
-Settings `4a4208e3` `098782d6` `8f53550d` · Misc `0c854618` `44c8e54e`
-`c0877a9b`
+Ported: `c0877a9b` `732628c4` `c30441b9` `eb310f78` `f1dd4b77` `71da09ed`
+`bd716117` `44c8e54e` `22a1efd1`, plus a fork-only fix to TrackSearchDialog.
 
-`0c854618` (MD3 slider) and `44c8e54e` (dynamic Material colours) each pull
-in new components or a native package, so they are the next ones that want a
-decision rather than a port.
+Corrections to earlier calls in this document:
+
+- `0c854618` (MD3 Slider) **removes** `@react-native-community/slider`, it
+  does not add a dependency. Still declined: 416 lines of new component to
+  replace a slider that works.
+- `71da09ed` is easier than assessed. It predates upstream's asset move, so
+  its files land straight into `android/app/src/main/assets/`.
+
+Not taken, with reasons: `93fe04c2` (71 files, part of upstream's reader
+rewrite, reaches into files this fork does not have), `098782d6` (removes
+`react-native-theme-switch-animation`; a preference, not a fix), `0c854618`,
+`4a4208e3` (its toggle governs the time tracking of Tier 3, which is not
+built yet), `8f53550d` (fixes upstream's own debounce refactor — but the
+fork's dialog had a worse bug of the same kind, fixed separately).
+
+`44c8e54e` adds `@pchmn/expo-material3-theme`, a native module: it needs
+`pnpm install` and a rebuild before the dynamic theme appears.
+
+### Remaining Tier 2 (none)
+
+Tier 2 is complete. Tier 3 is next.
+
+### A recurring obstacle
+
+Three upstream tests could not come across: they import modules that reach
+the string table or React Native, and this project's Jest runs plain ts-jest
+against a node environment. Transpiling Expo's ESM through babel-jest gets as
+far as `requireNativeModule`. Adopting `jest-expo` would unblock component
+and integration tests generally, and is worth its own piece of work.
 
 None apply as a patch: upstream reorganised the repository in `916374b5` and
 the surrounding code has drifted 190 commits, so each is a hand port.
