@@ -6,6 +6,8 @@ import type { SegmentedControlOption } from '@components/SegmentedControl';
 import SettingSwitch from '../components/SettingSwitch';
 import ColorPickerModal from '@components/ColorPickerModal/ColorPickerModal';
 import LanguagePickerModal from './LanguagePickerModal';
+import DateFormatModal from './DateFormatModal';
+import { formatDate, getDateFormatLabel } from '@utils/dateFormat';
 
 import { useAppSettings, useTheme } from '@hooks/persisted';
 import {
@@ -35,6 +37,8 @@ const AppearanceSettings = ({ navigation }: AppearanceSettingsScreenProps) => {
     showLabelsInNav,
     hideBackdrop,
     useFabForContinueReading,
+    dateFormat = 'default',
+    relativeTimestamps = true,
     setAppSettings,
   } = useAppSettings();
 
@@ -51,6 +55,11 @@ const AppearanceSettings = ({ navigation }: AppearanceSettingsScreenProps) => {
    * Language Picker Modal
    */
   const [languageModal, setLanguageModal] = useState(false);
+
+  /**
+   * Date Format Modal
+   */
+  const [dateFormatModal, setDateFormatModal] = useState(false);
   const showLanguageModal = () => setLanguageModal(true);
   const hideLanguageModal = () => setLanguageModal(false);
   const [appLocale = ''] = useMMKVString('APP_LOCALE');
@@ -227,6 +236,28 @@ const AppearanceSettings = ({ navigation }: AppearanceSettingsScreenProps) => {
           />
           <List.Divider theme={theme} />
           <List.SubHeader theme={theme}>
+            {getString('common.display')}
+          </List.SubHeader>
+          <List.Item
+            title={getString('appearanceScreen.dateFormat')}
+            description={getDateFormatLabel(dateFormat)}
+            onPress={() => setDateFormatModal(true)}
+            theme={theme}
+          />
+          <SettingSwitch
+            label={getString('appearanceScreen.relativeTimestamps')}
+            description={getString(
+              'appearanceScreen.relativeTimestampsDescription',
+              { date: formatDate(new Date(), dateFormat, false) },
+            )}
+            value={relativeTimestamps}
+            onPress={() =>
+              setAppSettings({ relativeTimestamps: !relativeTimestamps })
+            }
+            theme={theme}
+          />
+          <List.Divider theme={theme} />
+          <List.SubHeader theme={theme}>
             {getString('appearanceScreen.novelInfo')}
           </List.SubHeader>
           <SettingSwitch
@@ -280,6 +311,10 @@ const AppearanceSettings = ({ navigation }: AppearanceSettingsScreenProps) => {
         onSubmit={val => setCustomAccentColor(val)}
         theme={theme}
         showAccentColors={true}
+      />
+      <DateFormatModal
+        visible={dateFormatModal}
+        onDismiss={() => setDateFormatModal(false)}
       />
       <LanguagePickerModal
         visible={languageModal}

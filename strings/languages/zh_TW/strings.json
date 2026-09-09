@@ -68,7 +68,11 @@
       "yotsuba": "四葉草",
       "catppuccin": "Catppuccin",
       "yinyang": "陰陽"
-    }
+    },
+    "dateFormatDefault": "Default (%{date})",
+    "dateFormat": "Date format",
+    "relativeTimestamps": "Relative timestamps",
+    "relativeTimestampsDescription": "\"Today\" instead of \"%{date}\""
   },
   "backupScreen": {
     "backupName": "備份名稱",

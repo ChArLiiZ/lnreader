@@ -5,6 +5,7 @@ import {
 } from '@screens/library/constants/constants';
 import { useMMKVObject } from 'react-native-mmkv';
 import { getMMKVObject } from '@utils/mmkv/mmkv';
+import type { DateFormat } from '@utils/dateFormat';
 import { Voice } from 'expo-speech';
 
 export const APP_SETTINGS = 'APP_SETTINGS';
@@ -33,6 +34,10 @@ export const getChapterDownloadCooldownMs = (): number => {
 };
 
 export interface AppSettings {
+  /** How dates outside the relative window are rendered. */
+  dateFormat?: DateFormat;
+  /** Show "today"/"yesterday" style labels for recent dates. */
+  relativeTimestamps?: boolean;
   /** Cooldown between sequential chapter downloads in milliseconds. */
   chapterDownloadCooldownMs?: number;
   /**
@@ -173,6 +178,8 @@ const initialAppSettings: AppSettings = {
    * General settings
    */
 
+  dateFormat: 'default',
+  relativeTimestamps: true,
   incognitoMode: false,
   disableHapticFeedback: false,
 

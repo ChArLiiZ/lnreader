@@ -68,7 +68,11 @@
       "yotsuba": "Cỏ bốn lá",
       "catppuccin": "Catppuccin",
       "yinyang": "Yin & Yang"
-    }
+    },
+    "dateFormatDefault": "Default (%{date})",
+    "dateFormat": "Date format",
+    "relativeTimestamps": "Relative timestamps",
+    "relativeTimestampsDescription": "\"Today\" instead of \"%{date}\""
   },
   "backupScreen": {
     "backupName": "Tên sao lưu",

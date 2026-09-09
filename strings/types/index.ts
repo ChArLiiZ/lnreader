@@ -64,6 +64,10 @@ export interface StringMap {
   'appearanceScreen.theme.yotsuba': 'string';
   'appearanceScreen.theme.catppuccin': 'string';
   'appearanceScreen.theme.yinyang': 'string';
+  'appearanceScreen.dateFormatDefault': 'string';
+  'appearanceScreen.dateFormat': 'string';
+  'appearanceScreen.relativeTimestamps': 'string';
+  'appearanceScreen.relativeTimestampsDescription': 'string';
   'backupScreen.backupName': 'string';
   'backupScreen.backupCreated': 'string';
   'backupScreen.backupRestored': 'string';

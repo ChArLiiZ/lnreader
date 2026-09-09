@@ -102,6 +102,8 @@ const NovelScreenList = ({
     disableHapticFeedback,
     downloadNewChapters,
     refreshNovelMetadata,
+    dateFormat = 'default',
+    relativeTimestamps = true,
   } = useAppSettings();
 
   const {
@@ -506,6 +508,8 @@ const NovelScreenList = ({
               isLocal={novel.isLocal}
               theme={theme}
               showChapterTitles={showChapterTitles}
+              dateFormat={dateFormat}
+              relativeTimestamps={relativeTimestamps}
               isSelected={selectedIds.has(item.id)}
               novelName={novel.name}
               onDeleteChapter={handleDeleteChapter}

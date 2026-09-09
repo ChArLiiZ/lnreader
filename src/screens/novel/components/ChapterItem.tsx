@@ -5,6 +5,7 @@ import {
   DownloadButton,
 } from './Chapter/ChapterDownloadButtons';
 import { ThemeColors } from '@theme/types';
+import { DateFormat, formatDate } from '@utils/dateFormat';
 import { ChapterInfo } from '@database/types';
 import MaterialCommunityIcons from '@react-native-vector-icons/material-design-icons';
 import { getString } from '@strings/translations';
@@ -19,6 +20,8 @@ interface ChapterItemProps {
   theme: ThemeColors;
   showChapterTitles: boolean;
   novelName: string;
+  dateFormat?: DateFormat;
+  relativeTimestamps?: boolean;
   left?: ReactNode;
   onDeleteChapter: (chapter: ChapterInfo) => void;
   onDownloadChapter: (chapter: ChapterInfo) => void;
@@ -36,6 +39,8 @@ const ChapterItem: React.FC<ChapterItemProps> = ({
   theme,
   showChapterTitles,
   novelName,
+  dateFormat = 'default',
+  relativeTimestamps = true,
   left,
   onDeleteChapter,
   onDownloadChapter,
@@ -159,7 +164,7 @@ const ChapterItem: React.FC<ChapterItemProps> = ({
                   ]}
                   numberOfLines={1}
                 >
-                  {releaseTime}
+                  {formatDate(releaseTime, dateFormat, relativeTimestamps)}
                 </Text>
               ) : null}
               {!isUpdateCard && progress && progress > 0 && chapter.unread ? (

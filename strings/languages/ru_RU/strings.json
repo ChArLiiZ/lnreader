@@ -68,7 +68,11 @@
       "yotsuba": "Ёцуба",
       "catppuccin": "Катппучини",
       "yinyang": "Инь и ян"
-    }
+    },
+    "dateFormatDefault": "Default (%{date})",
+    "dateFormat": "Date format",
+    "relativeTimestamps": "Relative timestamps",
+    "relativeTimestampsDescription": "\"Today\" instead of \"%{date}\""
   },
   "backupScreen": {
     "backupName": "Имя резервной копии",

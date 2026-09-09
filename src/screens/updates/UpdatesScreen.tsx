@@ -18,7 +18,8 @@ import {
 } from '@components';
 
 import { useSearch } from '@hooks';
-import { useTheme } from '@hooks/persisted';
+import { useAppSettings, useTheme } from '@hooks/persisted';
+import { formatDate } from '@utils/dateFormat';
 import { getString } from '@strings/translations';
 import { ThemeColors } from '@theme/types';
 import UpdatesSkeletonLoading from './components/UpdatesSkeletonLoading';
@@ -33,6 +34,8 @@ import { useIsLibraryUpdating } from '@hooks/useLibraryUpdate';
 
 const UpdatesScreen = ({ navigation }: UpdateScreenProps) => {
   const theme = useTheme();
+  const { dateFormat = 'default', relativeTimestamps = true } =
+    useAppSettings();
   const isUpdating = useIsLibraryUpdating();
   const {
     updatesOverview,
@@ -136,7 +139,7 @@ const UpdatesScreen = ({ navigation }: UpdateScreenProps) => {
           contentContainerStyle={styles.listContainer}
           renderSectionHeader={({ section: { date } }) => (
             <Text style={[styles.dateHeader, { color: theme.onSurface }]}>
-              {dayjs(date).calendar()}
+              {formatDate(date, dateFormat, relativeTimestamps)}
             </Text>
           )}
           sections={sections}

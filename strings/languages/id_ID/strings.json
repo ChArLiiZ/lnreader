@@ -68,7 +68,11 @@
       "yotsuba": "Yotsuba",
       "catppuccin": "Catppuccin",
       "yinyang": "Yin & Yang"
-    }
+    },
+    "dateFormatDefault": "Bawaan (%{date})",
+    "dateFormat": "Format tanggal",
+    "relativeTimestamps": "Stempel waktu relatif",
+    "relativeTimestampsDescription": "\"Hari ini\" sebagai pengganti \"%{date}\""
   },
   "backupScreen": {
     "backupName": "Nama cadangan",
