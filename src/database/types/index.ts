@@ -123,6 +123,8 @@ export interface BackupCategory extends Category {
 export interface Repository {
   id: number;
   url: string;
+  /** Disabled repositories stay listed but contribute no plugins. */
+  enabled: boolean;
 }
 
 export * from './migration';

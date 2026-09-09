@@ -4,6 +4,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as Linking from 'expo-linking';
 
 import { IconButtonV2 } from '@components';
+import Switch from '@components/Switch/Switch';
 
 import { Repository } from '@database/types';
 import { useBoolean } from '@hooks/index';
@@ -13,6 +14,7 @@ import { getString } from '@strings/translations';
 import { Portal } from 'react-native-paper';
 import AddRepositoryModal from './AddRepositoryModal';
 import DeleteRepositoryModal from './DeleteRepositoryModal';
+import { setRepositoryEnabled } from '@database/queries/RepositoryQueries';
 
 interface RepositoryCardProps {
   repository: Repository;
@@ -46,6 +48,7 @@ const RepositoryCard: FC<RepositoryCardProps> = ({
         {
           backgroundColor: theme.secondaryContainer,
         },
+        !repository.enabled && styles.disabled,
       ]}
     >
       <View style={styles.nameCtn}>
@@ -65,6 +68,13 @@ const RepositoryCard: FC<RepositoryCardProps> = ({
         </Text>
       </View>
       <View style={styles.buttonsCtn}>
+        <Switch
+          value={repository.enabled}
+          onValueChange={() => {
+            setRepositoryEnabled(repository.id, !repository.enabled);
+            refetchRepositories();
+          }}
+        />
         <IconButtonV2
           name="open-in-new"
           color={theme.onSurface}
@@ -123,6 +133,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     paddingHorizontal: 8,
     paddingVertical: 8,
+  },
+  disabled: {
+    opacity: 0.5,
   },
   manageBtn: {
     marginLeft: 8,
