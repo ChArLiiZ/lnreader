@@ -1,6 +1,6 @@
 import { getLocales } from 'expo-localization';
 import { languagesMapping } from '@utils/constants/languages';
-import { orderBy } from 'lodash-es';
+import orderBy from 'lodash-es/orderBy';
 import { useMMKVObject } from 'react-native-mmkv';
 import { PluginItem } from '@plugins/types';
 import {

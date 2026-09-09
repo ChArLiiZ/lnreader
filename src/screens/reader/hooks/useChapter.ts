@@ -30,7 +30,7 @@ import WebView from 'react-native-webview';
 import { useFullscreenMode } from '@hooks';
 import { AppState, Dimensions, NativeEventEmitter } from 'react-native';
 import * as Speech from 'expo-speech';
-import { defaultTo } from 'lodash-es';
+import defaultTo from 'lodash-es/defaultTo';
 import { showToast } from '@utils/showToast';
 import { getString } from '@strings/translations';
 import NativeVolumeButtonListener from '@specs/NativeVolumeButtonListener';

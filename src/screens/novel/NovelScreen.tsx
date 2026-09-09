@@ -18,7 +18,8 @@ import NovelScreenLoading from './components/LoadingAnimation/NovelScreenLoading
 import { NovelScreenProps } from '@navigators/types';
 import { ChapterInfo } from '@database/types';
 import { getString } from '@strings/translations';
-import { isNumber, noop } from 'lodash-es';
+import isNumber from 'lodash-es/isNumber';
+import noop from 'lodash-es/noop';
 import NovelAppbar from './components/NovelAppbar';
 import { resolveUrl } from '@services/plugin/fetch';
 import {

@@ -65,7 +65,7 @@ import {
   useLibraryActions,
   useLibrarySettingsContext,
 } from '@components/Context/LibraryContext';
-import { xor } from 'lodash-es';
+import xor from 'lodash-es/xor';
 import { SelectionContext } from './SelectionContext';
 import { ExtendedCategory } from './hooks/useLibrary';
 

@@ -1,4 +1,4 @@
-import { countBy } from 'lodash-es';
+import countBy from 'lodash-es/countBy';
 import { db } from '@database/db';
 import { LibraryStats } from '../types';
 

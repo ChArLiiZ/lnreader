@@ -16,7 +16,7 @@ import renderListChapter from './RenderListChapter';
 import { useChapterContext } from '@screens/reader/ChapterContext';
 import { useNovelContext } from '@screens/novel/NovelContext';
 import { LegendList, LegendListRef, ViewToken } from '@legendapp/list';
-import { noop } from 'lodash-es';
+import noop from 'lodash-es/noop';
 
 type ButtonProperties = {
   text: string;

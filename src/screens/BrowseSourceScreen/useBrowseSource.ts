@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { NovelItem } from '@plugins/types';
-import { debounce } from 'lodash-es';
+import debounce from 'lodash-es/debounce';
 
 import { getPlugin } from '@plugins/pluginManager';
 import { FilterToValues, Filters } from '@plugins/types/filterTypes';
