@@ -23,6 +23,8 @@ const config: Config = {
     '^@screens/(.*)$': '<rootDir>/src/screens/$1',
     '^@type/(.*)$': '<rootDir>/src/type/$1',
     '^@specs/(.*)$': '<rootDir>/specs/$1',
+    '^@platform$': '<rootDir>/src/platform/index.native',
+    '^@platform/(.*)$': '<rootDir>/src/platform/$1',
   },
   transform: {
     '^.+\\.tsx?$': [
