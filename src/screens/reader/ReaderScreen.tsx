@@ -13,10 +13,11 @@ import { ChapterScreenProps } from '@navigators/types';
 import { getString } from '@strings/translations';
 import KeepScreenAwake from './components/KeepScreenAwake';
 import { ChapterContextProvider, useChapterContext } from './ChapterContext';
+import { EMPTY_READER_SEARCH_RESULT, ReaderSearchResult } from './types';
 import { BottomSheetModalMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { useBackHandler } from '@hooks/index';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet, View } from 'react-native';
+import { Keyboard, StyleSheet, View } from 'react-native';
 import { Drawer } from 'react-native-drawer-layout';
 
 const Chapter = ({ route, navigation }: ChapterScreenProps) => {
@@ -78,6 +79,72 @@ export const ChapterContent = ({
   const { hidden, loading, error, webViewRef, hideHeader, refetch } =
     useChapterContext();
 
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchResult, setSearchResult] = useState<ReaderSearchResult>(
+    EMPTY_READER_SEARCH_RESULT,
+  );
+  const [searchText, setSearchTextState] = useState('');
+  const searchTextRef = useRef('');
+
+  const setSearchText = useCallback((text: string) => {
+    searchTextRef.current = text;
+    setSearchTextState(text);
+  }, []);
+
+  const resetSearchResult = useCallback(() => {
+    setSearchResult(EMPTY_READER_SEARCH_RESULT);
+  }, []);
+
+  const resetSearch = useCallback(() => {
+    setSearchText('');
+    resetSearchResult();
+  }, [resetSearchResult, setSearchText]);
+
+  // Back closes the search bar before it leaves the chapter.
+  useBackHandler(
+    useCallback(() => {
+      if (searchVisible) {
+        setSearchVisible(false);
+        return true;
+      }
+      return false;
+    }, [searchVisible]),
+  );
+
+  useEffect(() => {
+    setSearchVisible(false);
+    resetSearch();
+  }, [chapter.id, resetSearch]);
+
+  useEffect(() => {
+    if (hidden) {
+      setSearchVisible(false);
+    }
+  }, [hidden]);
+
+  // Keep the webview's own "controls hidden" state in step, so tapping the
+  // page while searching does not fight the search bar for the tap.
+  useEffect(() => {
+    if (hidden) {
+      return;
+    }
+    webViewRef.current?.injectJavaScript(`
+      if (window.reader?.hidden) {
+        window.reader.hidden.val = ${searchVisible ? 'true' : 'false'};
+      }
+      true;
+    `);
+  }, [hidden, searchVisible, webViewRef]);
+
+  const handleReaderPress = useCallback(() => {
+    if (searchVisible) {
+      setSearchVisible(false);
+      Keyboard.dismiss();
+      return;
+    }
+    hideHeader();
+  }, [hideHeader, searchVisible]);
+
   const scrollToStart = () =>
     requestAnimationFrame(() => {
       webViewRef?.current?.injectJavaScript(
@@ -127,7 +194,11 @@ export const ChapterContent = ({
       {loading ? (
         <ChapterLoadingScreen />
       ) : (
-        <WebViewReader onPress={hideHeader} />
+        <WebViewReader
+          onPress={handleReaderPress}
+          searchTextRef={searchTextRef}
+          onSearchResult={setSearchResult}
+        />
       )}
       <ReaderBottomSheetV2 bottomSheetRef={readerSheetRef} />
       {!hidden ? (
@@ -137,6 +208,13 @@ export const ChapterContent = ({
             theme={theme}
             bookmarked={bookmarked}
             setBookmarked={setBookmarked}
+            searchVisible={searchVisible}
+            setSearchVisible={setSearchVisible}
+            searchText={searchText}
+            setSearchText={setSearchText}
+            searchResult={searchResult}
+            resetSearchResult={resetSearchResult}
+            resetSearch={resetSearch}
           />
           <ReaderFooter
             readerSheetRef={readerSheetRef}

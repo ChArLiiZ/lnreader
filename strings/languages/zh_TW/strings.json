@@ -558,7 +558,9 @@
     "finished": "已完成",
     "nextChapter": "下一章：%{name}",
     "noNextChapter": "沒有下一章",
-    "noPreviousChapter": "沒有上一章"
+    "noPreviousChapter": "沒有上一章",
+    "searchMinLength": "Enter at least %{count} characters to search",
+    "searchPlaceholder": "Search chapter"
   },
   "readerSettings": {
     "autoScrollInterval": "捲動間隔（秒）",

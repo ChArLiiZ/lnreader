@@ -143,6 +143,7 @@ window.tts = new (function () {
     'BR',
     'STRONG',
     'A',
+    'MARK',
   ];
   this.prevElement = null;
   this.currentElement = reader.chapterElement;
@@ -765,6 +766,12 @@ window.addEventListener('load', () => {
       while ((node = walker.nextNode())) {
         node.textContent = converter(node.textContent);
       }
+    }
+
+    const searchQuery = window.readerSearch?.query;
+    const searchIndex = window.readerSearch?.index;
+    if (searchQuery) {
+      window.readerSearch.search(searchQuery, searchIndex);
     }
   });
 })();

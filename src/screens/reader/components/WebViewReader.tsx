@@ -1,5 +1,6 @@
 import React, { memo, useEffect, useMemo, useRef } from 'react';
 import * as Linking from 'expo-linking';
+import { ReaderSearchResult } from '../types';
 
 import {
   isChapterRefreshUrl,
@@ -34,6 +35,8 @@ type WebViewPostEvent = {
 
 type WebViewReaderProps = {
   onPress(): void;
+  searchTextRef: React.RefObject<string>;
+  onSearchResult: (result: ReaderSearchResult) => void;
 };
 
 const onLogMessage = (payload: { nativeEvent: { data: string } }) => {
@@ -53,7 +56,11 @@ const assetsUriPrefix = __DEV__
   ? 'http://localhost:8081/assets'
   : 'file:///android_asset';
 
-const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
+const WebViewReader: React.FC<WebViewReaderProps> = ({
+  onPress,
+  searchTextRef,
+  onSearchResult,
+}) => {
   const {
     novel,
     chapter,
@@ -247,6 +254,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
                   : ''
               }
               <script src="${assetsUriPrefix}/js/core.js"></script>
+              <script src="${assetsUriPrefix}/js/search.js"></script>
               <script src="${assetsUriPrefix}/js/index.js"></script>
               <script src="${pluginCustomJS}"></script>
               <script>
@@ -341,6 +349,33 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             break;
           case 'prev':
             navigateChapter('PREV');
+            break;
+          case 'search-result':
+            if (event.data && typeof event.data === 'object') {
+              const data = event.data as {
+                query?: unknown;
+                current?: unknown;
+                total?: unknown;
+                renderedTotal?: unknown;
+                isTruncated?: unknown;
+              };
+              const query = typeof data.query === 'string' ? data.query : '';
+              // Results for a query the user has already moved on from.
+              if (query !== searchTextRef.current.trim()) {
+                break;
+              }
+              const total = typeof data.total === 'number' ? data.total : 0;
+              onSearchResult({
+                query,
+                current: typeof data.current === 'number' ? data.current : 0,
+                total,
+                renderedTotal:
+                  typeof data.renderedTotal === 'number'
+                    ? data.renderedTotal
+                    : total,
+                isTruncated: data.isTruncated === true,
+              });
+            }
             break;
           case 'save':
             if (event.data && typeof event.data === 'number') {

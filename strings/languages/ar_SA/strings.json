@@ -521,7 +521,9 @@
     "finished": "انتهى",
     "nextChapter": "التالي: %{name}",
     "noNextChapter": "لا يوجد فصل تالي",
-    "noPreviousChapter": "لا يوجد فصل سابق"
+    "noPreviousChapter": "لا يوجد فصل سابق",
+    "searchMinLength": "Enter at least %{count} characters to search",
+    "searchPlaceholder": "Search chapter"
   },
   "readerSettings": {
     "autoScrollInterval": "فاصل التمرير (ثواني)",

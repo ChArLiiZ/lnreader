@@ -399,6 +399,30 @@ export default function useChapter(
     }
   }, [getChapter]);
 
+  // Chapter search runs inside the webview; these just drive search.js.
+  const searchChapterText = useCallback(
+    (text: string) => {
+      webViewRef.current?.injectJavaScript(
+        `window.readerSearch?.search(${JSON.stringify(text)}); true;`,
+      );
+    },
+    [webViewRef],
+  );
+
+  const clearChapterSearch = useCallback(() => {
+    webViewRef.current?.injectJavaScript('window.readerSearch?.clear(); true;');
+  }, [webViewRef]);
+
+  const navigateChapterSearch = useCallback(
+    (direction: 'NEXT' | 'PREV', text: string) => {
+      const method = direction === 'NEXT' ? 'next' : 'previous';
+      webViewRef.current?.injectJavaScript(
+        `window.readerSearch?.${method}(${JSON.stringify(text)}); true;`,
+      );
+    },
+    [webViewRef],
+  );
+
   const refetch = useCallback(() => {
     setLoading(true);
     setError('');
@@ -441,6 +465,9 @@ export default function useChapter(
       setChapter,
       setLoading,
       getChapter,
+      searchChapterText,
+      clearChapterSearch,
+      navigateChapterSearch,
     }),
     [
       hidden,
@@ -459,6 +486,9 @@ export default function useChapter(
       setChapter,
       setLoading,
       getChapter,
+      searchChapterText,
+      clearChapterSearch,
+      navigateChapterSearch,
     ],
   );
 }

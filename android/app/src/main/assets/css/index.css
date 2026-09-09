@@ -184,3 +184,14 @@ td {
   display: block;
   width: 100%;
 }
+
+mark.lnreader-search-match {
+  border-radius: 2px;
+  color: inherit;
+  background-color: color-mix(in srgb, var(--theme-tertiary) 55%, transparent);
+}
+
+mark.lnreader-search-match-active {
+  color: var(--theme-onPrimary);
+  background-color: var(--theme-primary);
+}
