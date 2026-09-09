@@ -1,6 +1,45 @@
 import { getString } from '@strings/translations';
 import sanitizeHtml from 'sanitize-html';
 
+const PLUGIN_ISSUE_REPORT_URL =
+  'https://github.com/lnreader/lnreader-plugins/issues/new';
+
+export const isPluginIssueReportUrl = (url: string): boolean =>
+  url === PLUGIN_ISSUE_REPORT_URL ||
+  url.startsWith(`${PLUGIN_ISSUE_REPORT_URL}?`);
+
+/** Custom scheme intercepted by the reader WebView to re-fetch the chapter. */
+export const CHAPTER_REFRESH_URL = 'lnreader://refresh-chapter';
+
+export const isChapterRefreshUrl = (url: string): boolean =>
+  url === CHAPTER_REFRESH_URL;
+
+// The empty-chapter message is HTML, and novel and chapter names come from
+// plugins, so they cannot go in raw.
+const escapeHtml = (value: string): string =>
+  value.replace(
+    /[&<>"']/g,
+    character =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      }[character] as string),
+  );
+
+const getPluginIssueReportUrl = (
+  pluginId: string,
+  novelName: string,
+  chapterName: string,
+): string => {
+  const title = `[${pluginId}] Empty chapter: ${novelName} — ${chapterName}`;
+  return `${PLUGIN_ISSUE_REPORT_URL}?template=report_issue.yml&title=${encodeURIComponent(
+    title,
+  )}`;
+};
+
 export const sanitizeChapterText = (
   pluginId: string,
   novelName: string,
@@ -71,9 +110,13 @@ export const sanitizeChapterText = (
   return (
     text ||
     getString('readerScreen.emptyChapterMessage', {
-      pluginId,
-      novelName,
-      chapterName,
+      pluginId: escapeHtml(pluginId),
+      novelName: escapeHtml(novelName),
+      chapterName: escapeHtml(chapterName),
+      reportUrl: escapeHtml(
+        getPluginIssueReportUrl(pluginId, novelName, chapterName),
+      ),
+      refreshUrl: escapeHtml(CHAPTER_REFRESH_URL),
     })
   );
 };

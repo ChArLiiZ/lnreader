@@ -228,7 +228,7 @@ export default function useChapter(
             loadChapterText(nextChap.id, nextChap.path),
           );
         }
-        if (!cachedText) {
+        if (!cachedText && awaitedText.trim()) {
           chapterTextCache.set(chap.id, text);
         }
         setChapter(chap);

@@ -1,4 +1,10 @@
 import React, { memo, useEffect, useMemo, useRef } from 'react';
+import * as Linking from 'expo-linking';
+
+import {
+  isChapterRefreshUrl,
+  isPluginIssueReportUrl,
+} from '../utils/sanitizeChapterText';
 import { NativeEventEmitter, NativeModules, StatusBar } from 'react-native';
 import WebView from 'react-native-webview';
 import color from 'color';
@@ -58,6 +64,7 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
     nextChapter,
     prevChapter,
     webViewRef,
+    refetch,
   } = useChapterContext();
   const theme = useTheme();
 
@@ -350,6 +357,19 @@ const WebViewReader: React.FC<WebViewReaderProps> = ({ onPress }) => {
             handleTTSState(event.data);
             break;
         }
+      }}
+      onShouldStartLoadWithRequest={({ url }) => {
+        // Both links live in the empty-chapter message: one re-fetches the
+        // chapter in place, the other opens a pre-filled plugin issue.
+        if (isChapterRefreshUrl(url)) {
+          refetch();
+          return false;
+        }
+        if (isPluginIssueReportUrl(url)) {
+          Linking.openURL(url);
+          return false;
+        }
+        return true;
       }}
       source={webViewSource}
     />
