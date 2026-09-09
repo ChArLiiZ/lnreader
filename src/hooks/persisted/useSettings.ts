@@ -33,6 +33,15 @@ export const getChapterDownloadCooldownMs = (): number => {
     : DEFAULT_CHAPTER_DOWNLOAD_COOLDOWN_MS;
 };
 
+export interface SmartUpdateFilters {
+  /** Leave finished novels out of a global update. */
+  skipCompleted: boolean;
+  /** Leave novels that have never been opened out of a global update. */
+  skipUnstarted: boolean;
+  /** Leave novels that still have unread chapters out of a global update. */
+  skipWithUnread: boolean;
+}
+
 export interface AppSettings {
   /** How dates outside the relative window are rendered. */
   dateFormat?: DateFormat;
@@ -68,7 +77,14 @@ export interface AppSettings {
    * Update settings
    */
 
-  onlyUpdateOngoingNovels: boolean;
+  /**
+   * @deprecated Superseded by the smart update filters below. Still read once
+   * so an existing preference carries over into `smartUpdateSkipCompleted`.
+   */
+  onlyUpdateOngoingNovels?: boolean;
+  smartUpdateSkipCompleted: boolean;
+  smartUpdateSkipUnstarted: boolean;
+  smartUpdateSkipWithUnread: boolean;
   updateLibraryOnLaunch: boolean;
   downloadNewChapters: boolean;
   refreshNovelMetadata: boolean;
@@ -204,7 +220,9 @@ const initialAppSettings: AppSettings = {
    * Update settings
    */
 
-  onlyUpdateOngoingNovels: false,
+  smartUpdateSkipCompleted: false,
+  smartUpdateSkipUnstarted: false,
+  smartUpdateSkipWithUnread: false,
   updateLibraryOnLaunch: false,
   downloadNewChapters: false,
   refreshNovelMetadata: false,

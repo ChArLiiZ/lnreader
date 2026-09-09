@@ -1,6 +1,7 @@
 import {
   getLibraryWithCategory,
   getLibraryNovelsFromDb,
+  smartUpdateConditions,
 } from '../../database/queries/LibraryQueries';
 
 import { showToast } from '../../utils/showToast';
@@ -11,7 +12,11 @@ import { sleep } from '@utils/sleep';
 import { MMKVStorage, getMMKVObject } from '@utils/mmkv/mmkv';
 import { LAST_UPDATE_TIME } from '@hooks/persisted/useUpdates';
 import dayjs from 'dayjs';
-import { APP_SETTINGS, AppSettings } from '@hooks/persisted/useSettings';
+import {
+  APP_SETTINGS,
+  AppSettings,
+  SmartUpdateFilters,
+} from '@hooks/persisted/useSettings';
 import { BackgroundTaskMetadata } from '@services/ServiceManager';
 
 /** Max retry attempts per novel on transient failures */
@@ -65,8 +70,19 @@ const updateLibrary = async (
     progress: 0,
   }));
 
-  const { downloadNewChapters, refreshNovelMetadata, onlyUpdateOngoingNovels } =
+  const settings: Partial<AppSettings> =
     getMMKVObject<AppSettings>(APP_SETTINGS) || {};
+  const { downloadNewChapters, refreshNovelMetadata } = settings;
+  const smartUpdateFilters: SmartUpdateFilters = {
+    // Carry over the old single "only ongoing" preference for anyone who set it
+    // before these filters replaced it.
+    skipCompleted:
+      settings.smartUpdateSkipCompleted ??
+      settings.onlyUpdateOngoingNovels ??
+      false,
+    skipUnstarted: settings.smartUpdateSkipUnstarted ?? false,
+    skipWithUnread: settings.smartUpdateSkipWithUnread ?? false,
+  };
   const options: UpdateNovelOptions = {
     downloadNewChapters: downloadNewChapters || false,
     refreshNovelMetadata: refreshNovelMetadata || false,
@@ -76,13 +92,13 @@ const updateLibrary = async (
   if (categoryId) {
     libraryNovels = await getLibraryWithCategory(
       categoryId,
-      onlyUpdateOngoingNovels,
+      smartUpdateFilters,
       true,
     );
   } else {
     libraryNovels = (await getLibraryNovelsFromDb(
       '',
-      onlyUpdateOngoingNovels ? "status = 'Ongoing'" : '',
+      smartUpdateConditions(smartUpdateFilters).join(' AND '),
       '',
       false,
       true,

@@ -243,7 +243,8 @@
     "imported": "Imported",
     "saved": "Saved",
     "later": "Later",
-    "skipVersion": "Skip version"
+    "skipVersion": "Skip version",
+    "none": "None"
   },
   "webview": {
     "refresh": "Yenile",
@@ -312,7 +313,11 @@
     "chapterDownloadCooldown": "Chapter download cooldown",
     "chapterDownloadCooldownDesc": "Wait between sequential chapter downloads (seconds). Helps avoid source rate limits during batch downloads.",
     "chapterDownloadCooldownPlaceholder": "Cooldown in seconds (e.g. 1.5)",
-    "chapterDownloadCooldownWarning": "Very low cooldowns may trigger rate limiting or temporary IP bans from sources."
+    "chapterDownloadCooldownWarning": "Very low cooldowns may trigger rate limiting or temporary IP bans from sources.",
+    "smartUpdate": "Smart update",
+    "smartUpdateSkipCompleted": "Skip entries with \"Completed\" status",
+    "smartUpdateSkipUnstarted": "Skip unstarted entries",
+    "smartUpdateSkipWithUnread": "Skip entries with unread chapter(s)"
   },
   "globalSearch": {
     "allSources": "tüm kaynaklarda",

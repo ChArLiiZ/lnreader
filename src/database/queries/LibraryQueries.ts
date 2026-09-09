@@ -1,5 +1,6 @@
 import { db } from '@database/db';
 import { LibraryNovelInfo, NovelInfo } from '../types';
+import type { SmartUpdateFilters } from '@hooks/persisted/useSettings';
 
 export const getLibraryNovelsFromDb = (
   sortOrder?: string,
@@ -41,9 +42,24 @@ export const getLibraryNovelsFromDb = (
   );
 };
 
+/**
+ * SQL fragments for the smart update filters. Each one narrows which novels a
+ * global update will touch.
+ */
+export const smartUpdateConditions = ({
+  skipCompleted,
+  skipUnstarted,
+  skipWithUnread,
+}: SmartUpdateFilters): string[] =>
+  [
+    skipWithUnread ? 'COALESCE(chaptersUnread, 0) = 0' : '',
+    skipUnstarted ? 'lastReadAt IS NOT NULL' : '',
+    skipCompleted ? "status != 'Completed'" : '',
+  ].filter(Boolean);
+
 export const getLibraryWithCategory = async (
   categoryId?: number | null,
-  onlyUpdateOngoingNovels?: boolean,
+  smartUpdateFilters?: SmartUpdateFilters,
   excludeLocalNovels?: boolean,
 ): Promise<LibraryNovelInfo[]> => {
   let query = `
@@ -62,8 +78,10 @@ export const getLibraryWithCategory = async (
     query += ' AND n.isLocal = 0';
   }
 
-  if (onlyUpdateOngoingNovels) {
-    query += " AND n.status = 'Ongoing'";
+  if (smartUpdateFilters) {
+    for (const condition of smartUpdateConditions(smartUpdateFilters)) {
+      query += ` AND n.${condition}`;
+    }
   }
 
   return db.getAllAsync<LibraryNovelInfo>(query, params);

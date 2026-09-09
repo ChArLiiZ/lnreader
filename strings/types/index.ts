@@ -247,6 +247,7 @@ export interface StringMap {
   'common.saved': 'string';
   'common.later': 'string';
   'common.skipVersion': 'string';
+  'common.none': 'string';
   'webview.refresh': 'string';
   'webview.share': 'string';
   'webview.openInBrowser': 'string';
@@ -306,6 +307,10 @@ export interface StringMap {
   'generalSettingsScreen.chapterDownloadCooldownDesc': 'string';
   'generalSettingsScreen.chapterDownloadCooldownPlaceholder': 'string';
   'generalSettingsScreen.chapterDownloadCooldownWarning': 'string';
+  'generalSettingsScreen.smartUpdate': 'string';
+  'generalSettingsScreen.smartUpdateSkipCompleted': 'string';
+  'generalSettingsScreen.smartUpdateSkipUnstarted': 'string';
+  'generalSettingsScreen.smartUpdateSkipWithUnread': 'string';
   'globalSearch.allSources': 'string';
   'globalSearch.hasResults': 'string';
   'globalSearch.searchIn': 'string';

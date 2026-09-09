@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import DownloadCooldownModal from './modals/DownloadCooldownModal';
+import SmartUpdateDialog from './modals/SmartUpdateDialog';
+import type { SmartUpdateFilters } from '@hooks/persisted/useSettings';
 import DisplayModeModal from './modals/DisplayModeModal';
 import GridSizeModal from './modals/GridSizeModal';
 
@@ -54,7 +56,9 @@ const GenralSettings: React.FC<GenralSettingsProps> = ({ navigation }) => {
     disableLoadingAnimations,
     updateLibraryOnLaunch,
     downloadNewChapters,
-    onlyUpdateOngoingNovels,
+    smartUpdateSkipCompleted = false,
+    smartUpdateSkipUnstarted = false,
+    smartUpdateSkipWithUnread = false,
     defaultChapterSort,
     refreshNovelMetadata,
     disableHapticFeedback,
@@ -107,6 +111,50 @@ const GenralSettings: React.FC<GenralSettingsProps> = ({ navigation }) => {
    * Download Cooldown Modal
    */
   const downloadCooldownModalRef = useBoolean();
+
+  /**
+   * Smart Update Dialog
+   */
+  const smartUpdateDialogRef = useBoolean();
+  const [smartUpdateDraft, setSmartUpdateDraft] = useState<SmartUpdateFilters>({
+    skipCompleted: smartUpdateSkipCompleted,
+    skipUnstarted: smartUpdateSkipUnstarted,
+    skipWithUnread: smartUpdateSkipWithUnread,
+  });
+
+  const openSmartUpdateDialog = () => {
+    setSmartUpdateDraft({
+      skipCompleted: smartUpdateSkipCompleted,
+      skipUnstarted: smartUpdateSkipUnstarted,
+      skipWithUnread: smartUpdateSkipWithUnread,
+    });
+    smartUpdateDialogRef.setTrue();
+  };
+
+  // Summarise the active filters on the row itself.
+  const smartUpdateDescription =
+    [
+      smartUpdateSkipWithUnread
+        ? getString('generalSettingsScreen.smartUpdateSkipWithUnread')
+        : null,
+      smartUpdateSkipUnstarted
+        ? getString('generalSettingsScreen.smartUpdateSkipUnstarted')
+        : null,
+      smartUpdateSkipCompleted
+        ? getString('generalSettingsScreen.smartUpdateSkipCompleted')
+        : null,
+    ]
+      .filter(Boolean)
+      .join(', ') || getString('common.none');
+
+  const saveSmartUpdate = () => {
+    setAppSettings({
+      smartUpdateSkipCompleted: smartUpdateDraft.skipCompleted,
+      smartUpdateSkipUnstarted: smartUpdateDraft.skipUnstarted,
+      smartUpdateSkipWithUnread: smartUpdateDraft.skipWithUnread,
+    });
+    smartUpdateDialogRef.setFalse();
+  };
   return (
     <SafeAreaView excludeTop>
       <Appbar
@@ -189,14 +237,10 @@ const GenralSettings: React.FC<GenralSettingsProps> = ({ navigation }) => {
           <List.SubHeader theme={theme}>
             {getString('generalSettingsScreen.globalUpdate')}
           </List.SubHeader>
-          <SettingSwitch
-            label={getString('generalSettingsScreen.updateOngoing')}
-            value={onlyUpdateOngoingNovels}
-            onPress={() =>
-              setAppSettings({
-                onlyUpdateOngoingNovels: !onlyUpdateOngoingNovels,
-              })
-            }
+          <List.Item
+            title={getString('generalSettingsScreen.smartUpdate')}
+            description={smartUpdateDescription}
+            onPress={openSmartUpdateDialog}
             theme={theme}
           />
           <SettingSwitch
@@ -266,6 +310,13 @@ const GenralSettings: React.FC<GenralSettingsProps> = ({ navigation }) => {
           />
         </List.Section>
       </ScrollView>
+      <SmartUpdateDialog
+        filters={smartUpdateDraft}
+        visible={smartUpdateDialogRef.value}
+        onCancel={smartUpdateDialogRef.setFalse}
+        onChange={setSmartUpdateDraft}
+        onSave={saveSmartUpdate}
+      />
       <DownloadCooldownModal
         visible={downloadCooldownModalRef.value}
         hideModal={downloadCooldownModalRef.setFalse}

@@ -243,7 +243,8 @@
     "imported": "Diimpor",
     "saved": "Tersimpan",
     "later": "Nanti",
-    "skipVersion": "Lewati versi"
+    "skipVersion": "Lewati versi",
+    "none": "Tidak ada"
   },
   "webview": {
     "refresh": "Muat ulang",
@@ -312,7 +313,11 @@
     "chapterDownloadCooldown": "Jeda unduhan bab",
     "chapterDownloadCooldownDesc": "Tunggu di antara unduhan bab berurutan (detik). Membantu menghindari batas laju sumber selama pengunduhan massal.",
     "chapterDownloadCooldownPlaceholder": "Jeda dalam detik (mis. 1.5)",
-    "chapterDownloadCooldownWarning": "Jeda yang sangat singkat dapat memicu pembatasan laju atau pemblokiran IP sementara dari sumber."
+    "chapterDownloadCooldownWarning": "Jeda yang sangat singkat dapat memicu pembatasan laju atau pemblokiran IP sementara dari sumber.",
+    "smartUpdate": "Pembaruan cerdas",
+    "smartUpdateSkipCompleted": "Lewati entri dengan status \"Selesai\"",
+    "smartUpdateSkipUnstarted": "Lewati entri yang belum dimulai",
+    "smartUpdateSkipWithUnread": "Lewati entri dengan bab yang belum dibaca"
   },
   "globalSearch": {
     "allSources": "semua sumber",
