@@ -350,8 +350,9 @@
   },
   "globalSearch": {
     "allSources": "所有來源",
-    "searchIn": "搜尋小說於",
-    "hasResults": "有結果"
+    "hasResults": "有結果",
+    "openFromClipboard": "從剪貼簿開啟",
+    "searchIn": "搜尋小說於"
   },
   "history": "歷史",
   "historyScreen": {

@@ -353,6 +353,7 @@
   "globalSearch": {
     "allSources": "all sources",
     "hasResults": "Has results",
+    "openFromClipboard": "Open from clipboard",
     "searchIn": "Search a novel in"
   },
   "history": "History",

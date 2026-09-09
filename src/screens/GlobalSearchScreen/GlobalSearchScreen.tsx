@@ -1,6 +1,9 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Chip, ProgressBar } from 'react-native-paper';
+import { Chip, FAB, ProgressBar } from 'react-native-paper';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { getStringAsync } from 'expo-clipboard';
+import { resolveSharedUrl } from '@services/share/resolveSharedUrl';
 
 import {
   EmptyView,
@@ -14,6 +17,7 @@ import { useSearch } from '@hooks';
 import { useTheme } from '@hooks/persisted';
 
 import { getString } from '@strings/translations';
+import { GlobalSearchScreenProps } from '@navigators/types';
 import { useGlobalSearch } from './hooks/useGlobalSearch';
 import { useMMKVString } from 'react-native-mmkv';
 
@@ -62,6 +66,7 @@ interface Props {
 
 const GlobalSearchScreen = (props: Props) => {
   const theme = useTheme();
+  const { navigate } = useNavigation<GlobalSearchScreenProps['navigation']>();
   const { searchText, setSearchText, clearSearchbar } = useSearch(
     props?.route?.params?.searchText,
     false,
@@ -79,6 +84,36 @@ const GlobalSearchScreen = (props: Props) => {
   });
 
   const showHistory = !searchText && progress === 0 && history.length > 0;
+
+  // If the clipboard holds a novel URL from an installed source, offer to open
+  // it directly rather than making the user search for a novel they already
+  // have the address of. Only an unambiguous single-source match is offered.
+  const [clipboardNovel, setClipboardNovel] = useState<
+    { pluginId: string; path: string } | undefined
+  >();
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      getStringAsync()
+        .then(text => {
+          const result = text ? resolveSharedUrl(text) : undefined;
+          if (active) {
+            setClipboardNovel(
+              result?.kind === 'novel'
+                ? { pluginId: result.pluginId, path: result.path }
+                : undefined,
+            );
+          }
+        })
+        .catch(() => {
+          // A denied or empty clipboard simply means no shortcut to offer.
+        });
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   return (
     <SafeAreaView>
@@ -125,6 +160,24 @@ const GlobalSearchScreen = (props: Props) => {
           ))}
         </View>
       ) : null}
+      {clipboardNovel ? (
+        <FAB
+          style={[styles.fab, { backgroundColor: theme.primary }]}
+          color={theme.onPrimary}
+          label={getString('globalSearch.openFromClipboard')}
+          icon="link-variant"
+          onPress={() =>
+            navigate('ReaderStack', {
+              screen: 'Novel',
+              params: {
+                name: clipboardNovel.path,
+                path: clipboardNovel.path,
+                pluginId: clipboardNovel.pluginId,
+              },
+            })
+          }
+        />
+      ) : null}
       <GlobalSearchResultsList
         searchResults={searchResults}
         ListEmptyComponent={
@@ -157,6 +210,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 12,
     gap: 8,
+  },
+  fab: {
+    bottom: 16,
+    end: 16,
+    position: 'absolute',
+    zIndex: 1,
   },
   historyChip: {
     marginBottom: 4,

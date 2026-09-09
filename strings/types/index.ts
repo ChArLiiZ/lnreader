@@ -314,6 +314,7 @@ export interface StringMap {
   'generalSettingsScreen.smartUpdateSkipWithUnread': 'string';
   'globalSearch.allSources': 'string';
   'globalSearch.hasResults': 'string';
+  'globalSearch.openFromClipboard': 'string';
   'globalSearch.searchIn': 'string';
   'history': 'string';
   'historyScreen.chapter': 'string';
