@@ -1,34 +1,48 @@
 import { ThemeColors } from '@theme/types';
 import color from 'color';
 import { useAppSettings } from '@hooks/persisted';
-import { interpolateColor } from 'react-native-reanimated';
+import { useMemo } from 'react';
+
+const BASE_STRENGTH = 0.03;
+const STATIC_BASE_STRENGTH = 0.05;
+const HIGHLIGHT_STRENGTH = 0.06;
+
+/**
+ * Mixing the surface toward its own foreground keeps skeletons neutral in every
+ * theme. Tinting them with the primary colour, as this used to, made them read
+ * as interactive and broke down entirely on pure-black surfaces.
+ *
+ * With animations off the highlight sweep is never drawn, so the base alone has
+ * to carry the shape and is mixed a little further.
+ */
+export const getLoadingColors = (
+  theme: ThemeColors,
+  disableLoadingAnimations = false,
+) => {
+  const surfaceColor = color(theme.surface);
+  const foregroundColor = color(theme.onSurface);
+  const backgroundStrength = disableLoadingAnimations
+    ? STATIC_BASE_STRENGTH
+    : BASE_STRENGTH;
+
+  const backgroundColor = surfaceColor
+    .mix(foregroundColor, backgroundStrength)
+    .hex();
+  const highlightColor = surfaceColor
+    .mix(foregroundColor, HIGHLIGHT_STRENGTH)
+    .hex();
+
+  return [highlightColor, backgroundColor] as const;
+};
 
 const useLoadingColors = (theme: ThemeColors) => {
-  const highlightColor = color(theme.primary).alpha(0.08).string();
-  const backgroundColor = color(theme.surface);
-
-  let adjustedBackgroundColor;
-
-  if (backgroundColor.isDark()) {
-    adjustedBackgroundColor =
-      backgroundColor.luminosity() !== 0
-        ? backgroundColor.lighten(0.1).toString()
-        : backgroundColor.negate().darken(0.98).toString();
-  } else {
-    adjustedBackgroundColor = backgroundColor.darken(0.04).toString();
-  }
-
   const { disableLoadingAnimations } = useAppSettings();
+  const colors = useMemo(
+    () => getLoadingColors(theme, disableLoadingAnimations),
+    [disableLoadingAnimations, theme],
+  );
 
-  if (disableLoadingAnimations) {
-    //If loading animations is disabled highlight color is never shown so make background color more visible to compensate
-    adjustedBackgroundColor = interpolateColor(
-      0.01, //I have no idea why the interpolation amount has to be so small, I think its cus of the massive difference in alpha
-      [0, 1],
-      [adjustedBackgroundColor, highlightColor],
-    );
-  }
-
-  return [highlightColor, adjustedBackgroundColor];
+  return [...colors, disableLoadingAnimations] as const;
 };
+
 export default useLoadingColors;

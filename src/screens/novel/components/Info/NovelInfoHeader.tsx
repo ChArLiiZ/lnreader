@@ -42,14 +42,14 @@ import {
 } from '@components/Skeleton/Skeleton';
 import { useNovelContext } from '@screens/novel/NovelContext';
 import Animated, {
-  useAnimatedProps,
+  cancelAnimation,
+  useAnimatedStyle,
   useSharedValue,
   withRepeat,
-  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import useLoadingColors from '@components/Skeleton/useLoadingColors';
+import useLoadingColors from '@utils/useLoadingColors';
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
@@ -94,34 +94,12 @@ const getStatusIcon = (status?: string) =>
   STATUS_ICON_MAP[status as keyof typeof STATUS_ICON_MAP] ?? 'help';
 
 const ChapterCountSkeleton = ({ theme }: { theme: ThemeColors }) => {
-  const sv = useSharedValue(0);
-  const { disableLoadingAnimations } = useAppSettings();
-  const [highlightColor, backgroundColor] = useLoadingColors(theme);
-
-  const animatedProps = useAnimatedProps(() => {
-    return {
-      left: (sv.value + '%') as `${number}%`,
-    };
-  });
-
-  React.useEffect(() => {
-    if (disableLoadingAnimations) return;
-    sv.value = withRepeat(
-      withSequence(0, withTiming(160, { duration: 1000 })),
-      -1,
-    );
-  }, [disableLoadingAnimations, sv]);
-
-  if (disableLoadingAnimations) {
-    return (
-      <View
-        style={[
-          styles.chapterCountSkeleton,
-          { backgroundColor: backgroundColor },
-        ]}
-      />
-    );
-  }
+  const {
+    animatedStyle,
+    highlightColor,
+    backgroundColor,
+    disableLoadingAnimations,
+  } = useShimmer(theme);
 
   return (
     <View
@@ -130,33 +108,51 @@ const ChapterCountSkeleton = ({ theme }: { theme: ThemeColors }) => {
         { backgroundColor: backgroundColor },
       ]}
     >
-      <AnimatedLinearGradient
-        start={[0, 0]}
-        end={[1, 0]}
-        locations={[0, 0.3, 0.7, 1]}
-        style={[animatedProps, styles.chapterCountGradient]}
-        colors={['transparent', highlightColor, highlightColor, 'transparent']}
-      />
+      {!disableLoadingAnimations ? (
+        <AnimatedLinearGradient
+          start={[0, 0]}
+          end={[1, 0]}
+          locations={[0, 0.3, 0.7, 1]}
+          style={[styles.chapterCountGradient, animatedStyle]}
+          colors={[
+            'transparent',
+            highlightColor,
+            highlightColor,
+            'transparent',
+          ]}
+        />
+      ) : null}
     </View>
   );
 };
 
 const useShimmer = (theme: ThemeColors) => {
-  const sv = useSharedValue(0);
-  const { disableLoadingAnimations } = useAppSettings();
-  const [highlightColor, backgroundColor] = useLoadingColors(theme);
+  const translateX = useSharedValue(-100);
+  const [highlightColor, backgroundColor, disableLoadingAnimations] =
+    useLoadingColors(theme);
 
-  const animatedStyle = useAnimatedProps(() => ({
-    left: (sv.value + '%') as `${number}%`,
+  // Sliding a transform keeps the sweep on the compositor; animating `left`
+  // relaid out the placeholder on every frame.
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: (translateX.value + '%') as `${number}%`,
+      },
+    ],
   }));
 
   React.useEffect(() => {
-    if (disableLoadingAnimations) return;
-    sv.value = withRepeat(
-      withSequence(0, withTiming(160, { duration: 1000 })),
-      -1,
-    );
-  }, [disableLoadingAnimations, sv]);
+    cancelAnimation(translateX);
+    translateX.value = -100;
+    if (!disableLoadingAnimations) {
+      translateX.value = withRepeat(
+        withTiming(200, { duration: 1000 }),
+        -1,
+        false,
+      );
+    }
+    return () => cancelAnimation(translateX);
+  }, [disableLoadingAnimations, translateX]);
 
   return {
     animatedStyle,
@@ -179,7 +175,7 @@ const NovelDetailsSkeleton = ({ theme }: { theme: ThemeColors }) => {
       start={[0, 0]}
       end={[1, 0]}
       locations={[0, 0.3, 0.7, 1]}
-      style={[animatedStyle, styles.infoSkeletonGradient]}
+      style={[styles.infoSkeletonGradient, animatedStyle]}
       colors={['transparent', highlightColor, highlightColor, 'transparent']}
     />
   ) : null;
