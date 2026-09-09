@@ -308,3 +308,28 @@ and intent opening, dedicated custom code settings page.
   by the navigation bar
 - skeleton colours across the eight themes
 - migration 010 against the real database
+
+
+## Tier 3 progress
+
+Done: migration 011 (columns for all three data-backed features), repository
+enable/disable (`909504a7`), scanlator filtering (`98a2a1d7`), and the
+portable half of URL novel opening (`77be5624`).
+
+Skipped by request: time tracking and statistics. Its `timeSpent` column is
+in place, so it can be picked up later without another migration.
+
+### Not attempted, and why
+
+Three of the remaining features are native-module or bundled-refactor work
+rather than ports:
+
+| Feature | What it actually requires |
+| --- | --- |
+| Nitro EPUB export (`4cb1890b`) | 43 native files — C++ export pipeline, Kotlin package, CMake, podspec — plus a pnpm workspace and the nitrogen codegen toolchain. This fork has no `modules/` tree at all. It also removes `@cd-z/react-native-epub-creator`, `react-native-file-access` and `react-native-zip-archive`. Nothing about it can be verified without an Android build, and a wrong CMake or codegen step fails the build outright. |
+| Share-intent half of `77be5624` | A native share-receiver module plus `app.json` intent filters. |
+| Custom code page (`64707409`) | 5415 lines that bundle three things: the snippet screen, a separate find/replace text-modification system with its own reader asset, and a 334-line WebViewReader restructure. Pulls in `react-native-keyboard-controller` (native) and `react-syntax-highlighter`. It also replaces `customCSS`/`customJS` strings with snippet arrays, so existing custom code needs a migration of its own. The WebViewReader it rewrites is this fork's most heavily modified file. |
+
+The snippet feature could be built against the fork's own components without
+those dependencies, but that is authoring a feature rather than porting one,
+and it touches stored user settings — worth deciding on deliberately.
