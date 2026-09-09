@@ -241,6 +241,8 @@ export interface StringMap {
   'common.warning': 'string';
   'common.imported': 'string';
   'common.saved': 'string';
+  'common.later': 'string';
+  'common.skipVersion': 'string';
   'webview.refresh': 'string';
   'webview.share': 'string';
   'webview.openInBrowser': 'string';

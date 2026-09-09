@@ -237,7 +237,9 @@
     "loading": "正在加载...",
     "warning": "警告",
     "imported": "Imported",
-    "saved": "Saved"
+    "saved": "Saved",
+    "later": "Later",
+    "skipVersion": "Skip version"
   },
   "webview": {
     "refresh": "刷新",

@@ -237,7 +237,9 @@
     "loading": "جارٍ التحميل...",
     "warning": "تحذير",
     "imported": "Imported",
-    "saved": "Saved"
+    "saved": "Saved",
+    "later": "Later",
+    "skipVersion": "Skip version"
   },
   "webview": {
     "refresh": "تحديث",

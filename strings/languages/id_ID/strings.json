@@ -237,7 +237,9 @@
     "loading": "Memuat ...",
     "warning": "Peringatan",
     "imported": "Diimpor",
-    "saved": "Tersimpan"
+    "saved": "Tersimpan",
+    "later": "Nanti",
+    "skipVersion": "Lewati versi"
   },
   "webview": {
     "refresh": "Muat ulang",

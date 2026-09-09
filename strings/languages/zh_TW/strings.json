@@ -265,7 +265,9 @@
     "remaining": "剩餘",
     "taskQueue": "任務佇列",
     "imported": "Imported",
-    "saved": "Saved"
+    "saved": "Saved",
+    "later": "Later",
+    "skipVersion": "Skip version"
   },
   "webview": {
     "refresh": "重新整理",

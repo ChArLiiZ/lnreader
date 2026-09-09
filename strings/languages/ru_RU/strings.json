@@ -237,7 +237,9 @@
     "loading": "Загрузка...",
     "warning": "Внимание",
     "imported": "Imported",
-    "saved": "Saved"
+    "saved": "Saved",
+    "later": "Later",
+    "skipVersion": "Skip version"
   },
   "webview": {
     "refresh": "Обновить",

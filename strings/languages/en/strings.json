@@ -267,7 +267,9 @@
     "taskQueue": "Task Queue",
     "warning": "Warning",
     "imported": "Imported",
-    "saved": "Saved"
+    "saved": "Saved",
+    "later": "Later",
+    "skipVersion": "Skip version"
   },
   "webview": {
     "refresh": "Refresh",

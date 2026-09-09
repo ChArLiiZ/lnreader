@@ -237,7 +237,9 @@
     "loading": "Yükleniyor ...",
     "warning": "Dikkat",
     "imported": "Imported",
-    "saved": "Saved"
+    "saved": "Saved",
+    "later": "Later",
+    "skipVersion": "Skip version"
   },
   "webview": {
     "refresh": "Yenile",

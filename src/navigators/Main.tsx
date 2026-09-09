@@ -15,7 +15,7 @@ import {
   setStatusBarColor,
 } from '@theme/utils/setBarColor';
 import { useAppSettings, usePlugins, useTheme } from '@hooks/persisted';
-import { useGithubUpdateChecker } from '@hooks/common/useGithubUpdateChecker';
+import { AppUpdateChecker } from '@components';
 
 /**
  * Navigators — BottomNavigator is eagerly loaded (home screen)
@@ -51,7 +51,6 @@ const WebviewScreen = lazy(
   () => import('@screens/WebviewScreen/WebviewScreen'),
 );
 
-import NewUpdateDialog from '../components/NewUpdateDialog';
 import { RootStackParamList } from './types';
 import Color from 'color';
 import { useMMKVBoolean } from 'react-native-mmkv';
@@ -277,8 +276,6 @@ const MainNavigator = () => {
     setAppSettings,
   ]);
 
-  const { isNewVersion, latestRelease } = useGithubUpdateChecker();
-
   if (!isOnboarded) {
     return <OnboardingScreen />;
   }
@@ -317,7 +314,7 @@ const MainNavigator = () => {
       <LibraryContextProvider>
         <UpdateContextProvider>
           <OfflineBanner />
-          {isNewVersion && <NewUpdateDialog newVersion={latestRelease} />}
+          <AppUpdateChecker />
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="BottomNavigator" component={BottomNavigator} />
             <Stack.Screen name="ReaderStack" component={LazyReaderStack} />
